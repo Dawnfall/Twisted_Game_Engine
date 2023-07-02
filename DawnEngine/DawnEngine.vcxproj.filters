@@ -6,13 +6,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core_macros.h" />
+    <ClInclude Include="src\Dawn.h" />
     <ClInclude Include="src\Dawn\Application.h">
+      <Filter>Dawn</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Dawn\Core_macros.h">
+      <Filter>Dawn</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Dawn\Window.h">
       <Filter>Dawn</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Dawn\Application.cpp">
+      <Filter>Dawn</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Dawn\Window.cpp">
       <Filter>Dawn</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,2 +1,2 @@
-call 3rd\bin\premake\premake5.exe vs2022
+call 3rd\premake\premake5.exe vs2022
 PAUSE

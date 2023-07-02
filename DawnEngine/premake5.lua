@@ -16,30 +16,28 @@ project "DawnEngine"
     includedirs
     {
     --  "%{IncludeDir.SPDLOG}",
-    --  "%{IncludeDir.GLFWtemp}",
-    --  "%{IncludeDir.GLFW},"
+        "%{IncludeDir.GLFW}"
     --  "%{IncludeDir.Glad}"
     }
 
     links
     {
-        --"%{wks.location}/DawnEngine/3rd/GLFWtemp/lib/glfw3.lib",
-        -- "GLFW" -- ************project build not used currently due to some error
-
-        "opengl32.lib"
+        "%{wks.location}/3rd/GLFW/lib/glfw3.lib",
         -- "Glad"
-        -- "kernel32.lib",
-        -- "user32.lib",
-        -- "gdi32.lib",
-        -- "winspool.lib",
-        -- "comdlg32.lib",
-        -- "advapi32.lib",
-        -- "shell32.lib",
-        -- "ole32.lib",
-        -- "oleaut32.lib",
-        -- "uuid.lib",
-        -- "odbc32.lib",
-        -- "odbccp32.lib"
+
+        "opengl32.lib",
+        "kernel32.lib",
+        "user32.lib",
+        "gdi32.lib",
+        "winspool.lib",
+        "comdlg32.lib",
+        "advapi32.lib",
+        "shell32.lib",
+        "ole32.lib",
+        "oleaut32.lib",
+        "uuid.lib",
+        "odbc32.lib",
+        "odbccp32.lib"
     }
 
     filter "system:windows"       

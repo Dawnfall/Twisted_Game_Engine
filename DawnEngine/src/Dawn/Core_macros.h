@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #ifdef DAWN_DEBUG
 #define DAWN_ENABLE_ASSERTS
 #ifdef DAWN_WINDOWS

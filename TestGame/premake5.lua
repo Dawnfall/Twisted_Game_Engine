@@ -15,12 +15,14 @@ project "TestGame"
 
     links
     {
-        "DawnEngine"
+        "DawnEngine",
+        "%{wks.location}/3rd/GLFW/lib/glfw3.lib"
     }
 
     includedirs
     {
         "%{wks.location}/DawnEngine/src",
+        "%{IncludeDir.GLFW}"
     --    "%{IncludeDir.SPDLOG}"     
     }
 
