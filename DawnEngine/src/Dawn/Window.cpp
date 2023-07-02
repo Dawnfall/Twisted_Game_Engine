@@ -1,7 +1,7 @@
 #include "Window.h"
 
 #include <GLFW/glfw3.h>
-
+#include <glad/glad.h>
 #include "Core_macros.h"
 
 namespace Dawn 
@@ -16,6 +16,13 @@ namespace Dawn
 
 		m_window = glfwCreateWindow(m_windowData.Width, m_windowData.Height, m_windowData.Title.c_str(), NULL, NULL);
 		glfwMakeContextCurrent(m_window);
+
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+		{
+			//if error
+		}
+
+		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 	}
 
 	Window::~Window()
@@ -35,7 +42,6 @@ namespace Dawn
 
 			/* Poll for and process events */
 			glfwPollEvents();
-
 		}
 	}
 

@@ -16,14 +16,14 @@ project "DawnEngine"
     includedirs
     {
     --  "%{IncludeDir.SPDLOG}",
-        "%{IncludeDir.GLFW}"
-    --  "%{IncludeDir.Glad}"
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Glad}"
     }
 
     links
     {
         "%{wks.location}/3rd/GLFW/lib/glfw3.lib",
-        -- "Glad"
+        "Glad",
 
         "opengl32.lib",
         "kernel32.lib",
@@ -46,7 +46,7 @@ project "DawnEngine"
         defines
         {
             "DAWN_WINDOWS",
-            --"GLFW_INCLUDE_NONE"
+            "GLFW_INCLUDE_NONE"
         }
 
     filter "configurations:Debug"
