@@ -15,7 +15,7 @@ project "DawnEngine"
 
     includedirs
     {
-    --  "%{IncludeDir.SPDLOG}",
+        "%{IncludeDir.spdlog}",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}"
     }

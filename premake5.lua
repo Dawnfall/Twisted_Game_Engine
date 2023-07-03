@@ -11,7 +11,7 @@ workspace "DawnEngine"
     outputDir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
     IncludeDir = {}
-    --IncludeDir["SPDLOG"] ="%{wks.location}/DawnEngine/3rd/spdlog/include"
+    IncludeDir["spdlog"] ="%{wks.location}/3rd/spdlog/include"
     IncludeDir["GLFW"] = "%{wks.location}/3rd/GLFW/include"
     IncludeDir["Glad"]="%{wks.location}/DawnEngine/3rd/Glad/include"
 
