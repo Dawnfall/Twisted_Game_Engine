@@ -9,6 +9,7 @@ namespace Dawn
 	{
 	public:
 		Application();
+		~Application();
 
 		void Init();
 
