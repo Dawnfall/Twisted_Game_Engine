@@ -1,6 +1,6 @@
 #include "Application.h"
 
-#include "../Logger.h"
+#include "Logger.h"
 #include "Window.h"
 
 namespace Dawn
@@ -23,10 +23,7 @@ namespace Dawn
 
 		m_window = std::unique_ptr<Window>(Window::Create());
 
-
-		//DAWN_DEBUG_ASSERT(m_window != nullptr);
-		DAWN_INFO("Window Created");
-		//DAWN_INFO("Application Init success!");
+		DAWN_INFO("Application Init success!");
 	}
 
 	void Application::Run()

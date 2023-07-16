@@ -1,3 +1,6 @@
 [submodule "3rd/spdlog"]
 	path = 3rd/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "3rd/GLM"]
+	path = 3rd/GLM
+	url = https://github.com/g-truc/glm.git

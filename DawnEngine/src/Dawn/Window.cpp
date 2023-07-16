@@ -2,9 +2,9 @@
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
-#include "Core_macros.h"
 
-#include "../Logger.h"
+#include "Dawn/Core_macros.h"
+#include "Logger.h"
 
 //TODO:... error handling
 
@@ -16,16 +16,14 @@ namespace Dawn
 		m_window(nullptr)
 	{
 		m_window = glfwCreateWindow(m_windowData.Width, m_windowData.Height, m_windowData.Title.c_str(), NULL, NULL);
-		glfwMakeContextCurrent(m_window);
-
-		//TODO: prolly init in context
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		{
-			//if error
-		}
-
+		glfwMakeContextCurrent(m_window); //TODO: not sure if needed
 		glfwSetWindowCloseCallback(m_window, Window::WindowCloseCallback);
-		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+
+		m_renderContext = std::make_unique<RenderContext>();
+		m_renderContext->Init(this);
+
+		DAWN_INFO("Window Created");
+
 	}
 
 	Window::~Window()
@@ -58,6 +56,7 @@ namespace Dawn
 			return false;
 
 		glfwSetErrorCallback(Window::ErrorCallback);
+		return true;
 	}
 
 	void Window::Terminate()

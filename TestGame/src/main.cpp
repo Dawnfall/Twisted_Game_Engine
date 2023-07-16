@@ -1,6 +1,7 @@
 #include "Dawn.h"
 
 #include <string>
+//#include <Dawn/Mesh.h>
 
 float vertices[] = {
 	-0.5f, -0.5f, 0.0f,
@@ -37,6 +38,12 @@ void main()
 
 int main()
 {
+	//Dawn::Vertex vertex;
+	//vertex.Position = glm::vec3(0.2f, 0.4f, 0.6f);
+	//vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+	//vertex.TexCoords = glm::vec2(1.0f, 0.0f);
+
+
 	Dawn::Application* app = new Dawn::Application();
 	app->Init();
 	app->Run();

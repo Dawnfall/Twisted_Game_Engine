@@ -13,7 +13,8 @@ workspace "DawnEngine"
     IncludeDir = {}
     IncludeDir["spdlog"] ="%{wks.location}/3rd/spdlog/include"
     IncludeDir["GLFW"] = "%{wks.location}/3rd/GLFW/include"
-    IncludeDir["Glad"]="%{wks.location}/DawnEngine/3rd/Glad/include"
+    IncludeDir["Glad"] = "%{wks.location}/DawnEngine/3rd/Glad/include"
+    IncludeDir["GLM"] = "%{wks.location}/3rd/GLM/glm"
 
     group "Dependecies"
         include "DawnEngine/3rd/Glad" -- --    include "DawnEngine/3rd/GLFW"

@@ -2,10 +2,13 @@
 
 #include <GLFW/glfw3.h>
 #include <string>
-
+#include <memory>
+#include "Dawn/Rendering/RenderContext.h"
 
 namespace Dawn
 {
+	class RenderContext;
+
 	struct WindowData
 	{
 		std::string Title;
@@ -50,10 +53,12 @@ namespace Dawn
 		static void WindowCloseCallback(GLFWwindow* window);
 		static void WindowResizeCallback(GLFWwindow* window, int width, int height);
 
+		WindowData m_windowData;
 	private:
 		GLFWwindow* m_window = nullptr;
-		WindowData m_windowData;
+		std::unique_ptr<RenderContext> m_renderContext;
 
+		
 		void ProcessEvents();
 	};
 }

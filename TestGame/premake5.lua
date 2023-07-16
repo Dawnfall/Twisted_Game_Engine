@@ -22,8 +22,15 @@ project "TestGame"
     includedirs
     {
         "%{wks.location}/DawnEngine/src",
+        "%{IncludeDir.spdlog}",  
         "%{IncludeDir.GLFW}",
-        "%{IncludeDir.spdlog}"     
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.GLM}"
+    }
+
+    defines
+    {
+        "GLFW_INCLUDE_NONE"
     }
 
     filter "system:windows"
