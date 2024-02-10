@@ -4,7 +4,7 @@
 #include <glad/glad.h>
 
 #include "Dawn/Core_macros.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 //TODO:... error handling
 
@@ -17,6 +17,8 @@ namespace Dawn
 	{
 		m_window = glfwCreateWindow(m_windowData.Width, m_windowData.Height, m_windowData.Title.c_str(), NULL, NULL);
 		glfwMakeContextCurrent(m_window); //TODO: not sure if needed
+
+		glfwSetWindowUserPointer(m_window, this);
 		glfwSetWindowCloseCallback(m_window, Window::WindowCloseCallback);
 
 		m_renderContext = std::make_unique<RenderContext>();
@@ -33,8 +35,7 @@ namespace Dawn
 
 	void Window::OnUpdate()
 	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
+
 
 
 		glfwSwapBuffers(m_window);
@@ -46,9 +47,10 @@ namespace Dawn
 		glfwPollEvents();
 	}
 
-
-
-
+	void Window::Clear()
+	{
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 
 	bool Window::Init()
 	{
@@ -70,7 +72,7 @@ namespace Dawn
 	}
 
 	//********************
-	// Callbacks
+	// glfw Callbacks
 
 	bool Window::IsKeyPressed(GLFWwindow* window, int key)
 	{
@@ -96,8 +98,8 @@ namespace Dawn
 	}
 	void Window::WindowCloseCallback(GLFWwindow* window)
 	{
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-		//TODO:
+		Window* thisWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+		thisWindow->closeWindowEvent.Invoke();
 	}
 	void Window::WindowResizeCallback(GLFWwindow* window, int width, int height)
 	{

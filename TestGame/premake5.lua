@@ -25,7 +25,8 @@ project "TestGame"
         "%{IncludeDir.spdlog}",  
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
-        "%{IncludeDir.GLM}"
+        "%{IncludeDir.GLM}",
+        "%{IncludeDir.EnTT}"
     }
 
     defines

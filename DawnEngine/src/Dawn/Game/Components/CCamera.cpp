@@ -1,10 +1,13 @@
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 #include "CCamera.h"
 
 namespace Dawn
 {
 	glm::mat4 CCamera::GetViewMatrix()const
 	{
-		return glm::lookAt(m_gameEntity->_transform.GetWorldPosition(), m_gameEntity->_transform.GetWorldForward(), m_gameEntity->_transform.GetWorldUp());
+		Transform transform = m_world->GetComponent<Transform>(m_entityID);
+		return glm::lookAt(transform.GetWorldPosition(), transform.GetWorldForward(), transform.GetWorldUp());
 	}
 
 	glm::mat4 CCamera::GetProjectionMatrix()const

@@ -1,38 +1,45 @@
 #include "Application.h"
 
-#include "Logger.h"
-#include "Window.h"
+#include "Debug/Logger.h"
+#include "Dawn/Game/World.h"
+
+#include <memory>
 
 namespace Dawn
 {
 	Application::Application()
 	{
+
 	}
 
 	Application::~Application()
 	{
-		Window::Terminate();
+		Window::Terminate(); //TODO: move to render core
 	}
 
 	void Application::Init()
 	{
 		Logger::Init();
+		m_renderCore.Init();
+		m_gameCore.Init();
 
-		bool isWindowInit = Window::Init();
-		//DAWN_DEBUG_ASSERT(isWindowInit);
-
-		m_window = std::unique_ptr<Window>(Window::Create());
-
-		DAWN_INFO("Application Init success!");
 	}
 
 	void Application::Run()
 	{
-		while (!m_window->ShouldClose())
+		bool shouldClose = false;
+		while(IsRunning())
 		{
-			m_window->OnUpdate();
+			m_gameCore.Update();
+			m_renderCore.Update();
 		}
 	}
 
-
+	bool Application::IsRunning()
+	{
+		if (m_renderCore.GetWindow()->IsClosing())
+			return false;
+		return true;
+	}
+	//!m_window->ShouldClose()
 }

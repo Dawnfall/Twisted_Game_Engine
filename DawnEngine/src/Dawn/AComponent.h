@@ -1,20 +1,22 @@
 #pragma once
 
-#include "GameEntity.h"
+#include "EnTT/entt.hpp"
+
+#include "Dawn/Game/World.h"
 
 namespace Dawn
 {
-	class GameEntity;
+	class World;
 
 	class AComponent
 	{
 	public:
-		AComponent(GameEntity* parentEntity) :
-			m_gameEntity(parentEntity)
-		{
-			
-		}
+		AComponent(entt::entity parentEntity, World* world) :
+			m_entityID(parentEntity),
+			m_world(world)
+		{}
 	protected:
-		GameEntity* m_gameEntity;
+		entt::entity m_entityID;
+		World* m_world;
 	};
 }

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Dawn/AComponent.h"
-#include "Dawn/Components/Transform.h"
+#include "Dawn/Game/Components/Transform.h"
 
 #include <gtc/matrix_transform.hpp>
+#include "Dawn/Game/World.h"
 
 namespace Dawn
 {
@@ -16,7 +17,7 @@ namespace Dawn
 	class CCamera :public AComponent
 	{
 	public:
-		CCamera(GameEntity* game_entity) : AComponent(game_entity)
+		CCamera(entt::entity parentEntity, World* world) : AComponent(parentEntity, world)
 		{
 		}
 

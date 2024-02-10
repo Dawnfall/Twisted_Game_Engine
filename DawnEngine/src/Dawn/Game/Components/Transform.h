@@ -4,7 +4,7 @@
 #include <gtx/quaternion.hpp>
 #include <gtc/matrix_inverse.hpp>
 #include <vector>
-#include "../../Directions.h"
+#include "Utils/Directions.h"
 
 namespace Dawn
 {

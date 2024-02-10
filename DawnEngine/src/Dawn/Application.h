@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
-#include "Window.h"
+#include "Dawn/Game/GameCore.h"
+#include "Rendering/RenderCore.h"
 
 namespace Dawn
 {
@@ -16,7 +16,9 @@ namespace Dawn
 		void Run();
 
 	private:
-		std::unique_ptr<Window> m_window;
+		bool IsRunning();
 
+		RenderCore m_renderCore;
+		GameCore m_gameCore;
 	};
 }
