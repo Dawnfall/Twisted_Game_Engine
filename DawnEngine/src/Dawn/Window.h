@@ -25,51 +25,12 @@ namespace Dawn
 	class Window
 	{
 	public:
-		Window(const WindowData& windowData = WindowData());
+		Window(const WindowData& data,GLFWwindow* window);
 		~Window();
-
-		void OnUpdate();
-		void SetVsync(int deltaFrames) { glfwSwapInterval(deltaFrames); }
-
-		static Window* Create(const WindowData& windowData = WindowData());
-
-		const WindowData& GetWindowData() { return m_windowData; }
-		void Clear();
-
-		static bool Init();
-		static void Terminate();
-
-		void Close()
-		{
-			//glfwDestroyWindow(m_window);
-			glfwSetWindowShouldClose(m_window, GLFW_TRUE);
-		}
-		bool IsClosing()
-		{
-			return glfwWindowShouldClose(m_window);
-		}
-
-		//***************
-		// Callbacks
-
-
-
-		WindowData m_windowData;
+		
+		WindowData Data;
+		GLFWwindow* Pointer = nullptr;
 
 		Event<> closeWindowEvent;
-	private:
-		GLFWwindow* m_window = nullptr;
-		std::unique_ptr<RenderContext> m_renderContext;
-
-
-		void ProcessEvents();
-
-		//glfw callbacks
-		static bool IsKeyPressed(GLFWwindow* window, int key);
-		static bool IsKeyReleased(GLFWwindow* window, int key);
-		static void ErrorCallback(int code, const char* description);
-		static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-		static void WindowCloseCallback(GLFWwindow* window);
-		static void WindowResizeCallback(GLFWwindow* window, int width, int height);
 	};
 }

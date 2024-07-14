@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "Dawn/Window.h"
+#include "Utils/Color.h"
 
 namespace Dawn
 {
@@ -14,10 +15,11 @@ namespace Dawn
 	class RenderContext
 	{
 	public:
-        void Init(Window* window);
-		
-		void Render(Mesh& mesh, Shader& shader);
+        static void Init();
+		static void Render(Mesh& mesh, Shader& shader);
 
+		static void Clear(Color color);
+		static void SetViewPort(float width,float height);
 	private:
 	};
 

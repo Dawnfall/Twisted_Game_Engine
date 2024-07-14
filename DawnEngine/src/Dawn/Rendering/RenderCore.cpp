@@ -2,27 +2,24 @@
 
 namespace Dawn
 {
-	void RenderCore::Init()
+	bool RenderCore::Init()
 	{
-		bool isWindowInit = Window::Init();
-		//DAWN_DEBUG_ASSERT(isWindowInit);
-		m_window = std::unique_ptr<Window>(Window::Create());
+		if (!glfwInit())
+			return false;
 
-		//TODO: prolly move from here
-		m_window->closeWindowEvent.AddListener([this]() {m_window->Close(); });
-
+		glfwSetErrorCallback(RenderCore::ErrorCallback);
 		DAWN_INFO("RenderCore Init success!");
+
+		return true;
 	}
 
-	void RenderCore::Update()
+	void RenderCore::Terminate()
 	{
-		m_window->Clear();
-
-
-
-		m_window->OnUpdate();
+		glfwTerminate();
 	}
 
-
-
+	void RenderCore::ErrorCallback(int code, const char* description)
+	{
+		DAWN_ERROR(description);
+	}
 }

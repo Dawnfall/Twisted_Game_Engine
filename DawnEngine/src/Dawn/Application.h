@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Dawn/Game/GameCore.h"
-#include "Rendering/RenderCore.h"
+#include "WindowManager.h"
+#include "../StartParams.h"
 
 namespace Dawn
 {
@@ -11,14 +12,23 @@ namespace Dawn
 		Application();
 		~Application();
 
-		void Init();
+		void Start(const StartParams& startParams);
+		void Stop() { m_isRunning = false; }
 
+		bool IsValid() { return m_isValid; }
+		bool IsRunning() { return m_isRunning; }
+
+		WindowManager WindowManager;
+	private:
+		bool m_isValid = false;
+		bool m_isRunning = false;
+
+
+		void Init();
 		void Run();
 
-	private:
-		bool IsRunning();
-
-		RenderCore m_renderCore;
-		GameCore m_gameCore;
+		//debug...
+		void OnStart();
+		void OnRun();
 	};
 }

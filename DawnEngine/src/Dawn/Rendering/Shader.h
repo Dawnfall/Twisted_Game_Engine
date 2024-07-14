@@ -12,7 +12,7 @@ namespace Dawn
 	class Shader
 	{
 	public:
-		Shader(const char* vertexShaderCode, const char* fragmentShaderCode);
+		Shader(const std::string& vertexShaderCode, const std::string& fragmentShaderCode);
 		~Shader();
 
 		void Bind();

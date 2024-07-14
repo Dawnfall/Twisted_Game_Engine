@@ -5,12 +5,12 @@
 
 namespace Dawn
 {
-	Shader::Shader(const char* vertexShaderCode, const char* fragmentShaderCode)
+	Shader::Shader(const std::string& vertexShaderCode, const std::string& fragmentShaderCode)
 	{
 		unsigned int vertexID, fragmentID;
 
-		CompileShader(GL_VERTEX_SHADER, "Vertex", vertexID, vertexShaderCode);
-		CompileShader(GL_FRAGMENT_SHADER, "Fragment", fragmentID, fragmentShaderCode);
+		CompileShader(GL_VERTEX_SHADER, "Vertex", vertexID, vertexShaderCode.c_str());
+		CompileShader(GL_FRAGMENT_SHADER, "Fragment", fragmentID, fragmentShaderCode.c_str());
 		CompileProgram(vertexID, fragmentID);
 
 		glDeleteShader(vertexID);

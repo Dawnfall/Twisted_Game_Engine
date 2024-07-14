@@ -1,19 +1,16 @@
 #include "RenderContext.h"
-
+#include "Debug/Logger.h"
 #include <glad/glad.h>
 
 namespace Dawn
 {
-	void RenderContext::Init(Window* window)
+	void RenderContext::Init()
 	{
-		//TODO: prolly init in context
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{
-
+			DAWN_ERROR("Failed to init GLAD");
 		}
-
-		glViewport(0, 0, window->m_windowData.Width, window->m_windowData.Height); //bot left, width,height
-		glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+		DAWN_INFO("GLAD initialized");
 	}
 
 	void RenderContext::Render(Mesh& mesh, Shader& shader)
@@ -40,5 +37,16 @@ namespace Dawn
 		glBindVertexArray(mesh.VAO);
 		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+	}
+
+	void RenderContext::Clear(Color color)
+	{
+		glClearColor(color.r, color.g, color.b, color.a);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+
+	void RenderContext::SetViewPort(float width, float height)
+	{
+		glViewport(0, 0, width, height);
 	}
 }

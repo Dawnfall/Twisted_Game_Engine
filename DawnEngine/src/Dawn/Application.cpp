@@ -2,44 +2,65 @@
 
 #include "Debug/Logger.h"
 #include "Dawn/Game/World.h"
-
+#include "Dawn/Rendering/RenderCore.h"
+#include "../StartParams.h"
 #include <memory>
 
 namespace Dawn
 {
 	Application::Application()
 	{
-
 	}
 
 	Application::~Application()
 	{
-		Window::Terminate(); //TODO: move to render core
+		RenderCore::Terminate();
 	}
 
-	void Application::Init()
+	void Application::Start(const StartParams& startParams)
 	{
-		Logger::Init();
-		m_renderCore.Init();
-		m_gameCore.Init();
+		if (IsRunning())
+		{
+			DAWN_WARN("Cannot start application; Application already running!");
+			return;
+		}
 
+		Init();
+
+		OnStart();
+	
+		Run();
 	}
-
+	void Application::Init() 
+	{
+		if (Logger::Init() &&
+			RenderCore::Init())
+		{
+			m_isValid = true;
+			DAWN_INFO("Application Init Success!");
+		}
+		else
+		{
+			DAWN_ERROR("Application Init failure");
+		}
+	}
 	void Application::Run()
 	{
-		bool shouldClose = false;
-		while(IsRunning())
+		m_isRunning = true;
+		while (IsRunning())
 		{
-			m_gameCore.Update();
-			m_renderCore.Update();
+			WindowManager.UpdateWindow();
+			OnRun();
 		}
 	}
 
-	bool Application::IsRunning()
+	void Application::OnStart()
 	{
-		if (m_renderCore.GetWindow()->IsClosing())
-			return false;
-		return true;
+		WindowManager.CreateNewWindow(WindowData());
+		WindowManager.closeWindowEvent.AddListener([this]() { Stop(); });
 	}
-	//!m_window->ShouldClose()
+	void Application::OnRun()
+	{
+
+	}
 }
