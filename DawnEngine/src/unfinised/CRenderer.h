@@ -5,11 +5,11 @@
 
 namespace Dawn
 {
-	class CRenderer :AComponent
-	{
-	public:
-		Shader* _shader;
-	private:
+	//class CRenderer :AComponent
+	//{
+	//public:
+	//	Shader* _shader;
+	//private:
 
-	};
+	//};
 }

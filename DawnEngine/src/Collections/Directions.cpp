@@ -1,6 +1,6 @@
 #include "Directions.h"
 
-namespace Dawn
+namespace Dawn::Collections
 {
 	const glm::vec3 Directions::Forward(0.0f, 0.0f, 1.0f);
 	const glm::vec3 Directions::Back(0.0f, 0.0f, -1.0f);

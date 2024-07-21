@@ -2,7 +2,7 @@
 
 #include <vec3.hpp>
 
-namespace Dawn
+namespace Dawn::Collections
 {
 	static class Directions
 	{

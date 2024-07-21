@@ -3,33 +3,26 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <memory>
-#include "Dawn/Rendering/RenderContext.h"
-#include "Event.h"
+#include "Utils/Event.h"
+
 namespace Dawn
 {
-	class RenderContext;
-
-	struct WindowData
+	struct Window
 	{
+	public:
+		unsigned int ID;
 		std::string Title;
 		unsigned int Width;
 		unsigned int Height;
+		GLFWwindow* Pointer = nullptr;
 
-		WindowData(const std::string& title = "Dawn", unsigned int width = 1280, unsigned int height = 720) :
+		Window(GLFWwindow* window, unsigned int Id, const std::string& title, unsigned int width, unsigned int height) :
 			Title(title),
 			Width(width),
-			Height(height)
+			Height(height),
+			Pointer(window),
+			ID(Id)
 		{}
-	};
-
-	class Window
-	{
-	public:
-		Window(const WindowData& data,GLFWwindow* window);
-		~Window();
-		
-		WindowData Data;
-		GLFWwindow* Pointer = nullptr;
 
 		Event<> closeWindowEvent;
 	};

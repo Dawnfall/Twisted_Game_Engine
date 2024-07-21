@@ -6,8 +6,6 @@
 #include <vector>
 #include<string>
 
-#include "Shader.h"
-
 namespace Dawn
 {
 	struct Vertex {
@@ -29,21 +27,16 @@ namespace Dawn
 		std::vector<unsigned int> indices;
 		std::vector<Texture>      textures;
 
+		unsigned int VAO = -1;
+		unsigned int VBO = -1;
+		unsigned int EBO = -1;
+
 		Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices/*, std::vector<Texture> textures */)
 		{
 			this->vertices = vertices;
 			this->indices = indices;
 			//this->textures = textures;		
 		}
-
-		void Bind();
-		void UnBind();
-
-		unsigned int VAO;
-		unsigned int VBO;
-		unsigned int EBO;
-	private:
-
 	};
 
 }

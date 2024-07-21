@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Dawn/Resources/ShaderData.h"
+
 #include <glad/glad.h>
 #include <glm.hpp>
 
@@ -8,29 +10,35 @@
 
 namespace Dawn
 {
-
 	class Shader
 	{
 	public:
-		Shader(const std::string& vertexShaderCode, const std::string& fragmentShaderCode);
-		~Shader();
+		Shader(std::shared_ptr<ShaderData>& data);
 
-		void Bind();
+		std::shared_ptr<ShaderData> Data;
+		bool IsValid() {}
+
+		unsigned int ID = 0;
+	private:
+		bool isValid = false;
+
+	public:
+		static void Bind(const Shader& shader);
+
+		static void CompileShader(Shader& shader);
+		static void UnCompileShader(Shader& shader);
+
+		static unsigned int CompileShader(GLenum shaderType, const char* shaderName, unsigned int& shaderID, const char* shaderCode);
+		static unsigned int CompileProgram(GLenum vertexID, GLenum fragmentID);
 
 		// Utility uniform functions
-		void setBool(const std::string& name, bool value) const;
-		void setInt(const std::string& name, int value) const;
-		void setFloat(const std::string& name, float value) const;
-		void setFloat2(const std::string& name, const glm::vec2& value)const;
-		void setFloat3(const std::string& name, const glm::vec3& value)const;
-		void setFloat4(const std::string& name, const glm::vec4& value)const;
-		void mat4(const std::string& name, const glm::mat4& value)const;
-	private:
-		unsigned int m_ID = 0;
-
-		bool CompileShader(GLenum shaderType, const char* shaderName, unsigned int& shaderID, const char* shaderCode);
-		bool CompileProgram(GLenum vertexID, GLenum fragmentID);
-
+		static void setBool(unsigned int shaderID, const std::string& name, bool value);
+		static void setInt(unsigned int shaderID, const std::string& name, int value);
+		static void setFloat(unsigned int shaderID, const std::string& name, float value);
+		static void setFloat2(unsigned int shaderID, const std::string& name, const glm::vec2& value);
+		static void setFloat3(unsigned int shaderID, const std::string& name, const glm::vec3& value);
+		static void setFloat4(unsigned int shaderID, const std::string& name, const glm::vec4& value);
+		static void setMat4(unsigned int shaderID, const std::string& name, const glm::mat4& value);
 	};
 }
 
