@@ -30,6 +30,8 @@ namespace Dawn
 
 	void Application::Init()
 	{
+		TimeManager.Init();
+
 		if (Logger::Init() &&
 			RenderCore::Init())
 		{
@@ -56,13 +58,25 @@ namespace Dawn
 		m_isRunning = true;
 		while (IsRunning())
 		{
-			m_runtime->OnRun(*this);
-			RenderCore::ClearWindows(WindowManager.GetWindows(),Collections::Color::blue);
+			TimeManager.UpdateClocks();
 
-			//TODO:... render here
-			
-			WindowManager.UpdateWindows();			
-			//Systems.UpdateSystems();
+			if (TimeManager.IsNextFrame())
+			{
+				TimeManager.IncreaseFrameCount();
+				FrameUpdate();
+				TimeManager.ResetFrameTime();
+			}
 		}
+	}
+
+	void Application::FrameUpdate()
+	{
+		m_runtime->OnRun(*this);
+		RenderCore::ClearWindows(WindowManager.GetWindows(), Collections::Color::blue);
+
+		//TODO:... render here
+
+		WindowManager.UpdateWindows();
+		//Systems.UpdateSystems();
 	}
 }

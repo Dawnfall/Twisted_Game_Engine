@@ -7,7 +7,7 @@
 #include "Dawn/Managers/WindowManager.h"
 #include "SystemsCore.h"
 #include "Dawn/Managers/ResourceManager.h"
-
+#include "Dawn/Managers/TimeManager.h"
 namespace Dawn
 {
 	class Application;
@@ -31,9 +31,11 @@ namespace Dawn
 
 		bool IsValid() { return m_isValid; }
 		bool IsRunning() { return m_isRunning; }
+		void FrameUpdate();
 
 		WindowManager WindowManager;
 		ResourceManager ResourceManager;
+		TimeManager TimeManager;
 
 		GameCore Game;
 		RenderCore Renderer;
