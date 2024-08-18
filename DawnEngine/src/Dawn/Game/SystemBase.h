@@ -2,10 +2,14 @@
 
 namespace Dawn
 {
+	class Application;
+
 	class SystemBase
 	{
 	public:
-		virtual void Update() = 0;
+		SystemBase() = default;
+		virtual ~SystemBase() = default;
+		virtual void Update(Application& app) = 0;
 	private:
 	};
 }

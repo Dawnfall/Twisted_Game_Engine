@@ -2,7 +2,7 @@
 
 #include "Debug/Logger.h"
 #include "Dawn/GameCore.h"
-#include "Dawn/RenderCore.h"
+#include "Dawn/Rendering/OpenGL/Render_OpenGL.h"
 #include <memory>
 
 namespace Dawn
@@ -12,7 +12,7 @@ namespace Dawn
 	}
 	Application::~Application()
 	{
-		RenderCore::Terminate();
+		Render_OpenGL::Terminate();
 	}
 
 	void Application::Start(RuntimeBase& runtime)
@@ -33,7 +33,7 @@ namespace Dawn
 		TimeManager.Init();
 
 		if (Logger::Init() &&
-			RenderCore::Init())
+			Render_OpenGL::InitGLFW())
 		{
 			m_isValid = true;
 			DAWN_INFO("Application Init Success!");
@@ -44,18 +44,13 @@ namespace Dawn
 		}
 
 		m_runtime->OnInit(*this);
-
-		ResourceManager.CompileShaders();
-	}
-
-	void Application::BeforeStart()
-	{
-		m_runtime->OnBeforeRun(*this);
 	}
 
 	void Application::Run()
 	{
 		m_isRunning = true;
+
+		m_runtime->OnBeforeRun(*this);
 		while (IsRunning())
 		{
 			TimeManager.UpdateClocks();
@@ -72,11 +67,14 @@ namespace Dawn
 	void Application::FrameUpdate()
 	{
 		m_runtime->OnRun(*this);
-		RenderCore::ClearWindows(WindowManager.GetWindows(), Collections::Color::blue);
 
-		//TODO:... render here
+		for (auto& window : WindowManager.GetWindows())
+		{
+			glfwMakeContextCurrent(window->Pointer);
+			Render_OpenGL::ClearWindow(Collections::Color::blue);
+		}
 
+		Game.Systems.UpdateSystems(*this);
 		WindowManager.UpdateWindows();
-		//Systems.UpdateSystems();
 	}
 }

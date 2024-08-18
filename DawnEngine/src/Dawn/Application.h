@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "Dawn/GameCore.h"
-#include "Dawn/RenderCore.h"
 #include "Dawn/Managers/WindowManager.h"
 #include "SystemsCore.h"
 #include "Dawn/Managers/ResourceManager.h"
@@ -38,7 +37,6 @@ namespace Dawn
 		TimeManager TimeManager;
 
 		GameCore Game;
-		RenderCore Renderer;
 
 	private:
 		RuntimeBase* m_runtime = nullptr;
@@ -46,7 +44,6 @@ namespace Dawn
 		bool m_isRunning = false;
 
 		void Init();
-		void BeforeStart();
 		void Run();
 	};
 }

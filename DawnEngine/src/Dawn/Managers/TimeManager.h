@@ -16,7 +16,7 @@ namespace Dawn
 			m_updateLastTwoTimes[0] = m_updateLastTwoTimes[1];
 			m_updateLastTwoTimes[1] = std::chrono::high_resolution_clock::now();
 
-			m_deltaSinceAppStart = (m_updateLastTwoTimes[1] - m_startAppTime).count();
+			m_deltaSinceAppStart = (float)(m_updateLastTwoTimes[1] - m_startAppTime).count();
 			m_deltaSinceLastFrame += (m_updateLastTwoTimes[1] - m_updateLastTwoTimes[0]).count();
 		}
 

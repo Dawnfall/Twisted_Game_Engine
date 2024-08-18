@@ -9,8 +9,8 @@ project "TestGame"
 
     files
     {
-        "src/**.h",
-        "src/**.cpp"
+        "**.h",
+        "**.cpp"
     }
 
     links
@@ -26,7 +26,8 @@ project "TestGame"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.GLM}",
-        "%{IncludeDir.EnTT}"
+        "%{IncludeDir.EnTT}",
+        "%{IncludeDir.Stbi}"
     }
 
     defines

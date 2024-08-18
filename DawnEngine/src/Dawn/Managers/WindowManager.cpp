@@ -1,6 +1,6 @@
 #include "WindowManager.h"
+#include "Dawn/Rendering/OpenGL/Render_OpenGL.h"
 #include "Debug/Logger.h"
-#include "Dawn/RenderCore.h"
 #include <glad/glad.h>
 
 namespace Dawn
@@ -31,10 +31,7 @@ namespace Dawn
 
 		if (m_windows.size() == 1) //all windows share same context
 		{
-			if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-				DAWN_ERROR("CreateNewWindow() failure! GLAD init failure");
-				return false;
-			}
+			Render_OpenGL::InitOpenGL((GLADloadproc)glfwGetProcAddress);
 		}
 
 		SetCallbacks();
@@ -96,12 +93,6 @@ namespace Dawn
 		ProcessEvents();
 	}
 
-
-
-
-
-
-
 	//********************
 	// glfw Callbacks
 
@@ -117,15 +108,12 @@ namespace Dawn
 			return true;
 		return false;
 	}
-
 	void WindowManager::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
 		//use bind to set callbacks
 		//...... TODO:.....
 
 	}
-
-
 	void WindowManager::SetCallbacks()
 	{
 		for (auto& window : m_windows)

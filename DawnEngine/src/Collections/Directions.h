@@ -1,18 +1,21 @@
 #pragma once
 
-#include <vec3.hpp>
-
-namespace Dawn::Collections
+#include "Collections/Vector.h"
+namespace Dawn::Collections::Directions
 {
-	static class Directions
-	{
-	public:
-		static const glm::vec3 Forward;
-		static const glm::vec3 Back;
-		static const glm::vec3 Right;
-		static const glm::vec3 Left;
-		static const glm::vec3 Up;
-		static const glm::vec3 Down;
-	};
+	extern const Vec3f Forward;
+	extern const Vec3f Back;
+	extern const Vec3f Right;
+	extern const Vec3f Left;
+	extern const Vec3f Up;
+	extern const Vec3f Down;
+
+	extern const Vec3f Zero;
+	extern const Vec3f One;
+
+	extern const Mat4x4f IdentityMat;
+	extern const Mat4x4f ZeroMat;
+
+	extern const Quat IdentityQuat;
 }
 

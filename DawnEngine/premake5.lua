@@ -20,7 +20,8 @@ project "DawnEngine"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.GLM}",
-		"%{IncludeDir.EnTT}"
+		"%{IncludeDir.EnTT}",
+        "%{IncludeDir.Stbi}"
     }
 
     links

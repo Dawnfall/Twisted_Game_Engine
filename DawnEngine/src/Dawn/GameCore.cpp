@@ -1,7 +1,7 @@
 #include "GameCore.h"
 
 #include "EnTT/entt.hpp"
-#include "Dawn/Game/Components/Transform.h"
+#include "Dawn/Game/Components/CTransform.h"
 
 namespace Dawn
 {
@@ -12,9 +12,21 @@ namespace Dawn
 
 		return entityID;
 	}
-
-	entt::registry& GameCore::GetRegistry()
+	std::vector<entt::entity> GameCore::CreateEntities(int amount)
 	{
-		return m_registry;
+		std::vector<entt::entity> res(amount);
+		m_registry.create(res.begin(), res.end());
+		return res;
 	}
+
+	void GameCore::DestroyEntity(entt::entity id)
+	{
+		m_registry.destroy(id);
+	}
+	void GameCore::DestroyEntities(const std::vector<entt::entity>& entities)
+	{
+		auto it1 = entities.begin();
+		m_registry.destroy(entities.begin(), entities.end());
+	}
+
 }

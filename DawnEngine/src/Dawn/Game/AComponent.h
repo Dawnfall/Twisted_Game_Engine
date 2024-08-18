@@ -2,23 +2,17 @@
 
 #include "EnTT/entt.hpp"
 
-#include "Dawn/GameCore.h"
 
 namespace Dawn
 {
-	class World;
-
-	class AComponent
+	struct AComponent
 	{
-	public:
-		AComponent(GameCore* gameCore,entt::entity entityID) :
-			m_gameCore(gameCore),
+		AComponent(entt::entity entityID) :
 			m_entityID(entityID)
 		{}
 
-		
+		int GetID() { return (int)m_entityID; }
 	protected:
-		GameCore* m_gameCore;
 		entt::entity m_entityID;
 	};
 }

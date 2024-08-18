@@ -18,3 +18,6 @@
 #else 
 #define DAWN_DEBUG_ASSERT(...) 
 #endif
+
+//#define _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
+//#define _AFX_SECURE_NO_WARNINGS
