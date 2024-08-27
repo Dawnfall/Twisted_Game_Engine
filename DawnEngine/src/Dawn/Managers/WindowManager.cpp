@@ -81,7 +81,10 @@ namespace Dawn
 	void WindowManager::ProcessEvents()
 	{
 		if (m_windows.size() > 0)
+		{
+			m_inputManager.Clear();
 			glfwPollEvents();
+		}
 	}
 
 	void WindowManager::UpdateWindows()
@@ -96,24 +99,7 @@ namespace Dawn
 	//********************
 	// glfw Callbacks
 
-	bool WindowManager::IsKeyPressed(GLFWwindow* window, int key)
-	{
-		if (glfwGetKey(window, key) == GLFW_PRESS)
-			return true;
-		return false;
-	}
-	bool WindowManager::IsKeyReleased(GLFWwindow* window, int key)
-	{
-		if (glfwGetKey(window, key) == GLFW_RELEASE)
-			return true;
-		return false;
-	}
-	void WindowManager::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		//use bind to set callbacks
-		//...... TODO:.....
 
-	}
 	void WindowManager::SetCallbacks()
 	{
 		for (auto& window : m_windows)
@@ -130,6 +116,18 @@ namespace Dawn
 					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 					thisManager->GetWindow(window)->Width = newWidth;
 					thisManager->GetWindow(window)->Height = newHeight;
+				});
+			glfwSetKeyCallback(window->Pointer,
+				[](GLFWwindow* window, int key, int scancode, int action, int mods)
+				{
+					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+					thisManager->m_inputManager.KeyCallback(window, key, scancode, action, mods);
+				});
+			glfwSetMouseButtonCallback(window->Pointer,
+				[](GLFWwindow* window, int button, int action, int mods)
+				{
+					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+					thisManager->m_inputManager.MouseButtonCallback(window, button, action, mods);
 				});
 		}
 	}

@@ -1,0 +1,54 @@
+project "DawnEditor"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "off"
+
+    targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
+    objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
+
+    files
+    {
+        "**.h",
+        "**.cpp"
+    }
+
+    links
+    {
+        "DawnEngine",
+        "%{wks.location}/3rd/GLFW/lib/glfw3.lib"
+    }
+
+    includedirs
+    {
+        "%{wks.location}/DawnEngine/src",
+        "%{IncludeDir.spdlog}",  
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.GLM}",
+        "%{IncludeDir.EnTT}",
+        "%{IncludeDir.Stbi}"
+    }
+
+    defines
+    {
+        "GLFW_INCLUDE_NONE"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+
+    filter "configurations:Debug"
+        defines "DAWN_DEBUG"
+        runtime "debug"
+        symbols "on"
+
+    filter "configurations:Release"
+        defines "DAWN_RELEASE"
+        runtime "Release"
+        optimize "on"
+
+    filter "configurations:Dist"
+        defines "DAWN_DIST"
+        runtime "Release"
+        optimize "on"

@@ -1,6 +1,6 @@
 workspace "DawnEngine"
     architecture "x64"
-    startproject "TestGame"
+    startproject "DawnEditor"
     
     configurations
     {
@@ -16,11 +16,12 @@ workspace "DawnEngine"
     IncludeDir["Glad"] = "%{wks.location}/DawnEngine/3rd/Glad/include"
     IncludeDir["GLM"] = "%{wks.location}/3rd/GLM/glm"
 	IncludeDir["EnTT"] = "%{wks.location}/DawnEngine/3rd/EnTT"
-    IncludeDir["Stbi"]="%{wks.location}/3rd/stb_image"
+    IncludeDir["Stbi"]= "%{wks.location}/3rd/stb_image"
 
     group "Dependecies"
         include "DawnEngine/3rd/Glad" -- --    include "DawnEngine/3rd/GLFW"
     group ""
 
     include "DawnEngine"
+    include "DawnEditor"
     include "TestGame"

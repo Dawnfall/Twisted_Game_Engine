@@ -6,6 +6,7 @@
 #include "Dawn/Window.h"
 #include "Debug/Logger.h"
 #include "Collections/Color.h"
+#include "InputManager.h"
 
 namespace Dawn
 {
@@ -19,18 +20,14 @@ namespace Dawn
 
 		void UpdateWindows();
 
+		InputManager m_inputManager;
 		Event<> closeWindowEvent;
 	private:
+		std::vector<std::shared_ptr<Window>> m_windows;
+		unsigned m_nextID = 1;
+
 		std::shared_ptr<Window> GetWindow(GLFWwindow* pointer);
 		void SetCallbacks();
 		void ProcessEvents();
-
-		//TODO: make these as lamba in setcallbacks()
-		static bool IsKeyPressed(GLFWwindow* window, int key);
-		static bool IsKeyReleased(GLFWwindow* window, int key);
-		static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-		std::vector<std::shared_ptr<Window>> m_windows;
-		unsigned m_nextID = 1;
 	};
 }
