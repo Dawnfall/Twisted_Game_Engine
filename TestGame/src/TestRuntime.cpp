@@ -9,50 +9,50 @@
 #include <iostream>
 
 
-void TestRuntime::OnInit(Dawn::Application& app)
+void TestRuntime::OnInit(Twisted::Application& app)
 {
-	app.Game.Systems.AddSystem<Dawn::RenderSystem>();
+	app.Game.Systems.AddSystem<Twisted::RenderSystem>();
 
 	app.WindowManager.CreateNewWindow(window1Title, monitorWidth, monitorHeight);
 	app.WindowManager.closeWindowEvent.AddListener([&app]() { app.Stop(); });
 }
 
-void TestRuntime::OnBeforeRun(Dawn::Application& app)
+void TestRuntime::OnBeforeRun(Twisted::Application& app)
 {
 	TestTransform(app.Game);
 }
 
-void TestRuntime::OnRun(Dawn::Application& app) {}
+void TestRuntime::OnRun(Twisted::Application& app) {}
 
-void TestRuntime::TestTransform(Dawn::GameCore& game)
+void TestRuntime::TestTransform(Twisted::GameCore& game)
 {
-	Dawn::Vec3f t1Pos = { 0.0f,0.0f,0.0f };
-	Dawn::Vec3f t2Pos = { 1.0f,0.0f,0.0f };
+	Twisted::Vec3f t1Pos = { 0.0f,0.0f,0.0f };
+	Twisted::Vec3f t2Pos = { 1.0f,0.0f,0.0f };
 
-	Dawn::Vec3f t1RotEulerDeg = { 0.0f,0.0f,90.0f };
-	Dawn::Vec3f t2RotEulerDeg = { 0.0f,0.0f,0.0f };
+	Twisted::Vec3f t1RotEulerDeg = { 0.0f,0.0f,90.0f };
+	Twisted::Vec3f t2RotEulerDeg = { 0.0f,0.0f,0.0f };
 
-	Dawn::Vec3f t1Scale = { 1.0f, 1.0f, 1.0f };
-	Dawn::Vec3f t2Scale = { 1.0f, 1.0f, 1.0f };
+	Twisted::Vec3f t1Scale = { 1.0f, 1.0f, 1.0f };
+	Twisted::Vec3f t2Scale = { 1.0f, 1.0f, 1.0f };
 
 	//Dawn::Quat t1RotQuat(0.9559025f, 0.1577649f, 0.1458546f, 0.2002177f);
 	//Dawn::Quat t2RotQuat = { 1.0f,0.0f,0.0f,0.0f };
 
 	entt::entity t1 = game.CreateEntity();
-	Dawn::CTransform& trans1 = game.AddComponent<Dawn::CTransform>(t1);
+	Twisted::CTransform& trans1 = game.AddComponent<Twisted::CTransform>(t1);
 	trans1.SetLocalPosition(t1Pos);
-	trans1.SetLocalRotation(Dawn::Quat(glm::radians(t1RotEulerDeg)));
+	trans1.SetLocalRotation(Twisted::Quat(glm::radians(t1RotEulerDeg)));
 	trans1.SetLocalScale(t1Scale);
 
 	entt::entity t2 = game.CreateEntity();
-	Dawn::CTransform& trans2 = game.AddComponent<Dawn::CTransform>(t2);
+	Twisted::CTransform& trans2 = game.AddComponent<Twisted::CTransform>(t2);
 	trans2.SetParent(t1, game);
 	trans2.SetLocalPosition(t2Pos);
-	trans2.SetLocalRotation(Dawn::Quat(glm::radians(t2RotEulerDeg)));
+	trans2.SetLocalRotation(Twisted::Quat(glm::radians(t2RotEulerDeg)));
 	trans2.SetLocalScale(t2Scale);
 
-	Dawn::Vec3f t2WorldRotResult = glm::degrees(glm::eulerAngles(trans2.GetWorldRotation(game)));
-	Dawn::Vec3f t2WorldPosResult = trans2.GetWorldPosition(game);
+	Twisted::Vec3f t2WorldRotResult = glm::degrees(glm::eulerAngles(trans2.GetWorldRotation(game)));
+	Twisted::Vec3f t2WorldPosResult = trans2.GetWorldPosition(game);
 	int a = 2;
 
 	//Dawn::Quat q(0.9559025f, 0.1577649f, 0.1458546f, 0.2002177f);

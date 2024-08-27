@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-class TestRuntime :public Dawn::RuntimeBase
+class TestRuntime :public Twisted::RuntimeBase
 {
 public:
 	//***********
@@ -15,11 +15,11 @@ public:
 	unsigned int monitorHeight = 720;
 
 
-	void OnRun(Dawn::Application& app) override;
-	void OnInit(Dawn::Application& app)override;
-	void OnBeforeRun(Dawn::Application& app) override;
+	void OnRun(Twisted::Application& app) override;
+	void OnInit(Twisted::Application& app)override;
+	void OnBeforeRun(Twisted::Application& app) override;
 
-	void TestTransform(Dawn::GameCore& game);
+	void TestTransform(Twisted::GameCore& game);
 
 	//void TestEntities(Dawn::Application& app);
 };

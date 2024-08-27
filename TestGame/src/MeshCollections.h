@@ -3,7 +3,7 @@
 #include "Collections/Geometry.h"
 #include <vector>
 
-using Dawn::Vertex;
+using Twisted::Vertex;
 
 namespace Collections
 {

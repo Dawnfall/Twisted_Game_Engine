@@ -3,9 +3,9 @@
 #include "Collections/Vector.h"
 #include "Collections/Geometry.h"
 
-using Dawn::Vec3f;
-using Dawn::Vec2f;
-using Dawn::Vertex;
+using Twisted::Vec3f;
+using Twisted::Vec2f;
+using Twisted::Vertex;
 
 namespace Collections
 {

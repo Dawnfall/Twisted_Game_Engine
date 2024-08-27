@@ -6,7 +6,7 @@ int main()
 {
 	//TestRuntime runtime;
 	SampleRuntime runtime;
-	Dawn::Application* app = new Dawn::Application();
+	Twisted::Application* app = new Twisted::Application();
 	app->Start(runtime);
 
 	delete app;
