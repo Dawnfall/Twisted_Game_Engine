@@ -16,7 +16,8 @@ project "TwistedEditor"
     links
     {
         "TwistedEngine",
-        "%{wks.location}/3rd/GLFW/lib/glfw3.lib"
+        "%{wks.location}/3rd/GLFW/lib/glfw3.lib",
+        "%{wks.location}/3rd/Assimp/lib/Debug/assimp-vc143-mtd.lib"
     }
 
     includedirs
@@ -27,7 +28,8 @@ project "TwistedEditor"
         "%{IncludeDir.Glad}",
         "%{IncludeDir.GLM}",
         "%{IncludeDir.EnTT}",
-        "%{IncludeDir.Stbi}"
+        "%{IncludeDir.Stbi}",
+        "%{IncludeDir.Assimp}"
     }
 
     defines

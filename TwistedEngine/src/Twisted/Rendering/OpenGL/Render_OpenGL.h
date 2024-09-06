@@ -78,9 +78,6 @@ namespace Twisted
 		//	static void BindTexture(int id);
 		static void glfwErrorCallback(int code, const char* description);
 		static void openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
-
-
-
 	};
 }
 
