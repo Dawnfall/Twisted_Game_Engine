@@ -16,23 +16,24 @@ project "TestGame"
     links
     {
         "TwistedEngine",
-        "%{wks.location}/3rd/GLFW/lib/glfw3.lib"
+        "GLFW"
     }
 
     includedirs
     {
-        "%{wks.location}/TwistedEngine/src",
-        "%{IncludeDir.spdlog}",  
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.GLM}",
-        "%{IncludeDir.EnTT}",
-        "%{IncludeDir.Stbi}"
+        "%{IncludeDirs.TwistedEngine}",
+        "%{IncludeDirs.spdlog}",  
+        "%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.Glad}",
+        "%{IncludeDirs.GLM}",
+        "%{IncludeDirs.EnTT}",
+        "%{IncludeDirs.Stbi}"
     }
 
     defines
     {
-        "GLFW_INCLUDE_NONE"
+        "GLFW_INCLUDE_NONE",
+        "GLFW_EXCLUDE_VULKAN"
     }
 
     filter "system:windows"
@@ -40,15 +41,10 @@ project "TestGame"
 
     filter "configurations:Debug"
         defines "TWISTED_DEBUG"
-        runtime "debug"
+        runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
         defines "TWISTED_RELEASE"
-        runtime "Release"
-        optimize "on"
-
-    filter "configurations:Dist"
-        defines "TWISTED_DIST"
         runtime "Release"
         optimize "on"

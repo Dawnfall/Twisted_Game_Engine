@@ -9,8 +9,6 @@
 #include "Twisted/Game/Components/CTransform.h"
 
 #include "Collections/Color.h"
-#include <memory>
-#include <string>
 
 namespace Twisted
 {

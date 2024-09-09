@@ -1,8 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "Twisted/Window.h"
 #include "Debug/Logger.h"
 #include "Collections/Color.h"

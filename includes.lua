@@ -1,0 +1,10 @@
+IncludeDirs = {}
+IncludeDirs["TwistedEngine"]="%{wks.location}/TwistedEngine/src";
+IncludeDirs["spdlog"] ="%{wks.location}/3rd/spdlog/include"
+IncludeDirs["GLFW"] = "%{wks.location}/3rd/GLFW/include"
+IncludeDirs["Glad"] = "%{wks.location}/TwistedEngine/3rd/Glad/include"
+IncludeDirs["GLM"] = "%{wks.location}/3rd/GLM/glm"
+IncludeDirs["EnTT"] = "%{wks.location}/TwistedEngine/3rd/EnTT"
+IncludeDirs["Stbi"]= "%{wks.location}/3rd/stb_image"
+IncludeDirs["Assimp"]="%{wks.location}/3rd/Assimp/include"
+IncludeDirs["imgui"]="%{wks.location}/3rd/imgui/include"

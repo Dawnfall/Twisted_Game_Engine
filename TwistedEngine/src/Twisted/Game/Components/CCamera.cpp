@@ -1,9 +1,9 @@
+#include "pch.h"
 #include "CCamera.h"
 
 #include <gtc/matrix_transform.hpp>
-
 #include "gtx/string_cast.hpp"
-#include <iostream>
+
 
 namespace Twisted
 {

@@ -1,12 +1,9 @@
 #pragma once
 
+#include "pch.h"
 #include "Twisted/Resources/ShaderData.h"
 
 #include <glad/glad.h>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <memory>
 
 namespace Twisted
 {

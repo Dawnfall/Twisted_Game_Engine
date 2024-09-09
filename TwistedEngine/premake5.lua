@@ -6,31 +6,39 @@ project "TwistedEngine"
 
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
-
+    
+    pchheader "pch.h"  -- This is the precompiled header file
+    pchsource "src/pch.cpp" -- This is the source file that compiles the precompiled header
+    
     files
     {
         "src/**.h",
         "src/**.cpp"
     }
 
+    
     includedirs
     {
         "src",
-        "%{IncludeDir.spdlog}",
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.GLM}",
-		"%{IncludeDir.EnTT}",
-        "%{IncludeDir.Stbi}",
-        "%{IncludeDir.Assimp}"
+        "%{IncludeDirs.spdlog}",
+        "%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.Glad}",
+        "%{IncludeDirs.GLM}",
+		"%{IncludeDirs.EnTT}",
+        "%{IncludeDirs.Stbi}",
+        "%{IncludeDirs.Assimp}",
+        "%{IncludeDirs.imgui}"
     }
 
     links
     {
-        "%{wks.location}/3rd/GLFW/lib/glfw3.lib",
+        --"%{wks.location}/3rd/GLFW/lib/glfw3.lib",
         "%{wks.location}/3rd/Assimp/lib/Debug/assimp-vc143-mtd.lib",
         "Glad",
-        
+        "GLFW",
+        --"Assimp",
+        "imgui",
+
         "opengl32.lib",
         "kernel32.lib",
         "user32.lib",
@@ -52,7 +60,8 @@ project "TwistedEngine"
         defines
         {
             "TWISTED_WINDOWS",
-            "GLFW_INCLUDE_NONE"
+            "GLFW_INCLUDE_NONE",
+            "GLFW_EXCLUDE_VULKAN"
         }
 
     filter "configurations:Debug"

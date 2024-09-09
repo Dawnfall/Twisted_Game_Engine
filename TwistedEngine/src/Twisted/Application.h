@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "Twisted/GameCore.h"
 #include "Twisted/Managers/WindowManager.h"
 #include "SystemsCore.h"

@@ -1,12 +1,13 @@
 #pragma once
 
+#include "pch.h"
 #include "Twisted/Game/AComponent.h"
 #include "Twisted/SystemsCore.h"
 #include "Utils/Utils.h"
 
 #include <EnTT/entt.hpp>
-#include <type_traits>
-#include <vector>
+
+
 
 namespace Twisted
 {

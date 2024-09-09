@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "RenderSystem.h"
 #include "Debug/Logger.h"
 
@@ -8,7 +9,7 @@
 #include "Twisted/Rendering/OpenGL/Render_OpenGL.h"
 #include "Twisted/GameCore.h"
 
-#include <string>
+
 
 const std::string shaderUniform_model = "model";
 const std::string shaderUniform_view = "view";

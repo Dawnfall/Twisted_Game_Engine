@@ -15,9 +15,6 @@
 
 #include "Collections/Geometry.h"
 
-#include <memory>
-#include <string>
-#include <unordered_map>
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 

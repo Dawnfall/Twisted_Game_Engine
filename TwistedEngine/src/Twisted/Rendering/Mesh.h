@@ -1,7 +1,6 @@
 #pragma once
-
+#include "pch.h"
 #include "Twisted/Resources/MeshData.h"
-#include <memory>
 
 namespace Twisted
 {

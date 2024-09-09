@@ -1,9 +1,8 @@
 #pragma once
 
+#include "pch.h"
 #include "Resource.h"
 #include "Collections/Geometry.h"
-
-#include <vector>
 
 namespace Twisted
 {

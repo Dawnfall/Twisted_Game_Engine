@@ -1,9 +1,9 @@
+#include "pch.h"
 #include "Application.h"
 
 #include "Debug/Logger.h"
 #include "Twisted/GameCore.h"
 #include "Twisted/Rendering/OpenGL/Render_OpenGL.h"
-#include <memory>
 
 namespace Twisted
 {

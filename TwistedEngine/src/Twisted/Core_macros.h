@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cassert>
+#include "pch.h"
 
 #ifdef TWISTED_DEBUG
 #define TWISTED_ENABLE_ASSERTS

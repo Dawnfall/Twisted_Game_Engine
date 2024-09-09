@@ -1,13 +1,11 @@
 #pragma once
 
+#include "pch.h"
+
 #include "Debug/Logger.h"
 #include "Shader.h"
 #include "Collections/Vector.h"
 #include "Texture.h"
-
-#include <memory>
-#include <string>
-#include <unordered_map>
 
 namespace Twisted
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Collections/Vector.h"
+
 namespace Twisted
 {
 	struct Vertex {

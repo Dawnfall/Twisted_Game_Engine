@@ -1,7 +1,8 @@
 #pragma once
 
+#include "pch.h"
 #include "Resource.h"
-#include <string>
+
 namespace Twisted
 {
 	struct ShaderData :Resource

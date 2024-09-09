@@ -2,9 +2,7 @@
 #include "Collections/Vector.h"
 
 #include <GLFW/glfw3.h>
-#include <string>
-#include <unordered_set>
-#include <unordered_map>
+
 
 namespace Twisted
 {

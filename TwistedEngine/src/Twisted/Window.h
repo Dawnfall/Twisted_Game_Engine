@@ -1,8 +1,7 @@
 #pragma once
 
+#include "pch.h"
 #include <GLFW/glfw3.h>
-#include <string>
-#include <memory>
 #include "Utils/Event.h"
 
 namespace Twisted

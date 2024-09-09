@@ -16,25 +16,28 @@ project "TwistedEditor"
     links
     {
         "TwistedEngine",
-        "%{wks.location}/3rd/GLFW/lib/glfw3.lib",
-        "%{wks.location}/3rd/Assimp/lib/Debug/assimp-vc143-mtd.lib"
+        "imgui",
+        "glfw",
+        "%{LibDirs.Assimp}",
     }
 
     includedirs
     {
-        "%{wks.location}/TwistedEngine/src",
-        "%{IncludeDir.spdlog}",  
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.GLM}",
-        "%{IncludeDir.EnTT}",
-        "%{IncludeDir.Stbi}",
-        "%{IncludeDir.Assimp}"
+        "%{IncludeDirs.TwistedEngine}",
+        "%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.GLM}",
+        "%{IncludeDirs.imgui}",
+        "%{IncludeDirs.spdlog}",  
+        "%{IncludeDirs.Glad}",
+        "%{IncludeDirs.EnTT}",
+        "%{IncludeDirs.Stbi}",
+        "%{IncludeDirs.Assimp}"
     }
 
     defines
     {
-        "GLFW_INCLUDE_NONE"
+        "GLFW_INCLUDE_NONE",
+        "GLFW_EXCLUDE_VULKAN"
     }
 
     filter "system:windows"
