@@ -32,13 +32,11 @@ project "TwistedEngine"
 
     links
     {
-        --"%{wks.location}/3rd/GLFW/lib/glfw3.lib",
+        --"Assimp",
         "%{wks.location}/3rd/Assimp/lib/Debug/assimp-vc143-mtd.lib",
         "Glad",
         "GLFW",
-        --"Assimp",
         "imgui",
-
         "opengl32.lib",
         "kernel32.lib",
         "user32.lib",

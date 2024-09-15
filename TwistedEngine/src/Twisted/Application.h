@@ -5,6 +5,10 @@
 #include "SystemsCore.h"
 #include "Twisted/Managers/ResourceManager.h"
 #include "Twisted/Managers/TimeManager.h"
+#include "Twisted/AppParams.h"
+
+#include "Editor/EditorCore.h"
+#include "Editor/Editor.h"
 namespace Twisted
 {
 	class Application;
@@ -12,6 +16,9 @@ namespace Twisted
 	class RuntimeBase
 	{
 	public:
+
+		AppParams Params;
+
 		virtual void OnInit(Application& app) = 0;
 		virtual void OnBeforeRun(Application& app) = 0;
 		virtual void OnRun(Application& app) = 0;
@@ -19,6 +26,8 @@ namespace Twisted
 
 	class Application
 	{
+		//Editor::Editor m_editor;
+
 	public:
 		Application();
 		~Application();
@@ -43,5 +52,6 @@ namespace Twisted
 
 		void Init();
 		void Run();
+		void Terminate();
 	};
 }

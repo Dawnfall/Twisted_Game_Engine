@@ -11,19 +11,21 @@ namespace Twisted
 	{
 	public:
 		bool CreateNewWindow(const std::string& title, unsigned int width, unsigned int height);
-		const std::vector<std::shared_ptr<Window>>& GetWindows() { return m_windows; }
-		std::shared_ptr<Window> GetWindow(int id);
-		bool CloseWindow(unsigned int index);
+
+		std::shared_ptr<Window> GetWindow()
+		{
+			return m_window;
+		}
+
+		bool CloseWindow();
 
 		void UpdateWindows();
 
 		InputManager m_inputManager;
 		Event<> closeWindowEvent;
 	private:
-		std::vector<std::shared_ptr<Window>> m_windows;
-		unsigned m_nextID = 1;
+		std::shared_ptr<Window> m_window;
 
-		std::shared_ptr<Window> GetWindow(GLFWwindow* pointer);
 		void SetCallbacks();
 		void ProcessEvents();
 	};

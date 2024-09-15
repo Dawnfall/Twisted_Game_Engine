@@ -8,9 +8,6 @@
 
 void SampleRuntime::OnInit(Twisted::Application& app)
 {
-	app.Game.Systems.AddSystem<Twisted::RenderSystem>();
-
-	app.WindowManager.CreateNewWindow(window1Title, monitorWidth, monitorHeight);
 	app.WindowManager.closeWindowEvent.AddListener([&app]() { app.Stop(); });
 }
 
@@ -81,7 +78,7 @@ void SampleRuntime::LoadEntities(Twisted::Application& app)
 
 	auto& camCamera = gameCore.AddComponent<Twisted::CCamera>(cameraID);
 	camCamera.FovDeg = 45.0f;
-	camCamera.AspectRatio = (float)app.WindowManager.GetWindow(1)->Width / (float)app.WindowManager.GetWindow(1)->Height;
+	camCamera.AspectRatio = (float)app.WindowManager.GetWindow()->Width / (float)app.WindowManager.GetWindow()->Height;
 	camCamera.FarPlane = 100.0f;
 	camCamera.NearPlane = 0.1f;
 	camCamera.CameraType = Twisted::CameraProjectionType::PERSPECTIVE;

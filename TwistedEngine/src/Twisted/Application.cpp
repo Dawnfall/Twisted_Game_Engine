@@ -4,6 +4,8 @@
 #include "Debug/Logger.h"
 #include "Twisted/GameCore.h"
 #include "Twisted/Rendering/OpenGL/Render_OpenGL.h"
+#include "Game/Systems/RenderSystem.h"
+#include "Editor/EditorCore.h"
 
 namespace Twisted
 {
@@ -43,6 +45,11 @@ namespace Twisted
 			TWISTED_ERROR("Application Init failure");
 		}
 
+		Game.Systems.AddSystem<Twisted::RenderSystem>();
+		WindowManager.CreateNewWindow(m_runtime->Params.window1Title, m_runtime->Params.monitorWidth, m_runtime->Params.monitorHeight);
+
+		//EDITOR_INIT(*this);
+
 		m_runtime->OnInit(*this);
 	}
 
@@ -53,28 +60,34 @@ namespace Twisted
 		m_runtime->OnBeforeRun(*this);
 		while (IsRunning())
 		{
+			//EDITOR_UPDATE(*this);
 			TimeManager.UpdateClocks();
 
 			if (TimeManager.IsNextFrame())
 			{
-				TimeManager.IncreaseFrameCount();
 				FrameUpdate();
-				TimeManager.ResetFrameTime();
 			}
 		}
+		Terminate();
 	}
 
 	void Application::FrameUpdate()
 	{
+		TimeManager.IncreaseFrameCount();
+
 		m_runtime->OnRun(*this);
 
-		for (auto& window : WindowManager.GetWindows())
-		{
-			glfwMakeContextCurrent(window->Pointer);
-			Render_OpenGL::ClearWindow(Collections::Color::blue);
-		}
+		glfwMakeContextCurrent(WindowManager.GetWindow()->Pointer);
+		Render_OpenGL::ClearWindow(Collections::Color::blue);
 
 		Game.Systems.UpdateSystems(*this);
 		WindowManager.UpdateWindows();
+
+		TimeManager.ResetFrameTime();
+	}
+
+	void Application::Terminate()
+	{
+		//EDITOR_TERMINATE(*this);
 	}
 }

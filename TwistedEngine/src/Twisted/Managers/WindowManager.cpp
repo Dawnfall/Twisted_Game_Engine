@@ -9,32 +9,25 @@ namespace Twisted
 {
 	bool WindowManager::CreateNewWindow(const std::string& title, unsigned int width, unsigned int height)
 	{
-		if (m_windows.size() > 2)
+		if (m_window != nullptr)
 		{
-			TWISTED_WARN("CreateNewWindow() failure; 2 windows max");
+			TWISTED_WARN("CreateNewWindow() failure; window already exists");
 			return false;
 		}
 
-		GLFWwindow* windowPointer;
-		if (m_windows.size() == 0)
-			windowPointer = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
-		else
-			windowPointer = glfwCreateWindow(width, height, title.c_str(), NULL, m_windows[0]->Pointer);
+
+		GLFWwindow* windowPointer = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);;
 		if (!windowPointer)
 		{
 			TWISTED_ERROR("CreateNewWindow() failure! GLFW window pointer creation failure");
 			return false;
 		}
 
-		std::shared_ptr<Window> newWindow = std::make_shared<Window>(windowPointer, m_nextID++, title, width, height);
-		m_windows.emplace_back(newWindow);
-		glfwMakeContextCurrent(newWindow->Pointer);
-		glfwSetWindowUserPointer(newWindow->Pointer, this);
+		m_window = std::make_shared<Window>(windowPointer, title, width, height);
+		glfwMakeContextCurrent(m_window->Pointer);
+		glfwSetWindowUserPointer(m_window->Pointer, this);
 
-		if (m_windows.size() == 1) //all windows share same context
-		{
-			Render_OpenGL::InitOpenGL((GLADloadproc)glfwGetProcAddress);
-		}
+		Render_OpenGL::InitOpenGL((GLADloadproc)glfwGetProcAddress);
 
 		SetCallbacks();
 
@@ -42,59 +35,38 @@ namespace Twisted
 		return true;
 	}
 
-	std::shared_ptr<Window> WindowManager::GetWindow(int id)
+	bool WindowManager::CloseWindow()
 	{
-		for (auto& window : m_windows)
+		if (m_window == nullptr)
 		{
-			if (window->ID == id)
-				return window;
-		}
-		return nullptr;
-	}
-
-	bool WindowManager::CloseWindow(unsigned int id)
-	{
-		for (int i = 0; i < m_windows.size(); i++)
-		{
-			auto& window = m_windows[i];
-			if (window->ID == id)
-			{
-				glfwSetWindowShouldClose(window->Pointer, GLFW_TRUE);
-				//glfwDestroyWindow(m_window);
-
-				m_windows.erase(std::next(m_windows.begin(), i));
-				TWISTED_INFO("Window closed");
-				return true;
-			}
+			TWISTED_WARN("CloseWindow() failure; no window exists");
+			return false;
 		}
 
-		TWISTED_WARN("CloseWindow() failure; no window with id: " + id);
-		return false;
+		glfwSetWindowShouldClose(GetWindow()->Pointer, GLFW_TRUE);
+		//glfwDestroyWindow(m_window);
+		m_window = nullptr;
+
+		TWISTED_INFO("Window closed");
+		return true;
 	}
 
-	std::shared_ptr<Window> WindowManager::GetWindow(GLFWwindow* pointer)
-	{
-		for (auto& window : m_windows)
-			if (window->Pointer == pointer)
-				return window;
-		return nullptr;
-	}
 
 	void WindowManager::ProcessEvents()
 	{
-		if (m_windows.size() > 0)
-		{
-			m_inputManager.Clear();
-			glfwPollEvents();
-		}
+		if (GetWindow() == nullptr)
+			return;
+
+		m_inputManager.Clear();
+		glfwPollEvents();
 	}
 
 	void WindowManager::UpdateWindows()
 	{
-		for (auto& window : m_windows)
-		{
-			glfwSwapBuffers(window->Pointer);
-		}
+		if (GetWindow() == nullptr)
+			return;
+
+		glfwSwapBuffers(GetWindow()->Pointer);
 		ProcessEvents();
 	}
 
@@ -104,33 +76,31 @@ namespace Twisted
 
 	void WindowManager::SetCallbacks()
 	{
-		for (auto& window : m_windows)
-		{
-			glfwSetWindowCloseCallback(window->Pointer,
-				[](GLFWwindow* window)
-				{
-					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-					thisManager->closeWindowEvent.Invoke();
-				});
-			glfwSetWindowSizeCallback(window->Pointer,
-				[](GLFWwindow* window, int newWidth, int newHeight)
-				{
-					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-					thisManager->GetWindow(window)->Width = newWidth;
-					thisManager->GetWindow(window)->Height = newHeight;
-				});
-			glfwSetKeyCallback(window->Pointer,
-				[](GLFWwindow* window, int key, int scancode, int action, int mods)
-				{
-					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-					thisManager->m_inputManager.KeyCallback(window, key, scancode, action, mods);
-				});
-			glfwSetMouseButtonCallback(window->Pointer,
-				[](GLFWwindow* window, int button, int action, int mods)
-				{
-					WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-					thisManager->m_inputManager.MouseButtonCallback(window, button, action, mods);
-				});
-		}
+		glfwSetWindowCloseCallback(GetWindow()->Pointer,
+			[](GLFWwindow* window)
+			{
+				WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+				thisManager->closeWindowEvent.Invoke();
+			});
+		glfwSetWindowSizeCallback(GetWindow()->Pointer,
+			[](GLFWwindow* window, int newWidth, int newHeight)
+			{
+				WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+				thisManager->GetWindow()->Width = newWidth;
+				thisManager->GetWindow()->Height = newHeight;
+			});
+		glfwSetKeyCallback(GetWindow()->Pointer,
+			[](GLFWwindow* window, int key, int scancode, int action, int mods)
+			{
+				WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+				thisManager->m_inputManager.KeyCallback(window, key, scancode, action, mods);
+			});
+		glfwSetMouseButtonCallback(GetWindow()->Pointer,
+			[](GLFWwindow* window, int button, int action, int mods)
+			{
+				WindowManager* thisManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+				thisManager->m_inputManager.MouseButtonCallback(window, button, action, mods);
+			});
+
 	}
 }

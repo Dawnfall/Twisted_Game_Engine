@@ -27,7 +27,8 @@ project "TestGame"
         "%{IncludeDirs.Glad}",
         "%{IncludeDirs.GLM}",
         "%{IncludeDirs.EnTT}",
-        "%{IncludeDirs.Stbi}"
+        "%{IncludeDirs.Stbi}",
+        "%{IncludeDirs.imgui}"
     }
 
     defines
