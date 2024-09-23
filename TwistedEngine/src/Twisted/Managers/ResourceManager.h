@@ -10,7 +10,6 @@
 #include "Twisted/Resources/MeshData.h"
 #include "Twisted/Rendering/Mesh.h"
 
-#include "Twisted/Resources/Resource.h"
 #include "Twisted/Rendering/Material.h"
 
 #include "Collections/Geometry.h"
@@ -18,37 +17,35 @@
 //#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+//**************
+// CONSTS
+
+const std::string materialName = "default_material";
+const std::string shaderDelimiter = "---";
+
+//**************
+
 namespace Twisted
 {
 	class ResourceManager
 	{
 	public:
-		template<typename T>
-		void AddResource(T& newRes)
-		{
-			m_resources[newRes.Name] = std::make_shared<T>(newRes);
-		}
-		template<typename T>
-		const std::shared_ptr<Resource>& GetResource(const std::string& name)
-		{
-			if (m_resources.contains(name))
-				return std::dynamic_pointer_cast<T>(m_resources[name]);
-			return nullptr;
-		}
+		void LoadResources(const std::string& projectFolder);
 		
-		void CreateNewTexture(const std::string& filePath, const std::string& textureName = "");
+		void LoadShader(const std::string& shaderName,const std::string& vertexCode,const std::string& fragmentCode);
+		void LoadTexture(const std::string& fileName, const std::string& name);
+		void LoadMesh(const std::string& name,const std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+
 		std::shared_ptr<Material> CreateNewMaterial(const std::string& name);
 
 		const std::shared_ptr<Material>& GetMaterial(const std::string matrialName);
 		const std::shared_ptr<Shader>& GetShader(const std::string& shaderName);
 		const std::shared_ptr<Texture>& GetTexture(const std::string& textureName);
-
 		const std::shared_ptr<Mesh>& GetMesh(const std::string& meshName);
 
-		void CompileShaders();
-		void CompileMeshes();
-
 	private:
+		void LoadDefaultResources();
+
 		std::unordered_map<std::string, std::shared_ptr<Resource>> m_resources;
 		std::unordered_map<std::string, std::shared_ptr<Material>> m_materials;
 		std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;

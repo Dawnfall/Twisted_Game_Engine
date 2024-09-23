@@ -81,7 +81,7 @@ namespace Twisted
 		const Mat4x4f GetWorldInvertModelMatrix(const GameCore& game) const
 		{
 			if (m_parentID != entt::null)
-				return GetInvertLocalModelMatrix()* game.GetComponent<CTransform>(m_parentID).GetWorldInvertModelMatrix(game);
+				return GetInvertLocalModelMatrix() * game.GetComponent<CTransform>(m_parentID).GetWorldInvertModelMatrix(game);
 			return GetInvertLocalModelMatrix();
 		}
 
@@ -151,9 +151,9 @@ namespace Twisted
 		{
 			m_rotation = m_rotation * rotation;
 		}
-		void Rotate(const Vec3f& eulerAngles)
+		void Rotate(const Vec3f& eulerAnglesInDeg)
 		{
-			Quat rotationQuat = Quat(eulerAngles);
+			Quat rotationQuat = Quat(glm::radians(eulerAnglesInDeg));
 			Rotate(rotationQuat);
 		}
 		void Scale(const Vec3f& scale)
@@ -162,7 +162,7 @@ namespace Twisted
 		}
 		void LookAt(const Vec3f& targetWorldSpace, const GameCore& game)
 		{
-			Vec3f targetForward = glm::normalize(WorldToLocalPoint(targetWorldSpace,game) - GetLocalPosition());
+			Vec3f targetForward = glm::normalize(WorldToLocalPoint(targetWorldSpace, game) - GetLocalPosition());
 			Quat rot = glm::rotation(Collections::Directions::Forward, targetForward);
 
 			Rotate(rot);

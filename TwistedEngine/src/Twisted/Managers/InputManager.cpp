@@ -1,14 +1,18 @@
 #include "pch.h"
 #include "InputManager.h"
+#include "GLFW/glfw3.h"
 
 namespace Twisted
 {
-	void InputManager::Clear()
+	void InputManager::Clear(GLFWwindow* window)
 	{
 		m_justPressedKeys.clear();
 		m_justReleasedKeys.clear();
+		m_mousePosition[1] = m_mousePosition[0];
 
-		//TODO:... glfwGetCursorPos()
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+		m_mousePosition[0] = Vec2f(static_cast<float>(x), static_cast<float>(y));
 	}
 
 	void InputManager::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

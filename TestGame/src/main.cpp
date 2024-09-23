@@ -1,6 +1,5 @@
 #include "Dawn.h"
-#include "TestRuntime.h"
-#include "SampleRuntime.h"
+#include "Runtimes/SampleRuntime.h"
 
 int main()
 {

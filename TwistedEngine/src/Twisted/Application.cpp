@@ -48,6 +48,7 @@ namespace Twisted
 		Game.Systems.AddSystem<Twisted::RenderSystem>();
 		WindowManager.CreateNewWindow(m_runtime->Params.window1Title, m_runtime->Params.monitorWidth, m_runtime->Params.monitorHeight);
 
+		ResourceManager.LoadResources(m_runtime->Params.rootFolder);
 		//EDITOR_INIT(*this);
 
 		m_runtime->OnInit(*this);
@@ -81,7 +82,7 @@ namespace Twisted
 		Render_OpenGL::ClearWindow(Collections::Color::blue);
 
 		Game.Systems.UpdateSystems(*this);
-		WindowManager.UpdateWindows();
+		WindowManager.UpdateWindow();
 
 		TimeManager.ResetFrameTime();
 	}

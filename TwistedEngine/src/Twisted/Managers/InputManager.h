@@ -1,15 +1,12 @@
 #pragma once
 #include "Collections/Vector.h"
-
-#include <GLFW/glfw3.h>
-
-
+#include "GLFW/glfw3.h"
 namespace Twisted
 {
 	class InputManager
 	{
 	public:
-		void Clear();
+		void Clear(GLFWwindow* window);
 
 		bool GetKeyDown(int key) { return m_justPressedKeys.contains(key); }
 		bool GeKeyUp(int key) { return m_justReleasedKeys.contains(key); }
@@ -21,8 +18,9 @@ namespace Twisted
 
 		void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-		
-		const Vec2d& GetMousePosition()const { return m_mousePosition; }
+
+		const Vec2f& GetMousePosition()const { return m_mousePosition[0]; }
+		const Vec2f GetMouseDelta()const { return m_mousePosition[0] - m_mousePosition[1]; }
 
 	private:
 		std::unordered_set<int> m_pressedKeys;
@@ -32,8 +30,8 @@ namespace Twisted
 		std::unordered_set<int> m_pressedMouse;
 		std::unordered_set<int> m_justPressedMouse;
 		std::unordered_set<int> m_justReleasedMouse;
-		
-		Vec2d m_mousePosition;
+
+		Vec2f m_mousePosition[2];
 	};
 
 

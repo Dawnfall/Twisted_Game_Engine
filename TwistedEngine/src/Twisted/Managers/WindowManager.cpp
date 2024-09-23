@@ -57,11 +57,11 @@ namespace Twisted
 		if (GetWindow() == nullptr)
 			return;
 
-		m_inputManager.Clear();
 		glfwPollEvents();
+		m_inputManager.Clear(GetWindow()->Pointer);
 	}
 
-	void WindowManager::UpdateWindows()
+	void WindowManager::UpdateWindow()
 	{
 		if (GetWindow() == nullptr)
 			return;

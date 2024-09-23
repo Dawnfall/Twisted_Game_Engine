@@ -11,15 +11,13 @@ namespace Twisted
 	{
 	public:
 		bool CreateNewWindow(const std::string& title, unsigned int width, unsigned int height);
+		void UpdateWindow();
+		bool CloseWindow();
 
 		std::shared_ptr<Window> GetWindow()
 		{
 			return m_window;
 		}
-
-		bool CloseWindow();
-
-		void UpdateWindows();
 
 		InputManager m_inputManager;
 		Event<> closeWindowEvent;

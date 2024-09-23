@@ -20,7 +20,7 @@ namespace Twisted
 		static void Terminate();
 
 		static void Render(const CRenderer& renderer);
-		static void UploadMesh(std::shared_ptr<Mesh>& mesh);
+		static std::shared_ptr<Mesh> CreateMesh(MeshData meshData);
 
 		static void ClearWindow(Collections::Color color);
 		static void SetViewPort(float width, float height);
@@ -29,7 +29,7 @@ namespace Twisted
 		//	//************
 		//	// Shader
 
-		static std::shared_ptr<Shader> CreateShader(const std::shared_ptr<ShaderData>& shaderData);
+		static std::shared_ptr<Shader> CreateShader(ShaderData shaderData);
 		static void UnCompileShader(Shader& shader);
 
 		static void SetUniforms(const std::shared_ptr<Material>& material);

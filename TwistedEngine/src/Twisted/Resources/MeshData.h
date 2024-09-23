@@ -1,15 +1,15 @@
 #pragma once
 
 #include "pch.h"
-#include "Resource.h"
 #include "Collections/Geometry.h"
 
 namespace Twisted
 {
-	struct MeshData : Resource
+	struct MeshData
 	{
 		// mesh data
-		std::vector<Vertex>       vertices;
-		std::vector<unsigned int> indices;
+		std::string				  Name;
+		std::vector<Vertex>       Vertices;
+		std::vector<unsigned int> Indices;
 	};
 }

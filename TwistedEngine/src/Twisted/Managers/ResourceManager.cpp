@@ -1,43 +1,82 @@
 #include "pch.h"
 #include "ResourceManager.h"
+#include "Debug/Logger.h"
+#include "Collections/Shaders/ShaderCollections.h"
+#include "Collections/Meshes/MeshCollections.h"
 
 namespace Twisted
 {
-	void ResourceManager::CompileShaders()
+	void ResourceManager::LoadResources(const std::string& projectFolder)
 	{
-		for (auto& keyVal : m_resources)
+		LoadDefaultResources();
+
+		for (auto& entry : Utils::GetFilesInFolder(projectFolder))
 		{
-			auto shaderData = std::dynamic_pointer_cast<ShaderData>(keyVal.second);
-			if (shaderData)
+			std::string fileNameWithoutExtension = entry.path().stem().string();
+			std::string fullPath = entry.path().string();
+			std::string extension = entry.path().extension().string();
+			std::string fileName = entry.path().stem().string();
+
+			if (extension == ".shader")
 			{
-				std::shared_ptr<Shader> shader = Render_OpenGL::CreateShader(shaderData);
-				m_shaders[shaderData->Name] = shader;
+				std::string shaderText = Utils::ReadFileContent(fullPath);
+				std::vector<std::string> shaderCodes = Utils::SplitString(shaderText, shaderDelimiter);
+				if (shaderCodes.size() != 2)
+				{
+					TWISTED_WARN("Invalid shader file: " + fullPath);
+					return;
+				}
+				LoadShader(fileName, shaderCodes[0], shaderCodes[1]);
+			}
+			else if (extension == ".jpg" || extension == ".png")
+			{
+				LoadTexture(fullPath, fileName);
+			}
+			else
+			{
+				TWISTED_WARN("Unknown file type: " + fullPath);
 			}
 		}
 	}
 
-	void ResourceManager::CompileMeshes()
+	void ResourceManager::LoadDefaultResources()
 	{
-		for (auto& keyVal : m_resources)
-		{
-			auto meshData = std::dynamic_pointer_cast<MeshData>(keyVal.second);
-			if (meshData)
-			{
-				auto mesh = std::make_shared<Mesh>(meshData);
-				Render_OpenGL::UploadMesh(mesh);
-				m_meshes[meshData->Name] = mesh;
-			}
-		}
+		LoadShader(Collections::defaultShaderName, Collections::simpleVertexCode, Collections::simpleFragmentCode);
+		LoadMesh(Collections::triangleMeshName, Collections::triangleVertices, Collections::triangleIndices);
+		LoadMesh(Collections::quadMeshName, Collections::quadVertices, Collections::quadIndices);
+		LoadMesh(Collections::cubeMeshName, Collections::cubeVertices, Collections::cubeIndices);
 	}
 
-	void ResourceManager::CreateNewTexture(const std::string& filePath, const std::string& textureName)
+	void ResourceManager::LoadMesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices) 
+	{
+		MeshData meshData{ name,vertices,indices };
+		meshData.Name = name;
+		meshData.Vertices = vertices;
+		meshData.Indices = indices;
+	
+		std::shared_ptr<Mesh> mesh = Render_OpenGL::CreateMesh(meshData);
+		m_meshes[meshData.Name] = mesh;
+	}
+
+	void ResourceManager::LoadShader(const std::string& shaderName, const std::string& vertexCode, const std::string& fragmentCode)
+	{
+		ShaderData shaderData;
+		shaderData.Name = shaderName;
+		shaderData.VertShaderCode = vertexCode;
+		shaderData.FragShaderCode = fragmentCode;
+
+		std::shared_ptr<Shader> shader = Render_OpenGL::CreateShader(shaderData);
+		m_shaders[shaderData.Name] = shader;
+	}
+
+	void ResourceManager::LoadTexture(const std::string& filePath, const std::string& name)
 	{
 		int width, height, nrChannels;
 		unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
-			std::shared_ptr<Texture> newTex = Render_OpenGL::LoadTexture(textureName, width, height, data);
-			m_textures[textureName] = newTex;
+			std::shared_ptr<Texture> newTex = Render_OpenGL::LoadTexture(name, width, height, data);
+			m_textures[name] = newTex;
 		}
 
 		stbi_image_free(data);

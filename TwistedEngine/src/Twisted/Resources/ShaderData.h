@@ -1,12 +1,12 @@
 #pragma once
 
 #include "pch.h"
-#include "Resource.h"
 
 namespace Twisted
 {
-	struct ShaderData :Resource
+	struct ShaderData
 	{
+		std::string Name = "";
 		std::string VertShaderCode = "";
 		std::string FragShaderCode = "";
 	};

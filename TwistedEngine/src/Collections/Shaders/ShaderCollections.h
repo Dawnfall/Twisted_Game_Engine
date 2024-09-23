@@ -1,10 +1,11 @@
-#include "ShaderCollections.h"
-#include <string>
+#pragma once
 
-namespace Collections
+#include "pch.h"
+
+namespace Twisted::Collections
 {
-
-	const std::string simpleVertexCode =
+	const std::string defaultShaderName = "defaultShader";
+	const std::string simpleVertexCode=
 		R"(
 #version 410 core
 layout(location = 0) in vec3 aPos;
@@ -24,7 +25,7 @@ uniform mat4 projection;
 	}
 )";
 
-	const std::string simpleFragmentCode =
+	const std::string simpleFragmentCode=
 		R"(
 #version 410 core
 
@@ -39,8 +40,7 @@ void main()
 } 
 )";
 
-
-	const std::string vertexShaderCode =
+	const std::string vertexShaderCode=
 		R"(
 #version 330 core
 layout (location = 0) in vec3 aPos; // the position variable has attribute position 0
@@ -54,7 +54,7 @@ void main()
 }
 )";
 
-	const std::string fragmentShaderCode =
+	const std::string fragmentShaderCode=
 		R"(
 #version 330 core
 out vec4 FragColor;

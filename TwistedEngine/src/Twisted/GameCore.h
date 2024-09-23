@@ -73,6 +73,22 @@ namespace Twisted
 			return m_registry.get<T>(id);
 		}
 
+		template<typename... ComponentTypes>
+		void GetComponents()const
+		{
+			return m_registry.get<ComponentTypes...>();
+		}
+
+		template<typename T>
+		T* GetComponent()const
+		{
+			static_assert(std::is_base_of<AComponent, T>::value);
+			auto view = m_registry.view<T>();
+			for (auto entity : view) {
+				return &view.get<T>(entity);
+			}
+			return nullptr;
+		}
 
 		SystemsCore Systems;
 

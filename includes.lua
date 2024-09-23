@@ -1,5 +1,6 @@
 IncludeDirs = {}
 IncludeDirs["TwistedEngine"]="%{wks.location}/TwistedEngine/src";
+IncludeDirs["TestGame"]="%{wks.location}/TestGame/src";
 IncludeDirs["spdlog"] ="%{wks.location}/3rd/spdlog/include"
 IncludeDirs["GLFW"] = "%{wks.location}/3rd/GLFW/include"
 IncludeDirs["Glad"] = "%{wks.location}/TwistedEngine/3rd/Glad/include"

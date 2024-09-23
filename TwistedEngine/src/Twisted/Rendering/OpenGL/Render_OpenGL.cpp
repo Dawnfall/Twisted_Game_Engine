@@ -30,6 +30,9 @@ namespace Twisted
 
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CW);
+		glCullFace(GL_BACK);
 		glDebugMessageCallback(Render_OpenGL::openGLErrorCallback, 0);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
@@ -41,18 +44,20 @@ namespace Twisted
 		glfwTerminate();
 	}
 
-	void Render_OpenGL::UploadMesh(std::shared_ptr<Mesh>& mesh)
+	std::shared_ptr<Mesh> Render_OpenGL::CreateMesh(MeshData meshData)
 	{
+		auto mesh = std::make_shared<Mesh>(meshData);
+
 		glGenVertexArrays(1, &mesh->VAO);
 		glGenBuffers(1, &mesh->VBO);
 		glGenBuffers(1, &mesh->EBO);
 
 		glBindVertexArray(mesh->VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO);
-		glBufferData(GL_ARRAY_BUFFER, mesh->Data->vertices.size() * sizeof(Vertex), &mesh->Data->vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, mesh->Data.Vertices.size() * sizeof(Vertex), &mesh->Data.Vertices[0], GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->Data->indices.size() * sizeof(unsigned int), &mesh->Data->indices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->Data.Indices.size() * sizeof(unsigned int), &mesh->Data.Indices[0], GL_STATIC_DRAW);
 
 		// vertex positions
 		glEnableVertexAttribArray(0);
@@ -65,6 +70,8 @@ namespace Twisted
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoord));
 
 		glBindVertexArray(0);
+
+		return mesh;
 	}
 
 	////***************
@@ -76,15 +83,15 @@ namespace Twisted
 		shader.ProgramID = -1;
 	}
 
-	std::shared_ptr<Shader> Render_OpenGL::CreateShader(const std::shared_ptr<ShaderData>& shaderData)
+	std::shared_ptr<Shader> Render_OpenGL::CreateShader(ShaderData shaderData)
 	{
 		GLuint vertexID = 0;
 		GLuint	fragmentID = 0;
 
-		if (shaderData->VertShaderCode != "")
-			vertexID = Render_OpenGL::CompileShader(GL_VERTEX_SHADER, "Vertex", shaderData->VertShaderCode.c_str());
-		if (shaderData->FragShaderCode != "")
-			fragmentID = Render_OpenGL::CompileShader(GL_FRAGMENT_SHADER, "Fragment", shaderData->FragShaderCode.c_str());
+		if (shaderData.VertShaderCode != "")
+			vertexID = Render_OpenGL::CompileShader(GL_VERTEX_SHADER, "Vertex", shaderData.VertShaderCode.c_str());
+		if (shaderData.FragShaderCode != "")
+			fragmentID = Render_OpenGL::CompileShader(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShaderCode.c_str());
 		GLuint programID = Render_OpenGL::CompileProgram(vertexID, fragmentID);
 
 		glDeleteShader(vertexID);
@@ -92,14 +99,14 @@ namespace Twisted
 
 		if (programID < 1)
 		{
-			TWISTED_WARN("Shader compile failure; shader: " + shaderData->Name);
+			TWISTED_WARN("Shader compile failure; shader: " + shaderData.Name);
 			return nullptr;
 		}
 
 		glUseProgram(programID);
 		std::vector<ShaderUniformVar> uniforms = DetectUniformVars(programID);
 
-		TWISTED_INFO("Shader compile success; shader: " + shaderData->Name);
+		TWISTED_INFO("Shader compile success; shader: " + shaderData.Name);
 		return std::make_shared<Shader>(shaderData, programID, uniforms);
 	}
 
@@ -181,7 +188,6 @@ namespace Twisted
 			else
 				uniforms.emplace_back(name, type, uniformID);
 		}
-
 		return uniforms;
 	}
 
@@ -245,7 +251,7 @@ namespace Twisted
 		glUseProgram(renderer.Material->GetShader()->ProgramID);
 		SetUniforms(renderer.Material);
 		glBindVertexArray(renderer.Mesh->VAO);
-		glDrawElements(GL_TRIANGLES, (GLsizei)renderer.Mesh->Data->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, (GLsizei)renderer.Mesh->Data.Indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 

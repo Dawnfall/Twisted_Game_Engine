@@ -21,6 +21,7 @@ project "TestGame"
 
     includedirs
     {
+        "%{IncludeDirs.TestGame}",
         "%{IncludeDirs.TwistedEngine}",
         "%{IncludeDirs.spdlog}",  
         "%{IncludeDirs.GLFW}",
