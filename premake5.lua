@@ -1,6 +1,6 @@
 workspace "TwistedEngine"
     architecture "x64"
-    startproject "TwistedEditor"
+    startproject "TestGame"
 
     configurations
     {
