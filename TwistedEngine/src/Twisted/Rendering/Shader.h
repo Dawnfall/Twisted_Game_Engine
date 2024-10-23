@@ -3,8 +3,6 @@
 #include "pch.h"
 #include "Twisted/Resources/ShaderData.h"
 
-#include <glad/glad.h>
-
 namespace Twisted
 {
 	struct ShaderUniformVar

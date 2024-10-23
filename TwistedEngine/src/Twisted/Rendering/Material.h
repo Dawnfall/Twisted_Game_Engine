@@ -4,7 +4,7 @@
 
 #include "Debug/Logger.h"
 #include "Shader.h"
-#include "Collections/Vector.h"
+#include "Collections/Geometry.h"
 #include "Texture.h"
 
 namespace Twisted

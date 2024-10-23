@@ -1,33 +1,21 @@
 #include "pch.h"
 #include "GameCore.h"
-
-#include "EnTT/entt.hpp"
-#include "Twisted/Game/Components/CTransform.h"
+#include "Game/Components/CTransform.h"
 
 namespace Twisted
 {
-	entt::entity GameCore::CreateEntity()
+	std::vector<CTransform*> GameCore::GetRootTransforms()
 	{
-		entt::entity entityID = m_registry.create();
-		//AddComponent<Transform>(entityID);
-
-		return entityID;
+		std::vector<CTransform*> result;
+			auto view = Ecs.GetComponents<CTransform>();
+			for (auto entity : view)
+			{
+				CTransform& transform = view.get<CTransform>(entity);
+				if (transform.GetParentID() == entt::null)
+				{
+					result.push_back(&transform);
+				}
+			}
+		return result;
 	}
-	std::vector<entt::entity> GameCore::CreateEntities(int amount)
-	{
-		std::vector<entt::entity> res(amount);
-		m_registry.create(res.begin(), res.end());
-		return res;
-	}
-
-	void GameCore::DestroyEntity(entt::entity id)
-	{
-		m_registry.destroy(id);
-	}
-	void GameCore::DestroyEntities(const std::vector<entt::entity>& entities)
-	{
-		auto it1 = entities.begin();
-		m_registry.destroy(entities.begin(), entities.end());
-	}
-
 }

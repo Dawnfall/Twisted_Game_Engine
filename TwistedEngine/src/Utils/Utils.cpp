@@ -17,6 +17,19 @@ namespace Twisted::Utils
 		return buffer.str();
 	}
 
+	std::string ExchangeFileContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed)
+	{
+		std::regex insertRegex(toBeExchanged);
+		std::smatch match;
+
+		while (std::regex_search(str, match, insertRegex))
+		{
+			std::string fullMatch = match[0];
+			str.replace(match.position(0), match.length(0), changed);
+		}
+		return str;
+	}
+
 	/// <summary>
 	/// Splits a string by a delimiter
 	/// </summary>

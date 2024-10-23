@@ -6,6 +6,7 @@
 #include "Twisted/Rendering/OpenGL/Render_OpenGL.h"
 #include "Game/Systems/RenderSystem.h"
 #include "Editor/EditorCore.h"
+#include "Collections/Color.h"
 
 namespace Twisted
 {
@@ -17,22 +18,27 @@ namespace Twisted
 		Render_OpenGL::Terminate();
 	}
 
-	void Application::Start(RuntimeBase& runtime)
+	void Application::Start(RuntimeBase* runtime)
 	{
 		if (IsRunning())
 		{
 			TWISTED_WARN("Cannot start application; Application already running!");
 			return;
 		}
-		m_runtime = &runtime;
+		Runtime = runtime;
 
 		Init();
 		Run();
 	}
 
+	void Application::Stop()
+	{
+		m_isRunning = false;
+	}
+
 	void Application::Init()
 	{
-		TimeManager.Init();
+		Time.Init();
 
 		if (Logger::Init() &&
 			Render_OpenGL::InitGLFW())
@@ -45,28 +51,28 @@ namespace Twisted
 			TWISTED_ERROR("Application Init failure");
 		}
 
-		Game.Systems.AddSystem<Twisted::RenderSystem>();
-		WindowManager.CreateNewWindow(m_runtime->Params.window1Title, m_runtime->Params.monitorWidth, m_runtime->Params.monitorHeight);
+		Game.Ecs.AddSystem<Twisted::RenderSystem>();
+		Windows.CreateNewWindow(Runtime->Params.window1Title, Runtime->Params.monitorWidth, Runtime->Params.monitorHeight);
+		Resources.LoadResources(Runtime->Params.rootFolder);
 
-		ResourceManager.LoadResources(m_runtime->Params.rootFolder);
-		//EDITOR_INIT(*this);
-
-		m_runtime->OnInit(*this);
+		Editor.Init(this);
+		Runtime->OnInit(this);
 	}
 
 	void Application::Run()
 	{
 		m_isRunning = true;
 
-		m_runtime->OnBeforeRun(*this);
+		Runtime->OnBeforeRun(this);
 		while (IsRunning())
 		{
-			//EDITOR_UPDATE(*this);
-			TimeManager.UpdateClocks();
+			Time.UpdateClocks();
 
-			if (TimeManager.IsNextFrame())
+			if (Time.IsNextFrame())
 			{
+				Time.IncreaseFrameCount();
 				FrameUpdate();
+				Time.ResetFrameTime();
 			}
 		}
 		Terminate();
@@ -74,21 +80,21 @@ namespace Twisted
 
 	void Application::FrameUpdate()
 	{
-		TimeManager.IncreaseFrameCount();
+		Editor.Update(this);
 
-		m_runtime->OnRun(*this);
+		Runtime->OnRun(this);
 
-		glfwMakeContextCurrent(WindowManager.GetWindow()->Pointer);
-		Render_OpenGL::ClearWindow(Collections::Color::blue);
+		glfwMakeContextCurrent(Windows.GetWindow()->Pointer);
+		Render_OpenGL::ClearWindow(Colors::blue);
 
-		Game.Systems.UpdateSystems(*this);
-		WindowManager.UpdateWindow();
+		Game.Ecs.UpdateSystems(this);
+		Editor.Render(this);
 
-		TimeManager.ResetFrameTime();
+		Windows.UpdateWindow();
 	}
 
 	void Application::Terminate()
 	{
-		//EDITOR_TERMINATE(*this);
+		Editor.Terminate(this);
 	}
 }

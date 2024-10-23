@@ -6,7 +6,7 @@ int main()
 	//TestRuntime runtime;
 	SampleRuntime runtime;
 	Twisted::Application* app = new Twisted::Application();
-	app->Start(runtime);
+	app->Start(&runtime);
 
 	delete app;
 

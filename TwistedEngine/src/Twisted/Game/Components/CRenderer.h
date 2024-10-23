@@ -1,10 +1,10 @@
 #pragma once
 
+#include "pch.h"
+
 #include "Twisted/Game/AComponent.h"
 #include "Twisted/Rendering/Material.h"
 #include "Twisted/Rendering/Mesh.h"
-
-#include "EnTT/entt.hpp"
 
 namespace Twisted
 {

@@ -29,7 +29,8 @@ project "TestGame"
         "%{IncludeDirs.GLM}",
         "%{IncludeDirs.EnTT}",
         "%{IncludeDirs.Stbi}",
-        "%{IncludeDirs.imgui}"
+        "%{IncludeDirs.imgui}",
+        "%{IncludeDirs.meta}"
     }
 
     defines

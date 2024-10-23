@@ -3,7 +3,6 @@
 #include "WindowManager.h"
 #include "Twisted/Rendering/OpenGL/Render_OpenGL.h"
 #include "Debug/Logger.h"
-#include <glad/glad.h>
 
 namespace Twisted
 {

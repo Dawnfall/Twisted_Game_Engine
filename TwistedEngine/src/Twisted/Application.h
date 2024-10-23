@@ -1,13 +1,12 @@
 #pragma once
 
-#include "Twisted/GameCore.h"
+#include "pch.h"
+#include "Twisted/RuntimeBase.h"
+
 #include "Twisted/Managers/WindowManager.h"
-#include "SystemsCore.h"
 #include "Twisted/Managers/ResourceManager.h"
 #include "Twisted/Managers/TimeManager.h"
-#include "Twisted/AppParams.h"
-#include "Twisted/RuntimeBase.h"
-#include "Editor/EditorCore.h"
+#include "Twisted/GameCore.h"
 #include "Editor/Editor.h"
 
 namespace Twisted
@@ -18,20 +17,21 @@ namespace Twisted
 		Application();
 		~Application();
 
-		void Start(RuntimeBase& runtime);
-		void Stop() { m_isRunning = false; }
+		void Start(RuntimeBase* runtime);
+		void Stop();
 
 		bool IsValid() { return m_isValid; }
 		bool IsRunning() { return m_isRunning; }
 
-		WindowManager WindowManager;
-		ResourceManager ResourceManager;
-		TimeManager TimeManager;
-
+		TimeManager Time;
+		ResourceManager Resources;
+		WindowManager Windows;
 		GameCore Game;
 
+		RuntimeBase* Runtime = nullptr;
+		Editor::Editor Editor;
+
 	private:
-		RuntimeBase* m_runtime = nullptr;
 		bool m_isValid = false;
 		bool m_isRunning = false;
 
@@ -41,3 +41,5 @@ namespace Twisted
 		void Terminate();
 	};
 }
+
+

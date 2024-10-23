@@ -27,7 +27,8 @@ project "TwistedEngine"
 		"%{IncludeDirs.EnTT}",
         "%{IncludeDirs.Stbi}",
         "%{IncludeDirs.Assimp}",
-        "%{IncludeDirs.imgui}"
+        "%{IncludeDirs.imgui}",
+        "%{IncludeDirs.meta}"
     }
 
     links

@@ -1,8 +1,6 @@
 #include "pch.h"
-
 #include "Logger.h"
-#include "spdlog/async_logger.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
+
 
 namespace Twisted
 {

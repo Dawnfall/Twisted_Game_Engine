@@ -1,17 +1,17 @@
 #pragma once
 
-#include "EnTT/entt.hpp"
-
+#include "pch.h"
 
 namespace Twisted
 {
-	struct AComponent
+	class AComponent
 	{
+	public:
 		AComponent(entt::entity entityID) :
 			m_entityID(entityID)
 		{}
 
-		int GetID() { return (int)m_entityID; }
+		const entt::entity& GetID()const { return m_entityID; }
 	protected:
 		entt::entity m_entityID;
 	};

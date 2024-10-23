@@ -9,7 +9,6 @@ namespace Twisted
 	public:
 		SystemBase() = default;
 		virtual ~SystemBase() = default;
-		virtual void Update(Application& app) = 0;
-	private:
+		virtual void Update(Application* app) = 0;
 	};
 }

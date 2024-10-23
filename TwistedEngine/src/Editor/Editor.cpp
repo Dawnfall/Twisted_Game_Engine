@@ -1,42 +1,47 @@
 #include "pch.h"
+
 #include "Editor.h"
+#include "Twisted/Application.h"
+#include "Windows/TreeWindow.h"
 
 namespace Twisted::Editor
 {
-	bool m_showDemo = true;
-	void Editor::Init(Application& app)
+	void Editor::Init(Twisted::Application* app)
 	{
-		InitImgui(app);
+			//Setup Dear ImGui context
+			IMGUI_CHECKVERSION();
+			ImGui::CreateContext();
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+			ImGui::StyleColorsDark();
+			// Setup Platform/Renderer backends
+			ImGui_ImplGlfw_InitForOpenGL(app->Windows.GetWindow()->Pointer, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+			ImGui_ImplOpenGL3_Init();
+
+			OpenNewWindow<TreeWindow>();
 	}
 
-	void Editor::Update(Application& app)
+	void Editor::Update(Twisted::Application* app)
 	{
-		ImGui::ShowDemoWindow(&m_showDemo);
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		for (auto& window : m_openedWindows)
+		{
+			window->Render(app);
+		}
 	}
 
-	void Editor::Terminate(Application& app)
+	void Editor::Render(Twisted::Application* app)
 	{
-		TerminateImgui(app);
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
-	void Editor::InitImgui(Application& app)
-	{
-		// Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
-
-		ImGui::StyleColorsDark();
-
-		// Setup Platform/Renderer backends
-		ImGui_ImplGlfw_InitForOpenGL(app.WindowManager.GetWindow()->Pointer, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-		ImGui_ImplOpenGL3_Init();
-	}
-
-	void Editor::TerminateImgui(Application& app)
+	void Editor::Terminate(Twisted::Application* app)
 	{
 		// Cleanup
 		ImGui_ImplOpenGL3_Shutdown();

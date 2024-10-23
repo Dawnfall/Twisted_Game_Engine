@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "CTransform.h"
-#include "Twisted/GameCore.h"
-#include <EnTT/entt.hpp>
 
 namespace Twisted
 {

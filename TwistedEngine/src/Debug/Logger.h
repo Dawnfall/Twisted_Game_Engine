@@ -1,8 +1,6 @@
 #pragma once
 
 #include "pch.h"
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
 
 namespace Twisted
 {
@@ -20,7 +18,7 @@ namespace Twisted
 	};
 }
 
-#if TWISTED_WINDOWS
+#if TWISTED_DEBUG
 	#define TWISTED_INFO(...)  Logger::Info(__VA_ARGS__)
 	#define TWISTED_WARN(...)  Logger::Warn(__VA_ARGS__)
 	#define TWISTED_ERROR(...) Logger::Error(__VA_ARGS__)

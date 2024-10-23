@@ -22,7 +22,7 @@ namespace Twisted
 		static void Render(const CRenderer& renderer);
 		static std::shared_ptr<Mesh> CreateMesh(MeshData meshData);
 
-		static void ClearWindow(Collections::Color color);
+		static void ClearWindow(Colors::Color color);
 		static void SetViewPort(float width, float height);
 		static void SetVsync(int deltaFrames);
 

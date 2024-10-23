@@ -1,99 +1,20 @@
 #pragma once
 
 #include "pch.h"
-#include "Twisted/Game/AComponent.h"
-#include "Twisted/SystemsCore.h"
-#include "Utils/Utils.h"
-
-#include <EnTT/entt.hpp>
-
+#include "Game/EcsManager.h"
+//#include "Twisted/Game/Components/CTransform.h"
 
 
 namespace Twisted
 {
-	struct AComponent;
+	class CTransform;
 
 	class GameCore
 	{
 	public:
-		void DestroyAll()
-		{
-			m_registry.clear();
-		}
+		EcsManager Ecs;
+		std::vector<CTransform*> GetRootTransforms();
 
-		entt::entity CreateEntity();
-		std::vector<entt::entity> CreateEntities(int amount);
-		void DestroyEntity(entt::entity id);
-		void DestroyEntities(const std::vector<entt::entity>& entities);
-
-		//TODO:... continue here
-		template<typename T>
-		T& AddComponent(entt::entity id)
-		{
-			static_assert(std::is_base_of<AComponent, T>::value, "Component must be of type AComponent");
-			return m_registry.emplace<T>(id, id);
-		}
-
-		template <typename... ComponentTypes>
-		void AddComponents(entt::entity id)
-		{
-			//TODO: static assert variadic pack	
-			(m_registry.emplace<ComponentTypes>(id, id), ...);
-		}
-
-		template<typename Iterator, typename... ComponentTypes>
-		void AddComponents(Iterator begin, Iterator end)//(const std::vector <entt::entity>& entities)
-		{
-			for (Iterator it = begin; it != end; it++)
-				(m_registry.insert<ComponentTypes>(*it, *it), ...);
-		}
-
-		template<typename T>
-		void RemoveComponent(entt::entity id)
-		{
-			m_registry.remove<T>(id); //or erase if we know
-		}
-
-		template <typename... ComponentTypes>
-		void RemoveComponents(entt::entity id)
-		{
-			(m_registry.remove<ComponentTypes>(id), ...);
-		}
-
-		template<typename T>
-		void DestroyAllOfType()
-		{
-			m_registry.clear<T>();
-		}
-
-		template <typename T>
-		const T& GetComponent(entt::entity id)const
-		{
-			static_assert(std::is_base_of<AComponent, T>::value);
-			return m_registry.get<T>(id);
-		}
-
-		template<typename... ComponentTypes>
-		void GetComponents()const
-		{
-			return m_registry.get<ComponentTypes...>();
-		}
-
-		template<typename T>
-		T* GetComponent()const
-		{
-			static_assert(std::is_base_of<AComponent, T>::value);
-			auto view = m_registry.view<T>();
-			for (auto entity : view) {
-				return &view.get<T>(entity);
-			}
-			return nullptr;
-		}
-
-		SystemsCore Systems;
-
-		entt::registry& GetRegistry() { return m_registry; }
 	private:
-		entt::registry m_registry;
 	};
 }

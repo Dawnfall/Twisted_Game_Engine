@@ -1,6 +1,6 @@
 #pragma once
-#include "Collections/Vector.h"
-#include "GLFW/glfw3.h"
+#include "Collections/Geometry.h"
+
 namespace Twisted
 {
 	class InputManager

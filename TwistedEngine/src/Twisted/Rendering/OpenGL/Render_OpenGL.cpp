@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "Render_OpenGL.h"
-
 #include "Debug/Logger.h"
-#include "GLFW/glfw3.h"
 
 namespace Twisted
 {
@@ -86,7 +84,7 @@ namespace Twisted
 	std::shared_ptr<Shader> Render_OpenGL::CreateShader(ShaderData shaderData)
 	{
 		GLuint vertexID = 0;
-		GLuint	fragmentID = 0;
+		GLuint fragmentID = 0;
 
 		if (shaderData.VertShaderCode != "")
 			vertexID = Render_OpenGL::CompileShader(GL_VERTEX_SHADER, "Vertex", shaderData.VertShaderCode.c_str());
@@ -260,7 +258,7 @@ namespace Twisted
 	//	//TODO:.....
 	//}
 
-	void Render_OpenGL::ClearWindow(Collections::Color color)
+	void Render_OpenGL::ClearWindow(Colors::Color color)
 	{
 		glClearColor(color.r, color.g, color.b, color.a);
 		glClear(GL_COLOR_BUFFER_BIT);

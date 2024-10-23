@@ -5,61 +5,61 @@
 #include <string>
 
 
-void SampleRuntime::OnInit(Twisted::Application& app)
+void SampleRuntime::OnInit(Twisted::Application* app)
 {
-	app.WindowManager.closeWindowEvent.AddListener([&app]() { app.Stop(); });
+	app->Windows.closeWindowEvent.AddListener([app]() { app->Stop(); });
 }
 
-void SampleRuntime::OnBeforeRun(Twisted::Application& app)
+void SampleRuntime::OnBeforeRun(Twisted::Application* app)
 {
-	app.Game.Systems.AddSystem<SCameraController>();
+	app->Game.Ecs.AddSystem<SCameraController>();
 
 	LoadMaterials(app);
 	LoadEntities(app);
 }
 
-void SampleRuntime::OnRun(Twisted::Application& app) {}
+void SampleRuntime::OnRun(Twisted::Application* app) {}
 
 
-void SampleRuntime::LoadMaterials(Twisted::Application& app)
+void SampleRuntime::LoadMaterials(Twisted::Application* app)
 {
-	auto mat = app.ResourceManager.CreateNewMaterial(materialName);
-	mat->SetShader(app.ResourceManager.GetShader(Twisted::Collections::defaultShaderName));
-	mat->SetTexture("ourTexture", app.ResourceManager.GetTexture(wallImageName));
+	auto mat = app->Resources.CreateNewMaterial(materialName);
+	mat->SetShader(app->Resources.GetShader("SimpleShader"));
+	mat->SetTexture("ourTexture", app->Resources.GetTexture(wallImageName));
 }
 
-void SampleRuntime::LoadEntities(Twisted::Application& app)
+void SampleRuntime::LoadEntities(Twisted::Application* app)
 {
-	Twisted::GameCore& gameCore = app.Game;
-
+	Twisted::GameCore& game = app->Game;
+	auto window = app->Windows.GetWindow();
 	Twisted::Vec3f cameraPos(0.0, 0.0f, 0.0f);
 	Twisted::Vec3f cubePos(0.0f, 0.0f, -2.0f);
 
 	//camera
-	entt::entity cameraID = gameCore.CreateEntity();
+	entt::entity cameraID = game.Ecs.CreateEntity();
 
-	auto& camTrans = gameCore.AddComponent<Twisted::CTransform>(cameraID);
+	auto& camTrans = game.Ecs.AddComponent<Twisted::CTransform>(cameraID);
 	camTrans.SetLocalPosition(cameraPos);
-	camTrans.SetLocalRotation(Twisted::Collections::Directions::IdentityQuat);
-	camTrans.SetLocalScale(Twisted::Collections::Directions::One);
+	camTrans.SetLocalRotation(Twisted::Directions::IdentityQuat);
+	camTrans.SetLocalScale(Twisted::Directions::One);
 	//camTrans.LookAt(trianglePos, app.Game);
 
-	auto& camCamera = gameCore.AddComponent<Twisted::CCamera>(cameraID);
+	auto& camCamera = game.Ecs.AddComponent<Twisted::CCamera>(cameraID);
 	camCamera.FovDeg = 45.0f;
-	camCamera.AspectRatio = (float)app.WindowManager.GetWindow()->Width / (float)app.WindowManager.GetWindow()->Height;
+	camCamera.AspectRatio = (float)window->Width / (float)window->Height;
 	camCamera.FarPlane = 100.0f;
 	camCamera.NearPlane = 0.1f;
 	camCamera.CameraType = Twisted::CameraProjectionType::PERSPECTIVE;
 
 	//cube
-	entt::entity cubeEntity = gameCore.CreateEntity();
+	entt::entity cubeEntity = game.Ecs.CreateEntity();
 
-	auto& cubeTrans = gameCore.AddComponent<Twisted::CTransform>(cubeEntity);
-	cubeTrans.SetWorldPosition(cubePos, app.Game);
-	cubeTrans.SetLocalRotation(Twisted::Collections::Directions::IdentityQuat);
-	cubeTrans.SetLocalScale(Twisted::Collections::Directions::One);
+	auto& cubeTrans = game.Ecs.AddComponent<Twisted::CTransform>(cubeEntity);
+	cubeTrans.SetWorldPosition(cubePos, app->Game.Ecs);
+	cubeTrans.SetLocalRotation(Twisted::Directions::IdentityQuat);
+	cubeTrans.SetLocalScale(Twisted::Directions::One);
 
-	auto& cubeRenderer = gameCore.AddComponent<Twisted::CRenderer>(cubeEntity);
-	cubeRenderer.Mesh = app.ResourceManager.GetMesh(meshName);
-	cubeRenderer.Material = app.ResourceManager.GetMaterial(materialName);
+	auto& cubeRenderer = game.Ecs.AddComponent<Twisted::CRenderer>(cubeEntity);
+	cubeRenderer.Mesh = app->Resources.GetMesh(meshName);
+	cubeRenderer.Material = app->Resources.GetMaterial(materialName);
 }

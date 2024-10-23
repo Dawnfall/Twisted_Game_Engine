@@ -22,6 +22,7 @@ namespace Twisted::Utils
 	}
 
 	std::string ReadFileContent(const std::string& filePath);
+	std::string ExchangeFileContentsWithOtherFile(std::string& str, const std::string& toBeExchanged, const std::string& changed);
 	std::vector<std::filesystem::directory_entry> GetFilesInFolder(const std::string& folderPath);
 	std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 

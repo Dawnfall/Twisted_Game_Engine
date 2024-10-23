@@ -1,11 +1,16 @@
 #include "pch.h"
 #include "ResourceManager.h"
 #include "Debug/Logger.h"
-#include "Collections/Shaders/ShaderCollections.h"
 #include "Collections/Meshes/MeshCollections.h"
+#include "Twisted/Rendering/ShaderCompilation.h"
 
 namespace Twisted
 {
+	const std::string DEFAULT_SHADER_PATH = "F:/Programiranje/C++/GameEngine/TwistedEngine/src/BuiltIn/Shaders/defaultShader.shader";
+	const std::string DEFAULT_SHADER_NAME = "DefaultShader";
+	const std::string SIMPLE_SHADER_PATH = "F:/Programiranje/C++/GameEngine/TwistedEngine/src/BuiltIn/Shaders/SimpleShader.shader";
+	const std::string SIMPLE_SHADER_NAME = "SimpleShader";
+
 	void ResourceManager::LoadResources(const std::string& projectFolder)
 	{
 		LoadDefaultResources();
@@ -17,16 +22,11 @@ namespace Twisted
 			std::string extension = entry.path().extension().string();
 			std::string fileName = entry.path().stem().string();
 
-			if (extension == ".shader")
+			if (extension == ShaderCompilation::SHADER_EXTENSION)
 			{
-				std::string shaderText = Utils::ReadFileContent(fullPath);
-				std::vector<std::string> shaderCodes = Utils::SplitString(shaderText, shaderDelimiter);
-				if (shaderCodes.size() != 2)
-				{
-					TWISTED_WARN("Invalid shader file: " + fullPath);
-					return;
-				}
-				LoadShader(fileName, shaderCodes[0], shaderCodes[1]);
+				auto shader = ShaderCompilation::LoadShader(fullPath, fileName);
+				if (shader)
+					m_shaders[shader->Data.Name] = shader;
 			}
 			else if (extension == ".jpg" || extension == ".png")
 			{
@@ -41,33 +41,31 @@ namespace Twisted
 
 	void ResourceManager::LoadDefaultResources()
 	{
-		LoadShader(Collections::defaultShaderName, Collections::simpleVertexCode, Collections::simpleFragmentCode);
+		auto defaultShader = ShaderCompilation::LoadShader(DEFAULT_SHADER_PATH,DEFAULT_SHADER_NAME);
+		if (defaultShader)
+			m_shaders[defaultShader->Data.Name] = defaultShader;
+
+		auto simpleShader = ShaderCompilation::LoadShader(SIMPLE_SHADER_PATH, SIMPLE_SHADER_NAME);
+		if (simpleShader)
+			m_shaders[simpleShader->Data.Name] = simpleShader;
+
 		LoadMesh(Collections::triangleMeshName, Collections::triangleVertices, Collections::triangleIndices);
 		LoadMesh(Collections::quadMeshName, Collections::quadVertices, Collections::quadIndices);
 		LoadMesh(Collections::cubeMeshName, Collections::cubeVertices, Collections::cubeIndices);
 	}
 
-	void ResourceManager::LoadMesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices) 
+	void ResourceManager::LoadMesh(const std::string& name, std::vector<Vertex> vertices, std::vector<unsigned int> indices)
 	{
 		MeshData meshData{ name,vertices,indices };
 		meshData.Name = name;
 		meshData.Vertices = vertices;
 		meshData.Indices = indices;
-	
+
 		std::shared_ptr<Mesh> mesh = Render_OpenGL::CreateMesh(meshData);
 		m_meshes[meshData.Name] = mesh;
 	}
 
-	void ResourceManager::LoadShader(const std::string& shaderName, const std::string& vertexCode, const std::string& fragmentCode)
-	{
-		ShaderData shaderData;
-		shaderData.Name = shaderName;
-		shaderData.VertShaderCode = vertexCode;
-		shaderData.FragShaderCode = fragmentCode;
 
-		std::shared_ptr<Shader> shader = Render_OpenGL::CreateShader(shaderData);
-		m_shaders[shaderData.Name] = shader;
-	}
 
 	void ResourceManager::LoadTexture(const std::string& filePath, const std::string& name)
 	{

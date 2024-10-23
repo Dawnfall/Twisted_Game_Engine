@@ -1,15 +1,15 @@
 #pragma once
 
-namespace Twisted::Collections
+namespace Twisted::Colors
 {
 	struct Color
 	{
 		float r, g, b, a;
-
-		static const Color black;
-		static const Color white;
-		static const Color blue;
-		static const Color red;
-		static const Color green;
 	};
+
+	const Color black = { 0.0f,0.0f,0.0f,1.0f };
+	const Color white = { 1.0f,1.0f,1.0f,1.0f };
+	const Color blue = { 0.0f,0.0f,1.0f,1.0f };
+	const Color red = { 1.0f,0.0f,0.0f,1.0f };
+	const Color green = { 0.0f,1.0f,0.0f,1.0f };
 }

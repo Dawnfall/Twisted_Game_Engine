@@ -1,7 +1,7 @@
 #pragma once
 
+#include "pch.h"
 #include "Collections/Geometry.h"
-#include <vector>
 
 using Twisted::Vec3f;
 using Twisted::Vec2f;
