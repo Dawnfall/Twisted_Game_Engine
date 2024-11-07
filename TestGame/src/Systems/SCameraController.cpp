@@ -1,10 +1,10 @@
 #include "SCameraController.h"
 #include "Dawn.h"
 
-void SCameraController::Update(Twisted::Application* app)
+void SCameraController::Update(Twisted::AppBase* app)
 {
-	auto view = app->Game.Ecs.GetComponents<Twisted::CTransform, Twisted::CCamera>();
-	Twisted::InputManager& input = app->Windows.m_inputManager;
+	auto view = app->GetWorld()->GetEcs().GetComponents<Twisted::CTransform, Twisted::CCamera>();
+	Twisted::InputManager& input = app->GetInput();
 
 	float forward = ((input.GetKey(TWISTED_KEY_W)) ? -1.0f : 0.0f) + ((input.GetKey(TWISTED_KEY_S)) ? 1.0f : 0.0f);
 	float right = ((input.GetKey(TWISTED_KEY_D)) ? 1.0f : 0.0f) + ((input.GetKey(TWISTED_KEY_A)) ? -1.0f : 0.0f);
@@ -14,7 +14,7 @@ void SCameraController::Update(Twisted::Application* app)
 
 	for (auto&& [entity, transform, camera] : view.each())
 	{
-		Vec3f newPos = transform.LocalToWorldVector(translateVec * m_moveSpeed, app->Game.Ecs);
+		Vec3f newPos = transform.LocalToWorldVector(translateVec * m_moveSpeed, app->GetWorld()->GetEcs());
 		transform.Translate(newPos);
 		if (input.GetMouseButton(TWISTED_BUTTON_RIGHT))
 		{

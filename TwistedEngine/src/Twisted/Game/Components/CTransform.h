@@ -1,13 +1,12 @@
 #pragma once
 
-#include "pch.h"
+#include "twistedpch.h"
 
 #include "Twisted/Game/EcsManager.h"
 #include "Collections/Geometry.h"
 #include "Twisted/Game/AComponent.h" 
 #include "Utils/Utils.h"
 #include "Twisted/Game/Transformations.h"
-
 
 namespace Twisted
 {
@@ -193,7 +192,7 @@ namespace Twisted
 		entt::entity m_parentID;
 		std::vector<entt::entity> m_children;
 
-		std::string m_name;
+		std::string m_name = "new object";
 		Vec3f m_position;
 		Quat m_rotation;
 		Vec3f m_scale;

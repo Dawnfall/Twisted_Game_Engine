@@ -1,5 +1,5 @@
-#include <pch.h>
-#include "EnTT/entt.hpp"
+#include <twistedpch.h>
+
 #include "SystemBase.h"
 #include "Twisted/Game/AComponent.h"
 
@@ -213,26 +213,8 @@ namespace Twisted
 			return m_registry.view<T1, T2>();
 		}
 
-		//*******************
-		// Systems
-		void UpdateSystems(Application* app)
-		{
-			for (auto& system : m_systems)
-				system->Update(app);
-		}
-
-		template<typename T>
-		void AddSystem()
-		{
-			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
-			m_systems.push_back(std::make_unique<T>());
-		}
-
-
-
 		//entt::registry& GetRegistry() { return m_registry; }
 	private:
 		entt::registry m_registry;
-		std::vector<std::unique_ptr<SystemBase>> m_systems;
 	};
 }

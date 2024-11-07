@@ -1,8 +1,13 @@
 #pragma once
 
-#include "pch.h"
+#include "twistedpch.h"
 namespace Twisted
 {
+	//enum class TextureType
+	//{
+	//	TEXTURE2D,
+	//	CUBEMAP
+	//};
 	struct TextureData
 	{
 		int Width;
@@ -13,8 +18,14 @@ namespace Twisted
 
 	struct Texture
 	{
-		//GLuint
+		//Texture(const std::string& name, TextureType type, unsigned int textureID) :
+		//	Name(name),
+		//	Type(type),
+		//	TextureID(textureID)
+		//{}
+
 		std::string Name;
-		unsigned int ID;
+		//TextureType Type;
+		unsigned int TextureID;
 	};
 }

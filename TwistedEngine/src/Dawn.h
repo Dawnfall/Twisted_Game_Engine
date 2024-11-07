@@ -1,13 +1,12 @@
 #pragma once
 
 //core
-#include "Twisted/Application.h"
-#include "Twisted/GameCore.h"
+#include "Twisted/AppBase.h"
+#include "Twisted/World.h"
 
 //managers
 #include "Twisted/Managers/ResourceManager.h"
 #include "Twisted/Managers/TimeManager.h"
-#include "Twisted/Managers/WindowManager.h"
 #include "Twisted/Managers/InputManager.h"
 
 //systems

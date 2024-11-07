@@ -1,17 +1,14 @@
 #pragma once
-#include "AppParams.h"
 
 namespace Twisted
 {
-	class Application;
+	class AppBase;
 
 	class RuntimeBase
 	{
 	public:
-		AppParams Params;
-
-		virtual void OnInit(Twisted::Application* app) = 0;
-		virtual void OnBeforeRun(Twisted::Application* app) = 0;
-		virtual void OnRun(Twisted::Application* app) = 0;
+		virtual void OnInit(Twisted::AppBase* app) = 0;
+		virtual void OnBeforeRun(Twisted::AppBase* app) = 0;
+		virtual void OnRun(Twisted::AppBase* app) = 0;
 	};
 }

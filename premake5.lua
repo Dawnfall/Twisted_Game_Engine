@@ -20,5 +20,6 @@ workspace "TwistedEngine"
     group ""
 
     include "TwistedEngine"
+    include "Editor"
     include "TestGame"
     

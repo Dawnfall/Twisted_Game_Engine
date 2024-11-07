@@ -1,10 +1,11 @@
-#include "pch.h"
+#include "twistedpch.h"
 #include "ShaderCompilation.h"
 #include "Twisted/Resources/ShaderData.h"
 #include "Shader.h"
-#include "Utils/Utils.h"
+#include "Utils/FileUtils.h"
 
-#include "OpenGL/Render_OpenGL.h"
+#include "RenderingAPI.h"
+#include "OpenGL/Shader_OpenGL.h"
 
 namespace Twisted::ShaderCompilation
 {
@@ -23,6 +24,6 @@ namespace Twisted::ShaderCompilation
 		shaderData.VertShaderCode = shaderCodes[0];
 		shaderData.FragShaderCode = shaderCodes[1];
 
-		return Render_OpenGL::CreateShader(shaderData);
+		return ShaderAPI::CreateShader(shaderData);
 	}
 }

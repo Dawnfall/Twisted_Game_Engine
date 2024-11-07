@@ -7,8 +7,8 @@ project "TwistedEngine"
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
     
-    pchheader "pch.h"  -- This is the precompiled header file
-    pchsource "src/pch.cpp" -- This is the source file that compiles the precompiled header
+    pchheader "twistedpch.h"  -- This is the precompiled header file
+    pchsource "src/twistedpch.cpp" -- This is the source file that compiles the precompiled header
     
     files
     {
@@ -27,7 +27,6 @@ project "TwistedEngine"
 		"%{IncludeDirs.EnTT}",
         "%{IncludeDirs.Stbi}",
         "%{IncludeDirs.Assimp}",
-        "%{IncludeDirs.imgui}",
         "%{IncludeDirs.meta}"
     }
 

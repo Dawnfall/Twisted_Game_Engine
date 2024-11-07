@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.h"
+#include "twistedpch.h"
 #include "Utils/Event.h"
 
 namespace Twisted
@@ -19,7 +19,5 @@ namespace Twisted
 			Height(height),
 			Pointer(window)
 		{}
-
-		Event<> closeWindowEvent;
 	};
 }

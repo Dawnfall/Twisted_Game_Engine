@@ -1,4 +1,5 @@
 #pragma once
+#include "twistedpch.h"
 
 namespace Twisted
 {
@@ -7,32 +8,23 @@ namespace Twisted
 	public:
 		void Init()
 		{
-			m_startAppTime = std::chrono::high_resolution_clock::now();
+			m_startAppTime = m_updateLastTwoTimes[0] = m_updateLastTwoTimes[1] = std::chrono::high_resolution_clock::now();
 		}
 
-		void UpdateClocks()
+		void UpdateNewFrame()
 		{
 			m_updateLastTwoTimes[0] = m_updateLastTwoTimes[1];
 			m_updateLastTwoTimes[1] = std::chrono::high_resolution_clock::now();
-
-			m_deltaSinceAppStart = (float)(m_updateLastTwoTimes[1] - m_startAppTime).count();
-			m_deltaSinceLastFrame += (m_updateLastTwoTimes[1] - m_updateLastTwoTimes[0]).count();
+			m_frameCount++;
 		}
 
-		void IncreaseFrameCount() { m_frameCount++; }
-		bool IsNextFrame()const { return m_deltaSinceLastFrame >= m_targetedFrameDeltaTime; }
-		void ResetFrameTime() { m_deltaSinceLastFrame = 0.0f; }
-
-		unsigned int GetFrameCount() const { return m_frameCount; }
-		float GetTimeSinceAppStart()const { return m_deltaSinceAppStart; }
-		float GetDeltaFrameTime()const { return m_deltaSinceLastFrame; }
+		unsigned long long GetFrameCount() const { return m_frameCount; }
+		float GetTimeSinceAppStart()const { return (m_updateLastTwoTimes[1] - m_startAppTime).count(); }
+		float GetDeltaFrameTime()const { return (m_updateLastTwoTimes[1] - m_updateLastTwoTimes[0]).count(); }
 
 	private:
 		std::chrono::steady_clock::time_point m_startAppTime;
-		std::chrono::steady_clock::time_point m_updateLastTwoTimes[2];
-
-		float m_deltaSinceAppStart;
-		float m_deltaSinceLastFrame;
+		std::array<std::chrono::steady_clock::time_point, 2> m_updateLastTwoTimes;
 
 		unsigned int m_frameCount = 0;
 		float m_targetedFrameDeltaTime = 0.0f;

@@ -1,5 +1,5 @@
 #pragma once
-#include "pch.h"
+#include "twistedpch.h"
 
 namespace Twisted
 {
@@ -12,7 +12,7 @@ namespace Twisted
         // Add a listener to the event
         void AddListener(const EventHandler& handler)
         {
-            listeners.push_back(handler);
+            listeners.emplace_back(handler);
         }
 
         // Remove a listener from the event

@@ -1,17 +1,18 @@
-#include "pch.h"
+#include "twistedpch.h"
 #include "Render_OpenGL.h"
 #include "Debug/Logger.h"
+#include "Shader_OpenGL.h"
 
-namespace Twisted
+namespace Twisted::RenderAPI
 {
-	bool Render_OpenGL::InitGLFW()
+	bool InitGLFW()
 	{
 		if (!glfwInit())
 		{
 			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!");
 			return false;
 		}
-		glfwSetErrorCallback(Render_OpenGL::glfwErrorCallback);
+		glfwSetErrorCallback(glfwErrorCallback);
 
 		TWISTED_INFO("GLFW init success");
 		TWISTED_INFO("RenderCore Init success!");
@@ -19,7 +20,7 @@ namespace Twisted
 		return true;
 	}
 
-	bool Render_OpenGL::InitOpenGL(GLADloadproc loadproc)
+	bool InitOpenGL(GLADloadproc loadproc)
 	{
 		if (!gladLoadGLLoader(loadproc)) {
 			TWISTED_ERROR("CreateNewWindow() failure! GLAD init failure");
@@ -31,18 +32,18 @@ namespace Twisted
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CW);
 		glCullFace(GL_BACK);
-		glDebugMessageCallback(Render_OpenGL::openGLErrorCallback, 0);
+		glDebugMessageCallback(openGLErrorCallback, 0);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
 		TWISTED_INFO("OpenGL init success");
 	}
 
-	void Render_OpenGL::Terminate()
+	void Terminate()
 	{
 		glfwTerminate();
 	}
 
-	std::shared_ptr<Mesh> Render_OpenGL::CreateMesh(MeshData meshData)
+	std::shared_ptr<Mesh> CreateMesh(MeshData meshData)
 	{
 		auto mesh = std::make_shared<Mesh>(meshData);
 
@@ -72,182 +73,13 @@ namespace Twisted
 		return mesh;
 	}
 
-	////***************
-	//// Shader
-
-	void Render_OpenGL::UnCompileShader(Shader& shader)
-	{
-		glDeleteShader(shader.ProgramID);
-		shader.ProgramID = -1;
-	}
-
-	std::shared_ptr<Shader> Render_OpenGL::CreateShader(ShaderData shaderData)
-	{
-		GLuint vertexID = 0;
-		GLuint fragmentID = 0;
-
-		if (shaderData.VertShaderCode != "")
-			vertexID = Render_OpenGL::CompileShader(GL_VERTEX_SHADER, "Vertex", shaderData.VertShaderCode.c_str());
-		if (shaderData.FragShaderCode != "")
-			fragmentID = Render_OpenGL::CompileShader(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShaderCode.c_str());
-		GLuint programID = Render_OpenGL::CompileProgram(vertexID, fragmentID);
-
-		glDeleteShader(vertexID);
-		glDeleteShader(fragmentID);
-
-		if (programID < 1)
-		{
-			TWISTED_WARN("Shader compile failure; shader: " + shaderData.Name);
-			return nullptr;
-		}
-
-		glUseProgram(programID);
-		std::vector<ShaderUniformVar> uniforms = DetectUniformVars(programID);
-
-		TWISTED_INFO("Shader compile success; shader: " + shaderData.Name);
-		return std::make_shared<Shader>(shaderData, programID, uniforms);
-	}
-
-	GLuint Render_OpenGL::CompileShader(GLenum shaderType, const char* shaderName, const char* shaderCode)
-	{
-		GLuint shaderID = glCreateShader(shaderType);
-
-		if (shaderID == 0)
-		{
-			TWISTED_ERROR("Error creating shader");
-			return 0;
-		}
-
-		glShaderSource(shaderID, 1, &shaderCode, NULL);
-		glCompileShader(shaderID);
-
-		int success;
-		char infoLog[512];
-		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-		if (success != GL_TRUE)
-		{
-			glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
-			TWISTED_ERROR(std::string("Error: Failed to compile ") + shaderName + " shader! " + infoLog);
-			return 0;
-		}
-		return shaderID;
-	}
-
-	GLuint Render_OpenGL::CompileProgram(GLuint vertexID, GLuint fragmentID)
-	{
-		GLuint shaderProgramID = glCreateProgram();
-		glAttachShader(shaderProgramID, vertexID);
-		glAttachShader(shaderProgramID, fragmentID);
-		glLinkProgram(shaderProgramID);
-
-		int success;
-		char infoLog[512];
-
-		glGetProgramiv(shaderProgramID, GL_LINK_STATUS, &success);
-		if (success != GL_TRUE)
-		{
-			glGetProgramInfoLog(shaderProgramID, 512, NULL, infoLog);
-			TWISTED_ERROR(std::string("Error: Failed to compile shader program!") + infoLog);
-			return 0;
-		}
-		return shaderProgramID;
-	}
-
-	std::vector<ShaderUniformVar> Render_OpenGL::DetectUniformVars(GLuint programID)
-	{
-		std::vector<ShaderUniformVar> uniforms;
-		std::vector<ShaderTextureVar> textures;
-
-		GLint count = 1;
-		GLint size; // size of the variable
-		GLenum type; // type of the variable (float, vec3 or mat4, etc)
-
-		const GLsizei bufSize = 16; // maximum name length
-		GLchar name[bufSize]; // variable name in GLSL
-		GLsizei length; // name length
-
-		glGetProgramiv(programID, GL_ACTIVE_UNIFORMS, &count);
-
-		printf("Active Uniforms: %d\n", count);
-
-		GLint textureUnit = 0;
-		for (int i = 0; i < count; i++)
-		{
-			glGetActiveUniform(programID, (GLuint)i, bufSize, &length, &size, &type, name);
-			printf("Uniform #%d Type: %u Name: %s\n", i, type, name);
-
-			GLint uniformID = glGetUniformLocation(programID, name);
-
-			if (type == GL_SAMPLER_2D)
-			{
-				glUniform1i(uniformID, textureUnit);
-				textures.emplace_back(name, type, uniformID, textureUnit++);
-			}
-			else
-				uniforms.emplace_back(name, type, uniformID);
-		}
-		return uniforms;
-	}
-
-	void Render_OpenGL::SetUniforms(const std::shared_ptr<Material>& material)
-	{
-		for (auto& var : material->m_bools)
-			setBool(var.second.ID, var.second.value);
-		for (auto& var : material->m_ints)
-			setInt(var.second.ID, var.second.value);
-		for (auto& var : material->m_floats)
-			setFloat(var.second.ID, var.second.value);
-		for (auto& var : material->m_vec2s)
-			setFloat2(var.second.ID, var.second.value);
-		for (auto& var : material->m_vec3s)
-			setFloat3(var.second.ID, var.second.value);
-		for (auto& var : material->m_vec4s)
-			setFloat4(var.second.ID, var.second.value);
-		for (auto& var : material->m_mats)
-			setMat4(var.second.ID, var.second.value);
-		for (auto& var : material->m_textures)
-		{
-			glActiveTexture(GL_TEXTURE0 + var.first);
-			glBindTexture(GL_TEXTURE_2D, var.second->ID);
-		}
-	}
-
-	void Render_OpenGL::setBool(GLint locationID, bool value)
-	{
-		glUniform1i(locationID, static_cast<int>(value));
-	}
-	void Render_OpenGL::setInt(GLint locationID, int value)
-	{
-		glUniform1i(locationID, value);
-	}
-	void Render_OpenGL::setFloat(GLint locationID, float value)
-	{
-		glUniform1f(locationID, value);
-	}
-	void Render_OpenGL::setFloat2(GLint locationID, const Vec2f& value)
-	{
-		glUniform2f(locationID, value[0], value[1]);
-	}
-	void Render_OpenGL::setFloat3(GLint locationID, const Vec3f& value)
-	{
-		glUniform3f(locationID, value[0], value[1], value[2]);
-	}
-	void Render_OpenGL::setFloat4(GLint locationID, const Vec4f& value)
-	{
-		glUniform4f(locationID, value[0], value[1], value[2], value[3]);
-	}
-	void Render_OpenGL::setMat4(GLint locationID, const Mat4x4f& value)
-	{
-		glUniformMatrix4fv(locationID, 1, GL_FALSE, &value[0][0]);
-	}
-
 	////**************
 	//// Other
 
-	void Render_OpenGL::Render(const CRenderer& renderer)
+	void Render(const CRenderer& renderer)
 	{
 		glUseProgram(renderer.Material->GetShader()->ProgramID);
-		SetUniforms(renderer.Material);
+		ShaderAPI::SetUniforms(renderer.Material);
 		glBindVertexArray(renderer.Mesh->VAO);
 		glDrawElements(GL_TRIANGLES, (GLsizei)renderer.Mesh->Data.Indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
@@ -258,26 +90,102 @@ namespace Twisted
 	//	//TODO:.....
 	//}
 
-	void Render_OpenGL::ClearWindow(Colors::Color color)
+	void ClearBuffers(bool doClearColor, Colors::Color clearColor, bool doClearDepth, bool doClearStencil)
+	{
+		int bufferBits = 0;
+		if (doClearColor)
+		{
+			bufferBits |= GL_COLOR_BUFFER_BIT;
+			glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+		}
+		if (glClearStencil)
+			bufferBits |= GL_STENCIL_BUFFER_BIT;
+		if (doClearDepth)
+			bufferBits |= GL_DEPTH_BUFFER_BIT;
+
+		glClear(bufferBits);
+	}
+
+	void SetEnableDepthTest(bool doEnable)
+	{
+		glEnable(GL_STENCIL_TEST);
+	}
+
+	void SetEnableDepthWrite(bool doEnable)
+	{
+		if (doEnable)
+			glDepthMask(doEnable);
+	}
+
+	void SetEnableStencilTest(bool doEnable)
+	{
+		if (doEnable)
+			glEnable(GL_STENCIL_TEST);
+		else
+			glDisable(GL_STENCIL_TEST);
+	}
+
+	void ClearWindow(Colors::Color color)
 	{
 		glClearColor(color.r, color.g, color.b, color.a);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
-	void Render_OpenGL::SetViewPort(float width, float height)
+	void SetViewPort(float width, float height)
 	{
 		glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 	}
-	void Render_OpenGL::SetVsync(int deltaFrames)
+	void SetVsync(int deltaFrames)
 	{
 		glfwSwapInterval(deltaFrames);
 	}
 
-	void Render_OpenGL::glfwErrorCallback(int code, const char* description)
+	void glfwErrorCallback(int code, const char* description)
 	{
 		TWISTED_ERROR(description);
 	}
 
-	void Render_OpenGL::openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+	std::shared_ptr<Texture> LoadTexture(const std::string& name, int width, int height, unsigned char* data)
+	{
+		GLuint id;
+
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		std::shared_ptr<Texture> newTex = std::make_shared<Texture>();
+		newTex->TextureID = id;
+		newTex->Name = name;
+		//newTex->Type = TextureType::TEXTURE2D;
+
+		return newTex;
+	}
+	
+	
+	//void BindTexture(std::shared_ptr<Texture> texture)
+	//{
+	//	GLenum texType = GL_TEXTURE_2D;
+	//	switch (texture->Type)
+	//	{
+	//	case TextureType::TEXTURE2D:
+	//		texType = GL_TEXTURE_2D;
+	//		break;
+	//	case TextureType::CUBEMAP:
+	//		texType = GL_TEXTURE_CUBE_MAP;
+	//		break;
+	//	default:
+	//		break;
+	//	}
+	//	glBindTexture(texType, texture->TextureID);
+	//}
+
+	void openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
 		const GLchar* message, const void* userParam)
 	{
 		// ignore non-significant error/warning codes

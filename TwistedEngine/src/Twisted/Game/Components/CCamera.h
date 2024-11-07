@@ -3,7 +3,6 @@
 #include "Twisted/Game/AComponent.h"
 #include "Twisted/Game/Components/CTransform.h"
 
-#include "Twisted/GameCore.h"
 #include "Debug/Logger.h"
 
 namespace Twisted

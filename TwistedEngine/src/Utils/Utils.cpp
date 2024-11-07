@@ -1,35 +1,11 @@
-#include "pch.h"
+#include "twistedpch.h"
 #include "Utils.h"
+#include "FileUtils.h"
 #include "Debug/Logger.h"
 
 namespace Twisted::Utils
 {
-	std::string ReadFileContent(const std::string& filePath)
-	{
-		std::ifstream file(filePath);
-		if (!file.is_open())
-		{
-			TWISTED_WARN(std::format("Failed to open file: {0}", filePath));
-			return "";
-		}
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		return buffer.str();
-	}
-
-	std::string ExchangeFileContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed)
-	{
-		std::regex insertRegex(toBeExchanged);
-		std::smatch match;
-
-		while (std::regex_search(str, match, insertRegex))
-		{
-			std::string fullMatch = match[0];
-			str.replace(match.position(0), match.length(0), changed);
-		}
-		return str;
-	}
-
+	
 	/// <summary>
 	/// Splits a string by a delimiter
 	/// </summary>
@@ -52,19 +28,16 @@ namespace Twisted::Utils
 		return tokens;
 	}
 
-	/// <summary>
-	/// Finds all files in a folder recursively
-	/// </summary>
-	/// <param name="folderPath">root folder to search</param>
-	/// <returns>vector of directory entries recursively in the root folder</returns>
-	std::vector<std::filesystem::directory_entry> GetFilesInFolder(const std::string& folderPath)
+	std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed)
 	{
-		std::vector<std::filesystem::directory_entry> files;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath))
+		std::regex insertRegex(toBeExchanged);
+		std::smatch match;
+
+		while (std::regex_search(str, match, insertRegex))
 		{
-			if (entry.is_regular_file())
-				files.push_back(entry);
+			std::string fullMatch = match[0];
+			str.replace(match.position(0), match.length(0), changed);
 		}
-		return files;
+		return str;
 	}
 }

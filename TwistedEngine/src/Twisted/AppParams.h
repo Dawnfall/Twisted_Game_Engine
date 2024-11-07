@@ -1,15 +1,19 @@
 #pragma once
 
-#include "pch.h"
+#include "twistedpch.h"
 
 namespace Twisted
 {
-	struct AppParams
+	struct WindowParams
 	{
-		std::string rootFolder = "";
-		std::string window1Title = "Dawn1";
+		std::string windowTitle = "Dawn1";
 		unsigned int monitorWidth = 1280;
 		unsigned int monitorHeight = 720;
 	};
 
+	struct AppParams
+	{
+		std::string rootFolder = "";
+		WindowParams windowParams;
+	};
 }

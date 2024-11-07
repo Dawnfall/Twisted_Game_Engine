@@ -7,6 +7,6 @@ namespace Twisted
 {
 	class RenderSystem :public SystemBase
 	{
-		void Update(Application* app) override;
+		void Update(AppBase* app) override;
 	};
 }

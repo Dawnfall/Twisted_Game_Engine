@@ -1,8 +1,9 @@
-#include "pch.h"
+#include "twistedpch.h"
 #include "ResourceManager.h"
 #include "Debug/Logger.h"
 #include "Collections/Meshes/MeshCollections.h"
 #include "Twisted/Rendering/ShaderCompilation.h"
+#include "Utils/FileUtils.h"
 
 namespace Twisted
 {
@@ -61,11 +62,9 @@ namespace Twisted
 		meshData.Vertices = vertices;
 		meshData.Indices = indices;
 
-		std::shared_ptr<Mesh> mesh = Render_OpenGL::CreateMesh(meshData);
+		std::shared_ptr<Mesh> mesh = RenderAPI::CreateMesh(meshData);
 		m_meshes[meshData.Name] = mesh;
 	}
-
-
 
 	void ResourceManager::LoadTexture(const std::string& filePath, const std::string& name)
 	{
@@ -73,24 +72,27 @@ namespace Twisted
 		unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
 		if (data)
 		{
-			std::shared_ptr<Texture> newTex = Render_OpenGL::LoadTexture(name, width, height, data);
+			std::shared_ptr<Texture> newTex = RenderAPI::LoadTexture(name, width, height, data);
 			m_textures[name] = newTex;
 		}
 
 		stbi_image_free(data);
 	}
 
-	const std::shared_ptr<Material>& ResourceManager::GetMaterial(const std::string matrialName) {
+	const std::shared_ptr<Material>& ResourceManager::GetMaterial(const std::string matrialName)
+	{
 		if (m_materials.contains(matrialName))
 			return m_materials[matrialName];
 		return nullptr;
 	}
+
 	const std::shared_ptr<Shader>& ResourceManager::GetShader(const std::string& shaderName)
 	{
 		if (m_shaders.contains(shaderName))
 			return m_shaders[shaderName];
 		return nullptr;
 	}
+
 	const std::shared_ptr<Texture>& ResourceManager::GetTexture(const std::string& textureName)
 	{
 		if (m_textures.contains(textureName))

@@ -8,5 +8,5 @@ class SCameraController : public Twisted::SystemBase
 	float rotateSpeed = 0.05;
 
 	// Inherited via SystemBase
-	void Update(Twisted::Application* app) override;
+	void Update(Twisted::AppBase* world) override;
 };

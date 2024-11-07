@@ -1,5 +1,10 @@
 #pragma once
 
+#define NOMINMAX //to be able to include windows
+#include <windows.h>
+
+
+
 #include <memory>
 #include <iostream>
 #include <sstream>
@@ -38,11 +43,6 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/matrix_inverse.hpp>
 #include <gtx/string_cast.hpp>
-
-//imgui
-#include <imgui.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_glfw.h>
 
 //stbi
 #include "stb_image.h"

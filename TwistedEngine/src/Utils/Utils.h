@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pch.h"
+#include "twistedpch.h"
 
 struct Resource {
     std::string fileName;
@@ -21,9 +21,8 @@ namespace Twisted::Utils
 		vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
 	}
 
-	std::string ReadFileContent(const std::string& filePath);
-	std::string ExchangeFileContentsWithOtherFile(std::string& str, const std::string& toBeExchanged, const std::string& changed);
-	std::vector<std::filesystem::directory_entry> GetFilesInFolder(const std::string& folderPath);
+	std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
+
 	std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 
 
