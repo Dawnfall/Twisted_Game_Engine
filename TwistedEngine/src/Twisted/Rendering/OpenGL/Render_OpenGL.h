@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Assets/MeshData.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/Material.h"
 #include "Twisted/Rendering/Shader.h"
-#include "Twisted/Resources/ShaderData.h"
+#include "Assets/ShaderData.h"
 #include "Twisted/Rendering/Texture.h"
 #include "Twisted/Game/Components/CRenderer.h"
 #include "Twisted/Game/Components/CTransform.h"
@@ -11,42 +12,44 @@
 #include "Collections/Color.h"
 #include "Collections/Geometry.h"
 
+#include "AppCore.h"
+
 namespace Twisted::RenderAPI
 {
-	bool InitGLFW();
-	bool InitOpenGL(GLADloadproc loadproc);
-	void Terminate();
+	bool TWISTED_API InitGLFW();
+	bool TWISTED_API InitOpenGL(GLADloadproc loadproc);
+	void TWISTED_API Terminate();
 
-	void Render(const CRenderer& renderer);
-	std::shared_ptr<Mesh> CreateMesh(MeshData meshData);
+	void TWISTED_API Render(const CRenderer& renderer);
+	std::shared_ptr<Mesh> TWISTED_API CreateMesh(std::shared_ptr<MeshData> meshData);
 
-	void ClearWindow(Colors::Color color);
-	void SetViewPort(float width, float height);
-	void SetVsync(int deltaFrames);
+	void TWISTED_API ClearWindow(Colors::Color color);
+	void TWISTED_API SetViewPort(float width, float height);
+	void TWISTED_API SetVsync(int deltaFrames);
 
 	//****************
 	// Buffers
 
-	void ClearBuffers(bool doClearColor, Colors::Color clearColor, bool doClearDepth, bool doClearStencil);
-	void SetEnableDepthTest(bool doEnable);
-	void SetEnableDepthWrite(bool doEnable);
+	void TWISTED_API ClearBuffers(bool doClearColor, Colors::Color clearColor, bool doClearDepth, bool doClearStencil);
+	void TWISTED_API SetEnableDepthTest(bool doEnable);
+	void TWISTED_API SetEnableDepthWrite(bool doEnable);
 
-	void SetDepthTestFunc();//TODO...
+	void TWISTED_API SetDepthTestFunc();//TODO...
 
-	void SetEnableStencilTest(bool doEnable);
+	void TWISTED_API SetEnableStencilTest(bool doEnable);
 
 
 
 	//*****************************
 	// Texture
 
-	std::shared_ptr<Texture> LoadTexture(const std::string& name, int width, int height, unsigned char* data);
-	void BindTexture(std::shared_ptr<Texture> texture);
+	std::shared_ptr<Texture> TWISTED_API LoadTexture(const std::string& name, int width, int height, unsigned char* data);
+	void TWISTED_API BindTexture(std::shared_ptr<Texture> texture);
 
 
 	//	static void BindTexture(int id);
-	void glfwErrorCallback(int code, const char* description);
-	void openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+	void TWISTED_API glfwErrorCallback(int code, const char* description);
+	void TWISTED_API openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 };
   // detect uniforms different way
 

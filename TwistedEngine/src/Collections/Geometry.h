@@ -1,28 +1,27 @@
 #pragma once
 
 #include "twistedpch.h"
+#include "AppCore.h"
 
 namespace Twisted
 {
-	typedef glm::quat Quat;
+	using Quat = glm::quat;
 
-	typedef glm::vec<2, double> Vec2d;
-	typedef glm::vec<3, double> Vec3d;
-	typedef glm::vec<4, double> Vec4d;
+	using Vec2d = glm::vec<2, double>;
+	using Vec3d = glm::vec<3, double>;
+	using Vec4d = glm::vec<4, double>;
 
-	typedef glm::vec<2, float> Vec2f;
-	typedef glm::vec<3, float> Vec3f;
-	typedef glm::vec<4, float> Vec4f;
+	using Vec2f = glm::vec<2, float>;
+	using Vec3f = glm::vec<3, float>;
+	using Vec4f = glm::vec<4, float>;
 
-	typedef glm::vec<2, int> Vec2i;
-	typedef glm::vec<3, int> Vec3i;
-	typedef glm::vec<4, int> Vec4i;
+	using Vec2i = glm::vec<2, int>;
+	using Vec3i = glm::vec<3, int>;
+	using Vec4i = glm::vec<4, int>;
 
-	typedef glm::mat<4, 4, float> Mat4x4f;
+	using Mat4x4f = glm::mat<4, 4, float>;
 
-
-
-	struct Vertex {
+	struct TWISTED_API Vertex {
 		Vec3f Position;
 		Vec3f Normal;
 		Vec2f TexCoord;

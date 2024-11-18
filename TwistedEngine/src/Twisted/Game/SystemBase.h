@@ -1,10 +1,12 @@
 #pragma once
 
+#include "AppCore.h"
+
 namespace Twisted
 {
 	class AppBase;
 
-	class SystemBase
+	class TWISTED_API SystemBase
 	{
 	public:
 		SystemBase() = default;

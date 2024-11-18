@@ -5,15 +5,18 @@
 #include "Twisted/Managers/InputManager.h"
 #include "Twisted/Managers/ResourceManager.h"
 #include "Twisted/Windows/Window.h"
-#include "Twisted/World.h"
+#include "Twisted/Game/World.h"
+#include "Twisted/Managers/TimeManager.h"
 
 #include "Utils/Event.h"
 
 #include "Windows/WindowAPI.h"
 
+#include "AppCore.h"
+
 namespace Twisted
 {
-	class AppBase
+	class TWISTED_API AppBase
 	{
 	public:
 		AppBase();
@@ -27,6 +30,7 @@ namespace Twisted
 		InputManager& GetInput() { return m_input; }
 		ResourceManager& GetResources() { return m_resources; }
 		RuntimeBase* GetRutime() { return m_runtime; }
+		TimeManager& GetTime() { return m_time; }
 		std::shared_ptr<Window> GetWindow() { return m_window; }
 		std::shared_ptr<World> GetWorld() { return m_world; }
 
@@ -45,8 +49,10 @@ namespace Twisted
 		virtual void Run();
 
 	protected:
+
 		RuntimeBase* m_runtime = nullptr;
 		ResourceManager m_resources;
+		TimeManager m_time;
 		InputManager m_input;
 		std::shared_ptr<World> m_world;
 		std::shared_ptr<Window> m_window;

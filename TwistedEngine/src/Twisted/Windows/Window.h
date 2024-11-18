@@ -2,10 +2,11 @@
 
 #include "twistedpch.h"
 #include "Utils/Event.h"
+#include "AppCore.h"
 
 namespace Twisted
 {
-	struct Window
+	struct TWISTED_API Window
 	{
 	public:
 		std::string Title;

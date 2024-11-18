@@ -1,8 +1,9 @@
 #pragma once
 
 #include "twistedpch.h"
+#include "AppCore.h"
 
-struct Resource {
+struct TWISTED_API Resource {
     std::string fileName;
     std::string content;
 };
@@ -15,16 +16,11 @@ namespace Twisted::Utils
 		return std::find(vec.begin(), vec.end(), value) != vec.end();
 	}
 
-	template<typename T>
-	void removeValue(std::vector<T>& vec, const T& value)
-	{
-		vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
-	}
+	TWISTED_API std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
 
-	std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
+	TWISTED_API std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 
-	std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
-
+	TWISTED_API std::string GenerateGUID();
 
 
 

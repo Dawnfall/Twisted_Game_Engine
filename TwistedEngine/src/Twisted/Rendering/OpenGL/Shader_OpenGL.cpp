@@ -10,15 +10,15 @@ namespace Twisted::ShaderAPI
 		shader.ProgramID = -1;
 	}
 
-	std::shared_ptr<Shader> CreateShader(ShaderData shaderData)
+	std::shared_ptr<Shader> CreateShader(std::shared_ptr<ShaderData> shaderData)
 	{
 		GLuint vertexID = 0;
 		GLuint fragmentID = 0;
 
-		if (shaderData.VertShaderCode != "")
-			vertexID = ShaderAPI::CompileShader(GL_VERTEX_SHADER, "Vertex", shaderData.VertShaderCode.c_str());
-		if (shaderData.FragShaderCode != "")
-			fragmentID = ShaderAPI::CompileShader(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShaderCode.c_str());
+		if (shaderData->VertShaderCode != "")
+			vertexID = ShaderAPI::CompileShader(GL_VERTEX_SHADER, "Vertex", shaderData->VertShaderCode.c_str());
+		if (shaderData->FragShaderCode != "")
+			fragmentID = ShaderAPI::CompileShader(GL_FRAGMENT_SHADER, "Fragment", shaderData->FragShaderCode.c_str());
 		GLuint programID = ShaderAPI::CompileProgram(vertexID, fragmentID);
 
 		glDeleteShader(vertexID);
@@ -26,14 +26,14 @@ namespace Twisted::ShaderAPI
 
 		if (programID < 1)
 		{
-			TWISTED_WARN("Shader compile failure; shader: " + shaderData.Name);
+			TWISTED_WARN("Shader compile failure; shader: " + shaderData->Name);
 			return nullptr;
 		}
 
 		glUseProgram(programID);
 		std::vector<ShaderUniformVar> uniforms = DetectUniformVars(programID);
 
-		TWISTED_INFO("Shader compile success; shader: " + shaderData.Name);
+		TWISTED_INFO("Shader compile success; shader: " + shaderData->Name);
 		return std::make_shared<Shader>(shaderData, programID, uniforms);
 	}
 

@@ -1,26 +1,23 @@
 #include "twistedpch.h"
 #include "RenderSystem.h"
-#include "Debug/Logger.h"
-
 #include "Twisted/AppBase.h"
+#include "Constants.h"
+
+#include "Twisted/Rendering/RenderingAPI.h"
+
+#include "Twisted/Game/World.h"
 #include "Twisted/Game/Components/CRenderer.h"
 #include "Twisted/Game/Components/CTransform.h"
 #include "Twisted/Game/Components/CCamera.h"
 
-#include "Twisted/Rendering/RenderingAPI.h"
-#include "Twisted/Game/Transformations.h"
-
-const std::string shaderUniform_model = "model";
-const std::string shaderUniform_view = "view";
-const std::string shaderUniform_projection = "projection";
 
 namespace Twisted
 {
 	void RenderSystem::Update(AppBase* app)
 	{
-		auto& ecs = app->GetWorld()->GetEcs();
-		auto cameras = ecs.GetComponents<CCamera>();
-		auto renderers = ecs.GetComponents<CRenderer, CTransform>();
+		auto world = app->GetWorld();
+		auto cameras = world->GetComponents<CCamera>();
+		auto renderers = world->GetComponents<CRenderer, CTransform>();
 
 		for (auto cameraEntity : cameras)
 		{
@@ -30,9 +27,9 @@ namespace Twisted
 			{
 				auto [r, t] = renderers.get<CRenderer, CTransform>(rendEntity);
 
-				r.Material->SetMat4x4f(shaderUniform_model, t.GetWorldModelMatrix(ecs));
-				r.Material->SetMat4x4f(shaderUniform_projection, camera.GetProjectionMatrix());
-				r.Material->SetMat4x4f(shaderUniform_view, camera.GetViewMatrix(ecs));
+				r.Material->SetMat4x4f(SHADER_UNIFORM_NAME_MODEL, t.GetWorldModelMatrix());
+				r.Material->SetMat4x4f(SHADER_UNIFORM_NAME_PROJECTION, camera.GetProjectionMatrix());
+				r.Material->SetMat4x4f(SHADER_UNIFORM_NAME_VIEW, camera.GetViewMatrix());
 
 				RenderAPI::Render(r);
 			}

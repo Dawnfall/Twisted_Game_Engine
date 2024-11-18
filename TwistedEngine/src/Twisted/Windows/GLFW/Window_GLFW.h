@@ -5,13 +5,15 @@
 #include "Twisted/AppBase.h"
 #include "Twisted/AppParams.h"
 
+#include "AppCore.h"
+
 namespace Twisted::WindowAPI
 {
-	void SetCallbacks(GLFWwindow* window, AppBase* callbackPointer);
-	void SwapBuffers(std::shared_ptr<Window> window);
-	void PollEvents();
+	void TWISTED_API SetCallbacks(GLFWwindow* window, AppBase* callbackPointer);
+	void TWISTED_API SwapBuffers(std::shared_ptr<Window> window);
+	void TWISTED_API PollEvents();
 
-	std::shared_ptr<Window> CreateNewWindow(const WindowParams& windowParams, AppBase* callbackPointer); //calbackpointer?!?
+	std::shared_ptr<Window> TWISTED_API CreateNewWindow(const WindowParams& windowParams, AppBase* callbackPointer); //calbackpointer?!?
 
-	bool CloseWindow(Window* window);
+	bool TWISTED_API CloseWindow(Window* window);
 }

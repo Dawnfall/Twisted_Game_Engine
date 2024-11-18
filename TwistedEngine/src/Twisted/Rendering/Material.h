@@ -7,16 +7,18 @@
 #include "Collections/Geometry.h"
 #include "Texture.h"
 
+#include "AppCore.h"
+
 namespace Twisted
 {
 	template<typename T>
-	struct MaterialValue
+	struct TWISTED_API MaterialValue
 	{
 		int ID = -1;
 		T value = T();
 	};
 
-	class Material
+	class TWISTED_API Material
 	{
 	public:
 		void SetShader(const std::shared_ptr<Shader>& shader)
@@ -65,9 +67,8 @@ namespace Twisted
 
 		std::unordered_map<int, std::shared_ptr<Texture>> m_textures;
 		std::unordered_map<std::string, int> m_shaderTexVarToIdMap;
-	private:
-		std::shared_ptr<Shader> m_shader = nullptr;
 
+	private:
 		void PresetUniforms()
 		{
 			for (auto& uniVar : m_shader->Uniforms)
@@ -104,5 +105,7 @@ namespace Twisted
 				}
 			}
 		}
+
+		std::shared_ptr<Shader> m_shader = nullptr;
 	};
 }

@@ -2,24 +2,24 @@
 
 #include "TreeViewPanel.h"
 #include "EditorApp.h"
-#include "Twisted/Game/EcsManager.h"
+#include "Twisted/Game/World.h"
 #include "Twisted/Game/Components/CTransform.h"
 
 namespace Twisted::Editor
 {
 	void TreeViewPanel::RenderContent(EditorApp* editor)
 	{
-		EcsManager& ecs = editor->GetWorld()->GetEcs();
-		std::vector<CTransform*> rootTransforms= editor->GetWorld()->GetRootTransforms();
+		auto world = editor->GetWorld();
+		std::vector<CTransform*> rootTransforms = CTransform::GetRootTransforms(*editor->GetWorld());
 
 		std::function<void(const CTransform*)> renderTreeObject;
-		renderTreeObject = [&ecs, &renderTreeObject](const CTransform* transform)
+		renderTreeObject = [&world, &renderTreeObject](const CTransform* transform)
 			{
-				if (ImGui::TreeNodeEx((transform->GetName()+std::to_string((int)transform->GetID())).c_str()))
+				if (ImGui::TreeNodeEx((transform->GetName() + std::to_string((int)transform->GetEntityID())).c_str()))
 				{
-					for (entt::entity childID : transform->GetChildIDs())
+					for (EntityID child : transform->GetChildren())
 					{
-						renderTreeObject(ecs.GetComponent<CTransform>(childID));
+						renderTreeObject(world->GetComponent<CTransform>(child));
 					}
 					ImGui::TreePop();
 				}
@@ -30,9 +30,4 @@ namespace Twisted::Editor
 			renderTreeObject(root);
 		}
 	}
-
-	//void TreeWindow::RenderContent(Twisted::Application* app)
-	//{
-	//	return;
-	//}
 }

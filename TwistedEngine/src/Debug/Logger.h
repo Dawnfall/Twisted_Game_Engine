@@ -1,10 +1,11 @@
 #pragma once
 
 #include "twistedpch.h"
+#include "AppCore.h"
 
 namespace Twisted
 {
-	class Logger
+	class TWISTED_API Logger
 	{
 	public:
 		static bool Init();

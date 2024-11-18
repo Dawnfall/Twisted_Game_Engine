@@ -3,8 +3,6 @@
 #define NOMINMAX //to be able to include windows
 #include <windows.h>
 
-
-
 #include <memory>
 #include <iostream>
 #include <sstream>
@@ -45,5 +43,16 @@
 #include <gtx/string_cast.hpp>
 
 //stbi
-#include "stb_image.h"
+#include <stbi_image/stb_image.h>
 
+#ifdef TWISTED_ENGINE
+
+//assimp
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+//pugixml
+#include <pugixml/pugixml.hpp>
+
+#endif

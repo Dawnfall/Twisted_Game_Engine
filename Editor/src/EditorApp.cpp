@@ -8,7 +8,7 @@
 
 #include "UI/Panels/DetailsPanel.h"
 #include "UI/Panels/TreeViewPanel.h"
-#include "imgui_internal.h"
+
 
 namespace Twisted::Editor
 {
@@ -22,7 +22,7 @@ namespace Twisted::Editor
 			WindowAPI::PollEvents();
 			RenderAPI::ClearWindow(Colors::blue);
 
-			m_world->UpdateFrame(this);
+			m_world->UpdateFrame(this,m_time);
 
 			RenderUI();
 			WindowAPI::SwapBuffers(GetWindow());
@@ -32,16 +32,23 @@ namespace Twisted::Editor
 		}
 	}
 
-
+	void EditorApp::LoadResources(const AppParams& params)
+	{
+		m_resources.LoadAssets(m_activeProject->GetAssetsFolder());
+	}
 
 	void EditorApp::CreateNewWindow(const AppParams& params)
 	{
+		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
+		{
+			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
+		}
+
 		AppBase::CreateNewWindow(params);
+
 		ImguiAPI::Init(m_window->Pointer);
 		ImguiAPI::SetFlags();
 		ImguiAPI::SetStyle();
-
-		//app->closeWindowEvent.AddListener([app]() { app->Stop(); });
 
 		CloseWindowEvent.AddListener([&]() {
 			this->Stop();
@@ -96,8 +103,14 @@ namespace Twisted::Editor
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				ImGui::MenuItem("New");
-				ImGui::MenuItem("Open");
+				if (ImGui::MenuItem("New"))
+				{
+					RenderCreateProjectWindow();
+				}
+				if (ImGui::MenuItem("Open"))
+				{
+					RenderOpenProjectWindow();
+				}
 				ImGui::MenuItem("Save");
 				ImGui::MenuItem("Exit");
 				ImGui::EndMenu();
@@ -115,15 +128,22 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New Entity"))
 				{
-					auto newEntt = m_world->CreateNewEntity();
+					EntityID newEntt = m_world->CreateNewEntity(NullEntity);
 				}
 				ImGui::EndMenu();
 			}
-
 		}
 		ImGui::EndMainMenuBar();
 
 		// Pop style settings
-		//ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
+		ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
+	}
+	void EditorApp::RenderCreateProjectWindow()
+	{
+		Project::CreateNewProject("F:/Programiranje/Test/", "TestProjectA");
+	}
+	void EditorApp::RenderOpenProjectWindow()
+	{
+		Project::OpenProject("F:/Programiranje/Test/TestProjectA");
 	}
 }

@@ -1,0 +1,69 @@
+project "Editor"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "off"
+
+    targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
+    objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
+
+    pchheader "editorpch.h"  -- This is the precompiled header file
+    pchsource "src/editorpch.cpp" -- This is the source file that compiles the precompiled header
+    
+    postbuildcommands {
+        "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
+        "{COPY} %{DllDirs.Assimp_debug} %{cfg.targetdir}"
+     }
+     
+    files
+    {
+        "src/**.h",
+        "src/**.cpp"
+    }
+
+    links
+    {
+        "TwistedEngine",
+        "GLFW",
+        "imgui",
+        "%{LibDirs.Assimp_debug}"
+    }
+
+    includedirs
+    {
+        "%{IncludeDirs.Editor}",
+        "%{IncludeDirs.TwistedEngine}",
+        "%{IncludeDirs.TestGame}",
+        "%{IncludeDirs.spdlog}",  
+        "%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.Glad}",
+        "%{IncludeDirs.GLM}",
+        "%{IncludeDirs.EnTT}",
+        "%{IncludeDirs.imgui}",
+        "%{IncludeDirs.pugixml}",
+        "%{IncludeDirs.stbi_image}"
+    }
+
+    defines
+    {
+        "GLFW_INCLUDE_NONE",
+        "GLFW_EXCLUDE_VULKAN"
+    }
+
+    filter "system:windows"
+        defines
+        {
+            "TWISTED_WINDOWS"
+        }
+
+        systemversion "latest"
+
+    filter "configurations:Debug"
+        defines "TWISTED_DEBUG"
+        runtime "Debug"
+        symbols "on"
+
+    filter "configurations:Release"
+        defines "TWISTED_RELEASE"
+        runtime "Release"
+        optimize "on"

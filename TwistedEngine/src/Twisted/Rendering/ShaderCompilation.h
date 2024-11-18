@@ -2,11 +2,9 @@
 #include "twistedpch.h"
 
 #include "Shader.h"
+#include "AppCore.h"
 
 namespace Twisted::ShaderCompilation
 {
-	const std::string SHADER_EXTENSION = ".shader";
-	const std::string SHADER_DELIMITER = "---";
-
-	std::shared_ptr<Shader> LoadShader(const std::string& fullPath,const std::string& shaderName);
+	std::shared_ptr<Shader> TWISTED_API LoadShader(std::shared_ptr<ShaderData> shaderData);
 }

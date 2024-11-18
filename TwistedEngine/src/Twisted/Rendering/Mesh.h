@@ -1,17 +1,20 @@
 #pragma once
 #include "twistedpch.h"
-#include "Twisted/Resources/MeshData.h"
-
+#include "Assets/MeshData.h"
+#include "AppCore.h"
 namespace Twisted
 {
-	class Mesh
+	class TWISTED_API Mesh
 	{
 	public:
-		Mesh(MeshData meshData) :
-			Data(meshData)
+		Mesh(std::shared_ptr<MeshData> meshData,unsigned int vao,unsigned int vbo,unsigned int ebo) :
+			Data(meshData),
+			VAO(vao),
+			VBO(vbo),
+			EBO(ebo)
 		{}
 
-		MeshData Data;
+		std::shared_ptr<MeshData> Data;
 		unsigned int VAO = -1;
 		unsigned int VBO = -1;
 		unsigned int EBO = -1;

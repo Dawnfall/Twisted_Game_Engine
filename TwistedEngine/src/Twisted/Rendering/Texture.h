@@ -1,6 +1,8 @@
 #pragma once
 
 #include "twistedpch.h"
+#include "AppCore.h"
+
 namespace Twisted
 {
 	//enum class TextureType
@@ -8,15 +10,8 @@ namespace Twisted
 	//	TEXTURE2D,
 	//	CUBEMAP
 	//};
-	struct TextureData
-	{
-		int Width;
-		int Height;
-		int NrChannels;
-		unsigned char* data;
-	};
 
-	struct Texture
+	struct TWISTED_API Texture
 	{
 		//Texture(const std::string& name, TextureType type, unsigned int textureID) :
 		//	Name(name),

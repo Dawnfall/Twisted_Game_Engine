@@ -25,18 +25,77 @@ namespace Twisted::Utils
 		return files;
 	}
 
-	std::string ReadFileContent(const std::string& filePath)
+	bool CreateFolder(const std::filesystem::path& folderPath)
+	{
+		try
+		{
+			if (std::filesystem::create_directories(folderPath))
+			{
+				std::cout << "Folder created: " << folderPath << std::endl;
+				return true;
+			}
+			else
+			{
+				std::cerr << "Folder already exists or failed to create: " << folderPath << std::endl;
+				return false;
+			}
+		}
+		catch (const std::filesystem::filesystem_error& e)
+		{
+			std::cerr << "Filesystem error: " << e.what() << std::endl;
+			return false;
+		}
+	}
+
+
+	std::string ReadFileContent(const std::filesystem::path& filePath)
 	{
 		std::ifstream file(filePath);
 		if (!file.is_open())
 		{
-			TWISTED_WARN(std::format("Failed to open file: {0}", filePath));
+			TWISTED_WARN(std::format("Failed to open file: {0}", filePath.string()));
 			return "";
 		}
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		return buffer.str();
 	}
+
+	std::filesystem::path CombinePaths(const std::string& absolutePath, const std::string& folderName)
+	{
+		std::filesystem::path path(absolutePath);
+		path /= folderName;
+		return path;
+	}
+
+	bool IsExistingFolder(const std::filesystem::path& path)
+	{
+		return std::filesystem::exists(path) && std::filesystem::is_directory(path);
+	}
+
+	std::vector<std::filesystem::path> LoadFiles(const std::filesystem::path& folderPath, const std::string& extension)
+	{
+		std::vector<std::filesystem::path> files;
+
+		try
+		{
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath))
+			{
+				if (entry.is_regular_file() && (extension.empty() || entry.path().extension() == extension))
+				{
+					files.emplace_back(entry.path());
+				}
+			}
+		}
+		catch (const std::filesystem::filesystem_error& e)
+		{
+			// Handle the error, e.g., log it
+			std::cerr << "Filesystem error: " << e.what() << std::endl;
+		}
+
+		return files;
+	}
+
 
 	//bool WriteBufferToFile(const std::string& filePath, const Buffer& buffer)
 	//{

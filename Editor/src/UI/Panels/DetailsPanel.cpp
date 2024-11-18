@@ -3,14 +3,16 @@
 
 #include "EditorApp.h"
 #include "Twisted/Game/Components/CTransform.h"
+#include "Twisted/Game/Components/CRenderer.h"
 
 namespace Twisted::Editor
 {
 	void DetailsPanel::RenderContent(EditorApp* editor)
 	{
-		CTransform* transform = editor->GetWorld()->GetEcs().GetComponent<CTransform>(editor->GetSelectedEntity());
+		EntityID selectedEntity = editor->GetSelectedEntity();
+		CTransform* transform = editor->GetWorld()->GetComponent<CTransform>(selectedEntity);
 		RenderTransform(transform);
-		CRenderer* renderer = editor->GetWorld()->GetEcs().GetComponent<CRenderer>(editor->GetSelectedEntity());
+		CRenderer* renderer = editor->GetWorld()->GetComponent<CRenderer>(selectedEntity);
 		RenderRenderer(renderer);
 	}
 

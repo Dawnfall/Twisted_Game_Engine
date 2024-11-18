@@ -1,10 +1,12 @@
 #pragma once
 
+#include "AppCore.h"
+
 namespace Twisted
 {
 	class AppBase;
 
-	class RuntimeBase
+	class TWISTED_API RuntimeBase
 	{
 	public:
 		virtual void OnInit(Twisted::AppBase* app) = 0;

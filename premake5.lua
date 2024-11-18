@@ -10,8 +10,7 @@ workspace "TwistedEngine"
 
     outputDir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-    include "includes.lua"
-    include "libs.lua"
+    include "buildData.lua"
     
     group "Dependecies"
         include "3rd/GLFW"
@@ -19,7 +18,8 @@ workspace "TwistedEngine"
         include "TwistedEngine/3rd/Glad"
     group ""
 
-    include "TwistedEngine"
-    include "Editor"
-    include "TestGame"
+    include "TwistedEngine/engine.lua"
+    include "Editor/editor.lua"
+    include "TestGame/test.lua"
     
+    --TODO: rename file

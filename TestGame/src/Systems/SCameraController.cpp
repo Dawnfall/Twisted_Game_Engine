@@ -3,7 +3,7 @@
 
 void SCameraController::Update(Twisted::AppBase* app)
 {
-	auto view = app->GetWorld()->GetEcs().GetComponents<Twisted::CTransform, Twisted::CCamera>();
+	auto view = app->GetWorld()->GetComponents<Twisted::CTransform, Twisted::CCamera>();
 	Twisted::InputManager& input = app->GetInput();
 
 	float forward = ((input.GetKey(TWISTED_KEY_W)) ? -1.0f : 0.0f) + ((input.GetKey(TWISTED_KEY_S)) ? 1.0f : 0.0f);
@@ -14,7 +14,7 @@ void SCameraController::Update(Twisted::AppBase* app)
 
 	for (auto&& [entity, transform, camera] : view.each())
 	{
-		Vec3f newPos = transform.LocalToWorldVector(translateVec * m_moveSpeed, app->GetWorld()->GetEcs());
+		Vec3f newPos = transform.LocalToWorldVector(translateVec * m_moveSpeed);
 		transform.Translate(newPos);
 		if (input.GetMouseButton(TWISTED_BUTTON_RIGHT))
 		{

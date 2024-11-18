@@ -1,28 +1,33 @@
 #pragma once
 
-#include "Twisted/Game/AComponent.h"
-#include "Twisted/Game/Components/CTransform.h"
-
+#include "AppCore.h"
 #include "Debug/Logger.h"
-
+#include "Collections/Geometry.h"
+#include "Twisted/Game/AComponent.h"
+#include "Twisted/Serialization/WorldSerializer.h"
 namespace Twisted
 {
-	enum CameraProjectionType
+	enum TWISTED_API CameraProjectionType
 	{
 		PERSPECTIVE,
 		ORTOGRAPHIC
 	};
 
-	class CCamera :public AComponent
+	class TWISTED_API CCamera :public AComponent
 	{
 	public:
-		CCamera(entt::entity parentEntity) : AComponent(parentEntity)
-		{}
+		CCamera(EntityID entityID, World* world) : AComponent(entityID,world)
+		{
+		}
 
 		float GetFOVinRad()const
 		{
 			return glm::radians(FovDeg);
 		}
+
+
+		Mat4x4f GetViewMatrix()const;
+		Mat4x4f GetProjectionMatrix();
 
 		CameraProjectionType CameraType = CameraProjectionType::PERSPECTIVE;
 
@@ -39,35 +44,37 @@ namespace Twisted
 		float BotEdge = 1.0f;
 		float TopEdge = 1.0f;
 
-		Mat4x4f GetViewMatrix(const EcsManager& ecs)const
-		{
-			const CTransform* transform = ecs.GetComponent<CTransform>(GetID());
-
-			auto position = transform->GetWorldPosition(ecs);
-			auto target = position + transform->GetWorldForward(ecs);
-			auto viewMat = glm::lookAt(position, target, Directions::Up);
-
-			//std::cout << "World Pos:\n " << glm::to_string(position) << std::endl;
-			//std::cout << "Target:\n " << glm::to_string(target) << std::endl;
-			//std::cout << "View:\n " << glm::to_string(viewMat) << std::endl;
-
-			return viewMat;
-		}
-
-
-		Mat4x4f GetProjectionMatrix()
-		{
-			switch (CameraType)
-			{
-			case CameraProjectionType::PERSPECTIVE:
-				return glm::perspective(GetFOVinRad(), AspectRatio, NearPlane, FarPlane);
-			case CameraProjectionType::ORTOGRAPHIC:
-				return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
-			default:
-				TWISTED_ERROR("Unsupported projection type!");
-				return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane); //TODO:...
-			}
-
-		}
+		friend void Serialize(const CCamera& camera, SerializationBuffer& serializer);
+		friend void Deserialize(CCamera& camera, SerializationBuffer& serializer);
 	};
+}
+namespace Twisted
+{
+	template<>
+	inline void Serialize(const CCamera& camera, SerializationBuffer& serializer)
+	{
+		serializer.Write<CameraProjectionType>(camera.CameraType);
+		serializer.Write<float>(camera.NearPlane);
+		serializer.Write<float>(camera.FarPlane);
+		serializer.Write<float>(camera.FovDeg);
+		serializer.Write<float>(camera.AspectRatio);
+		serializer.Write<float>(camera.LeftEdge);
+		serializer.Write<float>(camera.RightEdge);
+		serializer.Write<float>(camera.BotEdge);
+		serializer.Write<float>(camera.TopEdge);
+	}
+
+	template<>
+	inline void Deserialize(CCamera& camera, SerializationBuffer& serializer)
+	{
+		camera.CameraType = serializer.Read<CameraProjectionType>();
+		camera.NearPlane = serializer.Read<float>();
+		camera.FarPlane = serializer.Read<float>();
+		camera.FovDeg = serializer.Read<float>();
+		camera.AspectRatio = serializer.Read<float>();
+		camera.LeftEdge = serializer.Read<float>();
+		camera.RightEdge = serializer.Read<float>();
+		camera.BotEdge = serializer.Read<float>();
+		camera.TopEdge = serializer.Read<float>();
+	}
 }

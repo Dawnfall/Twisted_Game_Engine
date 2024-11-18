@@ -1,9 +1,11 @@
 #pragma once
 #include "twistedpch.h"
 
+#include "AppCore.h"
+
 namespace Twisted
 {
-	class TimeManager
+	class TWISTED_API TimeManager
 	{
 	public:
 		void Init()

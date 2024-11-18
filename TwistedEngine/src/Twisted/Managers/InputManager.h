@@ -1,9 +1,10 @@
 #pragma once
 #include "Collections/Geometry.h"
+#include "AppCore.h"
 
 namespace Twisted
 {
-	class InputManager
+	class TWISTED_API InputManager
 	{
 	public:
 		void Clear(GLFWwindow* window);

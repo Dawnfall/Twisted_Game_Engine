@@ -1,31 +1,36 @@
 #pragma once
 
 #include "twistedpch.h"
-
-#include "Twisted/Game/EcsManager.h"
-#include "Collections/Geometry.h"
-#include "Twisted/Game/AComponent.h" 
+#include "AppCore.h"
 #include "Utils/Utils.h"
-#include "Twisted/Game/Transformations.h"
+#include "Collections/Geometry.h"
+
+#include "Twisted/Game/AComponent.h"
+#include "Twisted/Serialization/WorldSerializer.h"
 
 namespace Twisted
 {
-	enum class RelativeSpace
+	enum class TWISTED_API RelativeSpace
 	{
 		LOCAL,
 		WORLD
 	};
 
-	class CTransform :public AComponent
+	class World;
+	class TWISTED_API CTransform :public AComponent
 	{
 	public:
-#pragma region Constructors
-		CTransform(entt::entity entity);
-		CTransform(entt::entity entity, const Vec3f& position, const Quat& rotation, const Vec3f& scale);
-#pragma endregion
+		CTransform(EntityID entityID, World* world);
+		//	CTransform(EntityID entity, const Vec3f& position, const Quat& rotation, const Vec3f& scale);
 
-		//*******************
-		// sets / gets 
+		//***************
+		// ID
+
+		const std::string& GetName()const { return m_name; }
+		void SetName(const std::string& newName) { m_name = newName; }
+
+		//***************
+		// Transform
 
 		const Vec3f& GetLocalPosition() const { return m_position; }
 		const Quat& GetLocalRotation() const { return m_rotation; }
@@ -35,28 +40,27 @@ namespace Twisted
 		void SetLocalPosition(const Vec3f& newPositon) { m_position = newPositon; }
 		void SetLocalRotation(const Quat& newRotation) { m_rotation = newRotation; }
 		void SetLocalScale(const Vec3f& newScale) { m_scale = newScale; }
-		void SetWorldPosition(const Vec3f& newPosition, const EcsManager& ecs) { m_position = WorldToLocalPoint(newPosition, ecs); }
+		void SetWorldPosition(const Vec3f& newPosition) { m_position = WorldToLocalPoint(newPosition); }
 
-		const Vec3f GetWorldPosition(const EcsManager& ecs) const
+		const Vec3f GetWorldPosition() const
 		{
-			return LocalToWorldPoint(Directions::Zero, ecs);
+			return LocalToWorldPoint(Directions::Zero);
 		}
-		const Quat GetWorldRotation(const EcsManager& ecs) const //TODO... not sure is correct
+		const Quat GetWorldRotation() const; //TODO... not sure is correct	
+		const Vec3f GetWorldScale() const;
+		const Vec3f GetWorldRotationEuler() const
 		{
-			if (m_parentID != entt::null)
-				return ecs.GetComponent<CTransform>(m_parentID)->GetWorldRotation(ecs) * GetLocalRotation();
-			return GetLocalRotation();
+			return glm::eulerAngles(GetWorldRotation());
 		}
-		const Vec3f GetWorldScale(const EcsManager& ecs) const
-		{
-			if (m_parentID != entt::null)
-				return ecs.GetComponent<CTransform>(m_parentID)->GetWorldScale(ecs) * GetLocalScale(); //not sure correct
-			return GetLocalScale();
-		}
-		const Vec3f GetWorldRotationEuler(const EcsManager& ecs) const
-		{
-			return glm::eulerAngles(GetWorldRotation(ecs));
-		}
+
+		//***************
+		// Tree
+
+		const EntityID GetParentID()const { return m_parentID; }
+		const std::vector<EntityID>& GetChildren()const { return m_childrenIDs; }
+		const size_t GetChildCount() const { return m_childrenIDs.size(); }
+
+		void SetParent(EntityID newParentID);
 
 		//**************
 		// Transformation matrices
@@ -71,63 +75,48 @@ namespace Twisted
 		Mat4x4f GetInvertScaleMatrix() const { return glm::scale(glm::mat4(1.0f), 1.0f / GetLocalScale()); }
 		Mat4x4f GetInvertLocalModelMatrix()const { return GetInvertScaleMatrix() * GetInvertRotationMatrix() * GetInvertTranslationMatrix(); }
 
-		Mat4x4f GetWorldModelMatrix(const EcsManager& ecs)const
-		{
-			if (GetParentID() != entt::null)
-			{
-				CTransform parentTransform = *ecs.GetComponent<CTransform>(GetParentID());
-				return  parentTransform.GetWorldModelMatrix(ecs) * GetLocalModelMatrix();
-			}
-			return GetLocalModelMatrix();
-		}
-		Mat4x4f GetWorldInvertModelMatrix(const EcsManager& ecs)const
-		{
-			if (GetParentID() != entt::null)
-			{
-				CTransform parentTransform = *ecs.GetComponent<CTransform>(GetParentID());
-				return GetInvertLocalModelMatrix() * parentTransform.GetWorldInvertModelMatrix(ecs);
-			}
-			return GetInvertLocalModelMatrix();
-		}
+		Mat4x4f GetWorldModelMatrix()const;
+
+		Mat4x4f GetWorldInvertModelMatrix()const;
 
 		//***************
 		// Local <--> world
 
-		Vec3f LocalToWorldVector(const Vec3f& vec, const EcsManager& ecs)const
+		Vec3f LocalToWorldVector(const Vec3f& vec)const
 		{
-			glm::vec4 worldVec = GetWorldModelMatrix(ecs) * glm::vec4(vec, 0.0f);
+			glm::vec4 worldVec = GetWorldModelMatrix() * glm::vec4(vec, 0.0f);
 			return glm::vec3(worldVec.x, worldVec.y, worldVec.z);
 		}
-		Vec3f LocalToWorldPoint(const Vec3f& point, const EcsManager& ecs)const
+		Vec3f LocalToWorldPoint(const Vec3f& point)const
 		{
-			auto worldMat = GetWorldModelMatrix(ecs);
+			auto worldMat = GetWorldModelMatrix();
 			auto pVec4 = glm::vec4(point, 1.0f);
 
-			glm::vec4 worldPoint = GetWorldModelMatrix(ecs) * glm::vec4(point, 1.0f);
+			glm::vec4 worldPoint = GetWorldModelMatrix() * glm::vec4(point, 1.0f);
 			return glm::vec3(worldPoint.x, worldPoint.y, worldPoint.z);
 		}
-		Vec3f WorldToLocalVector(const Vec3f& vec, const EcsManager& ecs)const
+		Vec3f WorldToLocalVector(const Vec3f& vec)const
 		{
-			glm::vec4 localVec = GetWorldInvertModelMatrix(ecs) * glm::vec4(vec, 0.0f);
+			glm::vec4 localVec = GetWorldInvertModelMatrix() * glm::vec4(vec, 0.0f);
 			return glm::vec3(localVec.x, localVec.y, localVec.z);
 		}
-		Vec3f WorldToLocalPoint(const Vec3f& vec, const EcsManager& ecs)const
+		Vec3f WorldToLocalPoint(const Vec3f& vec)const
 		{
-			glm::vec4 localVec = GetWorldInvertModelMatrix(ecs) * glm::vec4(vec, 1.0f);
+			glm::vec4 localVec = GetWorldInvertModelMatrix() * glm::vec4(vec, 1.0f);
 			return glm::vec3(localVec.x, localVec.y, localVec.z);
 		}
 
-		Vec3f GetWorldForward(const EcsManager& ecs)const
+		Vec3f GetWorldForward()const
 		{
-			return LocalToWorldVector(Directions::Forward, ecs);
+			return LocalToWorldVector(Directions::Forward);
 		}
-		Vec3f GetWorldRight(const EcsManager& ecs)const
+		Vec3f GetWorldRight()const
 		{
-			return LocalToWorldVector(Directions::Right, ecs);
+			return LocalToWorldVector(Directions::Right);
 		}
-		Vec3f GetWorldUp(const EcsManager& ecs)const
+		Vec3f GetWorldUp()const
 		{
-			return LocalToWorldVector(Directions::Up, ecs);
+			return LocalToWorldVector(Directions::Up);
 		}
 
 		//****************
@@ -150,51 +139,53 @@ namespace Twisted
 		{
 			m_scale *= scale;
 		}
-		void LookAt(const Vec3f& lookAtPoint, const Vec3f& upVector, const EcsManager& ecs)
+		void LookAt(const Vec3f& lookAtPoint, const Vec3f& upVector)
 		{
 			auto lookAtMat = glm::lookAt(GetLocalPosition(), lookAtPoint, upVector);
 			auto newRotation = glm::quat_cast(lookAtMat);
 			SetLocalRotation(newRotation);
 		}
 
-		//***************
-		// Tree
-
-		const entt::entity& GetParentID()const { return m_parentID; }
-		const std::vector<entt::entity>& GetChildIDs()const { return m_children; }
-		const size_t GetChildCount() const { return m_children.size(); }
-
-		void SetParent(entt::entity newParentID, EcsManager& ecs)
-		{
-			if (newParentID == m_parentID)
-				return;
-
-			CTransform* newParentTransform = ecs.GetComponent<CTransform>(newParentID);
-
-			if (m_parentID != entt::null)
-			{
-				CTransform* currentParent = ecs.GetComponent<CTransform>(m_parentID);
-				Utils::removeValue(currentParent->m_children, m_entityID);
-				m_parentID = entt::null;
-			}
-
-			m_parentID = newParentID;
-			if (newParentTransform != nullptr)
-				newParentTransform->m_children.push_back(m_entityID);
-		}
-
-		//***************
-		// Name
-		const std::string& GetName()const { return m_name; }
-		void SetName(const std::string& newName) { m_name = newName; }
 
 	private:
-		entt::entity m_parentID;
-		std::vector<entt::entity> m_children;
 
-		std::string m_name = "new object";
+		std::string m_name;
+		EntityID m_parentID;
+		std::vector<EntityID> m_childrenIDs;
+
 		Vec3f m_position;
 		Quat m_rotation;
 		Vec3f m_scale;
+
+	public:
+		static std::vector<CTransform*> GetRootTransforms(World& world);
+
+		friend void Serialize<CTransform>(const CTransform& transform, SerializationBuffer& serializer);
+		friend void Deserialize<CTransform>(CTransform& transform, SerializationBuffer& serializer);
 	};
+
+
+	template<>
+	inline void Serialize<CTransform>(const CTransform& transform, SerializationBuffer& serializer)
+	{
+		serializer.Write<std::string>(transform.m_name);
+		serializer.Write<EntityID>(transform.m_parentID);
+		serializer.WriteVec<EntityID>(transform.m_childrenIDs);
+
+		serializer.Write<Vec3f>(transform.m_position);
+		serializer.Write<Vec3f>(transform.m_scale);
+		serializer.Write<Quat>(transform.m_rotation);
+	}
+
+	template<>
+	inline void Deserialize<CTransform>(CTransform& transform, SerializationBuffer& serializer)
+	{
+		transform.m_name = serializer.Read<std::string>();
+		transform.m_parentID = serializer.Read<EntityID>();
+		transform.m_childrenIDs = serializer.ReadVec<EntityID>();
+
+		transform.m_position = serializer.Read<Vec3f>();
+		transform.m_scale = serializer.Read<Vec3f>();
+		transform.m_rotation = serializer.Read<Quat>();
+	}
 }

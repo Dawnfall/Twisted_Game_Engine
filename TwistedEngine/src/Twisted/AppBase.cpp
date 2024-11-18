@@ -1,10 +1,13 @@
 #include "twistedpch.h"
 #include "AppBase.h"
+#include "Twisted/Rendering/OpenGL/Render_OpenGL.h"
+#include "Twisted/Game/Systems/RenderSystem.h"
 
 namespace Twisted
 {
 	AppBase::AppBase()
 	{
+		m_time.Init();
 	}
 
 	AppBase::~AppBase()
@@ -37,7 +40,7 @@ namespace Twisted
 			WindowAPI::PollEvents();
 			RenderAPI::ClearWindow(Colors::blue);
 
-			m_world->UpdateFrame(this);
+			m_world->UpdateFrame(this,m_time);
 
 			WindowAPI::SwapBuffers(GetWindow());
 
@@ -53,11 +56,12 @@ namespace Twisted
 	}
 	void AppBase::CreateWorld()
 	{
-		m_world = World::CreateNew();
+		m_world = std::make_shared<World>();
+		m_world->AddSystem<Twisted::RenderSystem>(); //TODO: somewhere else
 	}
 	void AppBase::LoadResources(const AppParams& params)
 	{
-		m_resources.LoadResources(params.rootFolder);
+		//m_resources.LoadResources(params.rootFolder);
 	}
 
 	bool AppBase::Init(const AppParams& params)

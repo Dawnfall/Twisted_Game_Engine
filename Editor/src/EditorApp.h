@@ -2,21 +2,26 @@
 #include "editorpch.h"
 #include "Twisted/AppBase.h"
 #include "UI/Panels/EditorPanel.h"
+#include "Project/Project.h"
 
+namespace Twisted
+{
+	class Entity;
+}
 
 namespace Twisted::Editor
 {
+
 	class EditorApp :public AppBase
 	{
 	public:
-
-		void SelectEntity(entt::entity newEntity)
+		void SelectEntity(EntityID selectedEntity)
 		{
-			if (m_selectedEntityID == newEntity)
+			if (m_selectedEntityID == selectedEntity)
 				return;
-			m_selectedEntityID = newEntity;
+			m_selectedEntityID = selectedEntity;
 		}
-		entt::entity GetSelectedEntity()const { return m_selectedEntityID; }
+		EntityID GetSelectedEntity()const { return m_selectedEntityID; }
 
 		template<typename T>
 		void CreateEditorPanel()
@@ -26,6 +31,14 @@ namespace Twisted::Editor
 			m_panels.emplace_back(std::move(newPanel));
 		}
 
+		void SetActiveProject(std::shared_ptr<Project> newProject)
+		{
+			if (newProject == m_activeProject)
+				return;
+
+			m_activeProject = newProject;
+		}
+		std::shared_ptr<Project> GetActiveProject() { return m_activeProject; }
 	protected:
 		void CreateNewWindow(const AppParams& params) override;
 		void RenderUI();
@@ -33,10 +46,15 @@ namespace Twisted::Editor
 
 		void RenderDockSpace();
 		void RenderMenuBar();
+		void RenderCreateProjectWindow();
+		void RenderOpenProjectWindow();
+
+		virtual void LoadResources(const AppParams& params)override;
+
 	protected:
 		std::vector<std::unique_ptr<EditorPanel>> m_panels;
-		entt::entity m_selectedEntityID = entt::null;
-
+		EntityID m_selectedEntityID = NullEntity;
+		std::shared_ptr<Project> m_activeProject;
 	};
 
 }

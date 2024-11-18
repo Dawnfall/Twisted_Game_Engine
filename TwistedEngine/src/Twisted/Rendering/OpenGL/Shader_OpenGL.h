@@ -1,6 +1,6 @@
 #pragma once
 #include "Twisted/Rendering/Shader.h"
-#include "Twisted/Resources/ShaderData.h"
+#include "Assets/ShaderData.h"
 #include "Twisted/Rendering/Material.h"
 
 #include "Collections/Color.h"
@@ -11,7 +11,7 @@ namespace Twisted::ShaderAPI
 	//	//************
 //	// Shader
 
-	std::shared_ptr<Shader> CreateShader(ShaderData shaderData);
+	std::shared_ptr<Shader> CreateShader(std::shared_ptr<ShaderData> shaderData);
 	void UnCompileShader(Shader& shader);
 
 	void SetUniforms(const std::shared_ptr<Material>& material);

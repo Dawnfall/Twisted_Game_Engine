@@ -43,20 +43,20 @@ namespace Twisted::RenderAPI
 		glfwTerminate();
 	}
 
-	std::shared_ptr<Mesh> CreateMesh(MeshData meshData)
+	std::shared_ptr<Mesh> TWISTED_API CreateMesh(std::shared_ptr<MeshData> meshData)
 	{
-		auto mesh = std::make_shared<Mesh>(meshData);
+		unsigned int vao, vbo, ebo;
 
-		glGenVertexArrays(1, &mesh->VAO);
-		glGenBuffers(1, &mesh->VBO);
-		glGenBuffers(1, &mesh->EBO);
+		glGenVertexArrays(1, &vao);
+		glGenBuffers(1, &vbo);
+		glGenBuffers(1, &ebo);
 
-		glBindVertexArray(mesh->VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO);
-		glBufferData(GL_ARRAY_BUFFER, mesh->Data.Vertices.size() * sizeof(Vertex), &mesh->Data.Vertices[0], GL_STATIC_DRAW);
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, meshData->Vertices.size() * sizeof(Vertex), &meshData->Vertices[0], GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->Data.Indices.size() * sizeof(unsigned int), &mesh->Data.Indices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshData->Indices.size() * sizeof(unsigned int), &meshData->Indices[0], GL_STATIC_DRAW);
 
 		// vertex positions
 		glEnableVertexAttribArray(0);
@@ -70,7 +70,7 @@ namespace Twisted::RenderAPI
 
 		glBindVertexArray(0);
 
-		return mesh;
+		return std::make_shared<Mesh>(meshData,vao,vbo,ebo);
 	}
 
 	////**************
@@ -81,7 +81,7 @@ namespace Twisted::RenderAPI
 		glUseProgram(renderer.Material->GetShader()->ProgramID);
 		ShaderAPI::SetUniforms(renderer.Material);
 		glBindVertexArray(renderer.Mesh->VAO);
-		glDrawElements(GL_TRIANGLES, (GLsizei)renderer.Mesh->Data.Indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, (GLsizei)renderer.Mesh->Data->Indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 

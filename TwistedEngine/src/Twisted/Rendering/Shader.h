@@ -1,18 +1,19 @@
 #pragma once
 
 #include "twistedpch.h"
-#include "Twisted/Resources/ShaderData.h"
+#include "AppCore.h"
+#include "Assets/ShaderData.h"
 
 namespace Twisted
 {
-	struct ShaderUniformVar
+	struct TWISTED_API ShaderUniformVar
 	{
 		std::string Name;
 		GLenum Type;
 		GLint UniformID;
 	};
 
-	struct ShaderTextureVar
+	struct TWISTED_API ShaderTextureVar
 	{
 		std::string Name;
 		GLenum Type;
@@ -20,10 +21,10 @@ namespace Twisted
 		GLint TextureUnit;
 	};
 
-	class Shader
+	class TWISTED_API Shader
 	{
 	public:
-		Shader(ShaderData data, GLuint programID,const std::vector<ShaderUniformVar>& uniforms) :
+		Shader(std::shared_ptr<ShaderData> data, GLuint programID, const std::vector<ShaderUniformVar>& uniforms) :
 			Data(data),
 			ProgramID(programID),
 			Uniforms(uniforms)
@@ -31,8 +32,8 @@ namespace Twisted
 
 		bool IsValid() { return ProgramID > 0; }
 
+		std::shared_ptr<ShaderData> Data;
 		GLuint ProgramID = 0;
-		ShaderData Data;
 		std::vector<ShaderUniformVar> Uniforms;
 		std::vector<ShaderTextureVar> Textures;
 	};

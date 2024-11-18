@@ -5,21 +5,18 @@ namespace Twisted::Editor
 {
 	struct Project
 	{
-		Project(const std::string& projectFolder)
+		Project(const std::filesystem::path& projectFolder)
 		{
-			RootFolder = projectFolder;
+			RootPath = projectFolder;
 		}
 
+		std::filesystem::path GetInteralFolder() const { return RootPath / "Internal"; }
+		std::filesystem::path GetMetaFolder()const { return RootPath / "Meta"; }
+		std::filesystem::path GetAssetsFolder()const { return RootPath / "Assets"; }
 
+		std::filesystem::path RootPath;
 
-
-		std::string GetInteralFolder() const { return RootFolder + "/Internal"; }
-		std::string GetMetaFolder()const { return RootFolder + "/Meta"; }
-		std::string GetAssetsFolder()const { return RootFolder + "/Assets"; }
-
-		std::string RootFolder = "";
-
-		static std::shared_ptr<Project> CreateNewProject(const std::string& projectFolder);
+		static std::shared_ptr<Project> CreateNewProject(const std::string& folderPath,const std::string& projectName);
 		static std::shared_ptr<Project> OpenProject(const std::string& projectFolder);
 	};
 }

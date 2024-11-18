@@ -1,18 +1,23 @@
 #pragma once
 
 #include "twistedpch.h"
+#include "AppCore.h"
 
 namespace Twisted
 {
-	class AComponent
+	class World;
+	class TWISTED_API AComponent
 	{
 	public:
-		AComponent(entt::entity entityID) :
-			m_entityID(entityID)
-		{}
+		AComponent(EntityID entityID, World* world) :
+			m_entityID(entityID),
+			m_world(world)
+		{
+		}
 
-		const entt::entity& GetID()const { return m_entityID; }
+		const EntityID GetEntityID()const { return m_entityID; }
 	protected:
-		entt::entity m_entityID;
+		EntityID m_entityID;
+		World* m_world;
 	};
 }

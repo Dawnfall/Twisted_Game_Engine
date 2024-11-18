@@ -1,8 +1,9 @@
 #pragma once
+#include "AppCore.h"
 
 namespace Twisted::Colors
 {
-	struct Color
+	struct TWISTED_API Color
 	{
 		float r, g, b, a;
 	};

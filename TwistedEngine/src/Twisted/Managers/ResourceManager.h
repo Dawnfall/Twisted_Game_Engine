@@ -1,46 +1,44 @@
 #pragma once
 
-
-#include "Debug/Logger.h"
-#include "Twisted/Rendering/RenderingAPI.h"
-#include "Twisted/Resources/ShaderData.h"
+#include "Twisted/Rendering/Texture.h"
 #include "Twisted/Rendering/Shader.h"
-#include "Twisted/Resources/MeshData.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/Material.h"
-#include "Collections/Geometry.h"
+#include "Debug/Logger.h"
 
-//**************
-// CONSTS
-
-const std::string materialName = "default_material";
+#include "AppCore.h"
+#include "Utils/FileUtils.h"
 
 //**************
 
 namespace Twisted
 {
-	class ResourceManager
+	class TWISTED_API ResourceManager
 	{
 	public:
-		void LoadResources(const std::string& projectFolder);
-		
-		void LoadTexture(const std::string& fileName, const std::string& name);
-		void LoadMesh(const std::string& name,const std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+		void LoadAssets(const std::filesystem::path& assetFolder);
 
 		std::shared_ptr<Material> CreateNewMaterial(const std::string& name);
+		const std::shared_ptr<Material> GetMaterial(const std::string matrialName);
+		const std::shared_ptr<Shader> GetShader(const std::string& shaderName);
+		const std::shared_ptr<Texture> GetTexture(const std::string& textureName);
+		const std::shared_ptr<Mesh> GetMesh(const std::string& meshName);
 
-		const std::shared_ptr<Material>& GetMaterial(const std::string matrialName);
-		const std::shared_ptr<Shader>& GetShader(const std::string& shaderName);
-		const std::shared_ptr<Texture>& GetTexture(const std::string& textureName);
-		const std::shared_ptr<Mesh>& GetMesh(const std::string& meshName);
+		template<typename T>
+		bool AddAsset(const std::string& name, std::shared_ptr<T> asset)
+		{
+			return m_assets.try_emplace(name, asset).second;
+		}
 
 	private:
-		void LoadDefaultResources();
 
 		std::unordered_map<std::string, std::shared_ptr<Resource>> m_resources;
 		std::unordered_map<std::string, std::shared_ptr<Material>> m_materials;
 		std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 		std::unordered_map<std::string, std::shared_ptr<Shader>> m_shaders;
 		std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
+
+		std::unordered_map<std::string, std::shared_ptr<Asset>> m_assets;
+
 	};
 }

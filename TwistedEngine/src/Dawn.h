@@ -2,7 +2,6 @@
 
 //core
 #include "Twisted/AppBase.h"
-#include "Twisted/World.h"
 
 //managers
 #include "Twisted/Managers/ResourceManager.h"
@@ -18,14 +17,21 @@
 #include "Collections/Geometry.h"
 #include "Collections/Meshes/MeshCollections.h"
 
+//********************
+// World
+
+#include "Twisted/Game/World.h"
+
+
 //components
+
 #include "Twisted/Game/Components/CTransform.h"
 #include "Twisted/Game/Components/CCamera.h"
 #include "Twisted/Game/Components/CRenderer.h"
+#include "Twisted/Game/Components/CLight.h"
 
 //resources
-#include "Twisted/Resources/ShaderData.h"
+#include "Assets/ShaderData.h"
 #include "Twisted/Resources/KeyCodes.h"
 
-//transformations
-#include "Twisted/Game/Transformations.h"
+#include "Constants.h"

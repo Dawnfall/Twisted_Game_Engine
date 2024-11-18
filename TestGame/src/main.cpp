@@ -10,11 +10,9 @@ int main()
 	params.windowParams.monitorWidth = 1280;
 	params.windowParams.monitorHeight = 720;
 
-	SampleRuntime runtime;
+	/*SampleRuntime runtime;
 	Twisted::Deploy::StandaloneApp* app = new Twisted::Deploy::StandaloneApp();
-	app->Start(params,&runtime);
+	app->Start(params,&runtime);*/
 
-	delete app;
-
-	return 0;
+	//delete app;
 }
