@@ -24,7 +24,7 @@ namespace Twisted
 	class TWISTED_API Shader
 	{
 	public:
-		Shader(std::shared_ptr<ShaderData> data, GLuint programID, const std::vector<ShaderUniformVar>& uniforms) :
+		Shader(SRef<ShaderData> data, GLuint programID, const std::vector<ShaderUniformVar>& uniforms) :
 			Data(data),
 			ProgramID(programID),
 			Uniforms(uniforms)
@@ -32,7 +32,7 @@ namespace Twisted
 
 		bool IsValid() { return ProgramID > 0; }
 
-		std::shared_ptr<ShaderData> Data;
+		SRef<ShaderData> Data;
 		GLuint ProgramID = 0;
 		std::vector<ShaderUniformVar> Uniforms;
 		std::vector<ShaderTextureVar> Textures;

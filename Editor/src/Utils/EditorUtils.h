@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Twisted::Editor
+namespace Twisted::Editor::Utils
 {
 
 }

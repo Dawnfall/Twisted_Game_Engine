@@ -4,7 +4,7 @@
 
 namespace Twisted
 {
-	std::shared_ptr<spdlog::logger> Logger::s_logger;
+	SRef<spdlog::logger> Logger::s_logger;
 
 	bool Logger::Init()
 	{

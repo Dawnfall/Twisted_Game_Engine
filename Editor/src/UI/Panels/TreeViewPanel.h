@@ -1,6 +1,11 @@
 #pragma once
 #include "EditorPanel.h"
 
+namespace Twisted
+{
+	class World;
+}
+
 namespace Twisted::Editor
 {
 	class TreeViewPanel :public EditorPanel

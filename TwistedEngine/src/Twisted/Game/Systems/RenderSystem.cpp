@@ -1,21 +1,20 @@
 #include "twistedpch.h"
 #include "RenderSystem.h"
-#include "Twisted/AppBase.h"
 #include "Constants.h"
 
 #include "Twisted/Rendering/RenderingAPI.h"
 
+#include "Twisted/AppBase.h"
 #include "Twisted/Game/World.h"
 #include "Twisted/Game/Components/CRenderer.h"
 #include "Twisted/Game/Components/CTransform.h"
 #include "Twisted/Game/Components/CCamera.h"
 
-
 namespace Twisted
 {
 	void RenderSystem::Update(AppBase* app)
 	{
-		auto world = app->GetWorld();
+		auto world = app->GetActiveWorld();
 		auto cameras = world->GetComponents<CCamera>();
 		auto renderers = world->GetComponents<CRenderer, CTransform>();
 

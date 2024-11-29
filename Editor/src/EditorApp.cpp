@@ -1,7 +1,6 @@
 #include "editorpch.h"
 #include "EditorApp.h"
 #include "Twisted/Rendering/RenderingAPI.h"
-#include "Twisted/Windows/WindowAPI.h"
 
 #include "UI/Editor_IMGUI.h"
 #include "Debug/Logger.h"
@@ -9,50 +8,73 @@
 #include "UI/Panels/DetailsPanel.h"
 #include "UI/Panels/TreeViewPanel.h"
 
-
 namespace Twisted::Editor
 {
-	void EditorApp::Run()
+	void EditorApp::Run(Twisted::RuntimeBase* runtime)
 	{
-		if (m_runtime)
-			m_runtime->OnBeforeRun(this);
+		Init();
 
+		m_monitor = Monitor::CreateMonitorInfo();
+		m_window = Window::CreateNewWindow(windowTitle, nullptr, windowSize, Vec2i(100, 100));
+
+		glfwMakeContextCurrent(GetWindow()->GetPointer());
+		m_window->CloseWindowEvent.AddListener([&]() {
+			this->Stop();
+			});
+
+		InitIMGUI();
+
+		m_isRunning = true;
 		while (IsRunning())
 		{
-			WindowAPI::PollEvents();
+			m_window->PollEvents();
 			RenderAPI::ClearWindow(Colors::blue);
 
-			m_world->UpdateFrame(this,m_time);
+			if (m_activeWorld)
+				m_activeWorld->UpdateFrame(this);
 
 			RenderUI();
-			WindowAPI::SwapBuffers(GetWindow());
+			m_window->SwapBuffers();
+		}
 
-			if (m_runtime)
-				m_runtime->OnRun(this);
+		Terminate();
+	}
+
+	bool EditorApp::Init()
+	{
+		if (Logger::Init() && RenderAPI::InitGLFW())
+		{
+			m_time.Init();
+			TWISTED_INFO("Application Init Success!");
+			return true;
+		}
+		else
+		{
+			TWISTED_ERROR("Application Init failure");
+			return false;
 		}
 	}
 
-	void EditorApp::LoadResources(const AppParams& params)
+	void EditorApp::Terminate()
+	{
+		RenderAPI::Terminate();
+	}
+
+	void EditorApp::LoadResources()
 	{
 		m_resources.LoadAssets(m_activeProject->GetAssetsFolder());
 	}
 
-	void EditorApp::CreateNewWindow(const AppParams& params)
+	void EditorApp::InitIMGUI()
 	{
 		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
 		{
 			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
 		}
 
-		AppBase::CreateNewWindow(params);
-
-		ImguiAPI::Init(m_window->Pointer);
+		ImguiAPI::Init(m_window->GetPointer());
 		ImguiAPI::SetFlags();
 		ImguiAPI::SetStyle();
-
-		CloseWindowEvent.AddListener([&]() {
-			this->Stop();
-			});
 
 		CreateEditorPanel<TreeViewPanel>();
 		CreateEditorPanel<DetailsPanel>();
@@ -61,17 +83,19 @@ namespace Twisted::Editor
 	void EditorApp::RenderUI()
 	{
 		ImguiAPI::StartFrame();
+
+
 		RenderMenuBar();
 		RenderDockSpace();
+		RenderModals();
 
 		ImguiAPI::EndFrame();
 	}
 
-
 	void EditorApp::RenderDockSpace()
 	{
 		std::string mainDockSpaceLabel = "MainDockSpace";
-		float menuBarHeight = ImGui::GetFrameHeight();// +22; // Get the actual height of the menu bar
+		float menuBarHeight = ImGui::GetFrameHeight() + 22; // Get the actual height of the menu bar
 		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
 		ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight));
@@ -92,27 +116,48 @@ namespace Twisted::Editor
 			ImGui::End();
 		}
 	}
+
 	void EditorApp::RenderMenuBar()
 	{
 		// Push style settings
-		//ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 15));
-		//ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15, 15));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 15));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15, 15));
 
 		// Create the menu bar
 		if (ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("New"))
+				if (ImGui::MenuItem("New Project"))
 				{
-					RenderCreateProjectWindow();
+					if (!m_fileBrowser)
+					{
+						FileBrowserData data;
+						data.Title = "Create New Project";
+						data.BrowserType = BrowserType::DIRECTORY;
+						data.IsMultiselect = false;
+						data.StartDir = fs::current_path();
+
+						m_fileBrowser = std::make_unique<FileBrowser>(data);
+					}
 				}
-				if (ImGui::MenuItem("Open"))
+				if (ImGui::MenuItem("Open Project"))
 				{
-					RenderOpenProjectWindow();
+					if (m_fileBrowser)
+					{
+						FileBrowserData data;
+						data.Title = "Open Project";
+						data.BrowserType = BrowserType::DIRECTORY;
+						data.IsMultiselect = false;
+						data.StartDir = fs::current_path();
+
+						m_fileBrowser = std::make_unique<FileBrowser>(data);
+					}
 				}
-				ImGui::MenuItem("Save");
-				ImGui::MenuItem("Exit");
+				if (ImGui::MenuItem("Exit"))
+				{
+
+				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Panels"))
@@ -126,9 +171,15 @@ namespace Twisted::Editor
 			}
 			if (ImGui::BeginMenu("Create"))
 			{
+				if (ImGui::MenuItem("New World"))
+				{
+					m_activeWorld = std::make_shared<World>();
+				}
+
 				if (ImGui::MenuItem("New Entity"))
 				{
-					EntityID newEntt = m_world->CreateNewEntity(NullEntity);
+					if (m_activeWorld)
+						EntityID newEntt = m_activeWorld->CreateNewEntity(NullEntity);
 				}
 				ImGui::EndMenu();
 			}
@@ -138,12 +189,21 @@ namespace Twisted::Editor
 		// Pop style settings
 		ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
 	}
-	void EditorApp::RenderCreateProjectWindow()
+	void EditorApp::RenderModals()
 	{
-		Project::CreateNewProject("F:/Programiranje/Test/", "TestProjectA");
-	}
-	void EditorApp::RenderOpenProjectWindow()
-	{
-		Project::OpenProject("F:/Programiranje/Test/TestProjectA");
+		if (m_fileBrowser != nullptr)
+		{
+			if (!m_fileBrowser->Render())
+			{
+				std::vector<fs::path> results = m_fileBrowser->GetResults();
+				if (results.size() == 1)
+				{
+					auto newProject = Project::CreateNewProject(results[0]);
+					if (newProject)
+						SetActiveProject(newProject);
+				}
+				m_fileBrowser = nullptr;
+			}
+		}
 	}
 }

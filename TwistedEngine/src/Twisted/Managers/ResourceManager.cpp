@@ -14,41 +14,41 @@ namespace Twisted
 		auto allAssetFiles = Utils::LoadFiles(std::filesystem::path(assetsFolder), "");
 		for (auto& file : allAssetFiles)
 		{
-			std::shared_ptr<Asset> newAsset = AssetImporter::ImportAsset(file);
+			SRef<Asset> newAsset = AssetImporter::ImportAsset(file);
 			if (newAsset)
 				m_assets[file.stem().string()] = newAsset;
 		}
 	}
 
-	const std::shared_ptr<Material> ResourceManager::GetMaterial(const std::string matrialName)
+	const SRef<Material> ResourceManager::GetMaterial(const std::string matrialName)
 	{
 		if (m_materials.contains(matrialName))
 			return m_materials[matrialName];
 		return nullptr;
 	}
 
-	const std::shared_ptr<Shader> ResourceManager::GetShader(const std::string& shaderName)
+	const SRef<Shader> ResourceManager::GetShader(const std::string& shaderName)
 	{
 		if (m_shaders.contains(shaderName))
 			return m_shaders[shaderName];
 		return nullptr;
 	}
 
-	const std::shared_ptr<Texture> ResourceManager::GetTexture(const std::string& textureName)
+	const SRef<Texture> ResourceManager::GetTexture(const std::string& textureName)
 	{
 		if (m_textures.contains(textureName))
 			return m_textures[textureName];
 		return nullptr;
 	}
 
-	const std::shared_ptr<Mesh> ResourceManager::GetMesh(const std::string& meshName)
+	const SRef<Mesh> ResourceManager::GetMesh(const std::string& meshName)
 	{
 		if (m_meshes.contains(meshName))
 			return m_meshes[meshName];
 		return nullptr;
 	}
 
-	std::shared_ptr<Material> ResourceManager::CreateNewMaterial(const std::string& name)
+	SRef<Material> ResourceManager::CreateNewMaterial(const std::string& name)
 	{
 		if (m_materials.contains(name))
 		{

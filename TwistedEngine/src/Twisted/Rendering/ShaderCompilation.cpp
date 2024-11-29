@@ -9,7 +9,7 @@
 
 namespace Twisted::ShaderCompilation
 {
-	std::shared_ptr<Shader> LoadShader(std::shared_ptr<ShaderData> shaderData)
+	SRef<Shader> LoadShader(SRef<ShaderData> shaderData)
 	{
 		return ShaderAPI::CreateShader(shaderData);
 	}

@@ -7,6 +7,7 @@ namespace Twisted
 	class CTransform;
 	class CRenderer;
 }
+
 namespace Twisted::Editor
 {
 	class DetailsPanel :public EditorPanel

@@ -21,7 +21,7 @@ namespace Twisted
 	class TWISTED_API Material
 	{
 	public:
-		void SetShader(const std::shared_ptr<Shader>& shader)
+		void SetShader(const SRef<Shader>& shader)
 		{
 			if (shader == nullptr || !shader->IsValid() || m_shader == shader)
 				return;
@@ -41,7 +41,7 @@ namespace Twisted
 			if (m_shader != nullptr)
 				PresetUniforms();
 		}
-		const std::shared_ptr<Shader> GetShader()const { return m_shader; }
+		const SRef<Shader> GetShader()const { return m_shader; }
 
 		//TODO... check first
 		void SetBool(const std::string& varName, bool value) { m_bools[varName].value = value; }
@@ -51,7 +51,7 @@ namespace Twisted
 		void SetVec3f(const std::string& varName, Vec3f value) { m_vec3s[varName].value = value; }
 		void SetVec4f(const std::string& varName, Vec4f value) { m_vec4s[varName].value = value; }
 		void SetMat4x4f(const std::string& varName, Mat4x4f value) { m_mats[varName].value = value; }
-		void SetTexture(const std::string& shadervarName, const std::shared_ptr<Texture>& texture)
+		void SetTexture(const std::string& shadervarName, const SRef<Texture>& texture)
 		{
 			int locationID = m_shaderTexVarToIdMap[shadervarName];
 			m_textures[locationID] = texture;
@@ -65,7 +65,7 @@ namespace Twisted
 		std::unordered_map<std::string, MaterialValue<Vec2f>> m_vec2s;
 		std::unordered_map<std::string, MaterialValue<Mat4x4f>> m_mats;
 
-		std::unordered_map<int, std::shared_ptr<Texture>> m_textures;
+		std::unordered_map<int, SRef<Texture>> m_textures;
 		std::unordered_map<std::string, int> m_shaderTexVarToIdMap;
 
 	private:
@@ -106,6 +106,6 @@ namespace Twisted
 			}
 		}
 
-		std::shared_ptr<Shader> m_shader = nullptr;
+		SRef<Shader> m_shader = nullptr;
 	};
 }

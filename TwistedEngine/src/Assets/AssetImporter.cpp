@@ -40,13 +40,13 @@ namespace Twisted::AssetImporter
 	//	}
 	//}
 
-	std::shared_ptr<Asset> ImportAsset(const std::filesystem::path& assetPath)
+	SRef<Asset> ImportAsset(const std::filesystem::path& assetPath)
 	{
 		std::string ext = assetPath.extension().string();
 
 		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == "bmp" || ext == ".psd"); //TODO....
 		{
-			return ImportTextureData(assetPath);
+			return TextureData::ImportTextureData(assetPath);
 		}
 		if (ext == ".shader")
 		{
@@ -61,22 +61,8 @@ namespace Twisted::AssetImporter
 		return nullptr;
 	}
 
-	std::shared_ptr<TextureData> ImportTextureData(const std::filesystem::path& assetPath)
-	{
-		std::shared_ptr<TextureData> newTex = std::make_shared<TextureData>();
-		newTex->data = stbi_load(assetPath.string().c_str(), &newTex->Width, &newTex->Height, &newTex->NrChannels, 0);
-		if (newTex->data)
-		{
-			//write
 
-			//RenderAPI::LoadTexture(name, width, height, data);
-			//m_textures[name] = newTex;
-		}
-
-		return newTex;
-	}
-
-	std::shared_ptr<ShaderData> ImportShaderData(const std::filesystem::path& assetPath)
+	SRef<ShaderData> ImportShaderData(const std::filesystem::path& assetPath)
 	{
 		std::string shaderText = Utils::ReadFileContent(assetPath);
 		std::vector<std::string> shaderCodes = Utils::SplitString(shaderText, SHADER_DELIMITER);
@@ -87,7 +73,7 @@ namespace Twisted::AssetImporter
 			return nullptr;
 		}
 
-		std::shared_ptr<ShaderData> shaderData = std::make_shared<ShaderData>();
+		SRef<ShaderData> shaderData = std::make_shared<ShaderData>();
 		shaderData->Name = assetPath.stem().string();
 		shaderData->VertShaderCode = shaderCodes[0];
 		shaderData->FragShaderCode = shaderCodes[1];
@@ -95,7 +81,7 @@ namespace Twisted::AssetImporter
 		return shaderData;
 	}
 
-	std::shared_ptr<MeshData> ImportMeshData(const std::filesystem::path& assetPath)
+	SRef<MeshData> ImportMeshData(const std::filesystem::path& assetPath)
 	{
 		Assimp::Importer importer;
 		// Read the file with some post-processing
@@ -113,7 +99,7 @@ namespace Twisted::AssetImporter
 		//meshData.Vertices = vertices;
 		//meshData.Indices = indices;
 
-		//std::shared_ptr<Mesh> mesh = RenderAPI::CreateMesh(meshData);
+		//SRef<Mesh> mesh = RenderAPI::CreateMesh(meshData);
 		//m_meshes[meshData.Name] = mesh;
 
 
@@ -123,7 +109,7 @@ namespace Twisted::AssetImporter
 
 
 
-	std::shared_ptr<MaterialData> ImportMaterial(const std::filesystem::path& assetPath)
+	SRef<MaterialData> ImportMaterial(const std::filesystem::path& assetPath)
 	{
 		return nullptr;
 	}

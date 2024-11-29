@@ -13,6 +13,7 @@ namespace Twisted
 	class TWISTED_API World //TODO: error handling
 	{
 	public:
+		World();
 		EntityID CreateNewEntity(EntityID id);
 
 		template<typename... ComponentTypes>
@@ -97,13 +98,13 @@ namespace Twisted
 		}
 
 		template<typename T>
-		void AddSystem()
+		void AddSystem(AppBase* app)
 		{
 			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
 			m_systems.emplace_back(std::make_unique<T>());
 		}
 
-		void UpdateFrame(AppBase* app, TimeManager& time);
+		void UpdateFrame(AppBase* app);
 
 		template<typename... ComponentTypes>
 		void RemoveComponents(EntityID entityID)

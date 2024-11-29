@@ -15,8 +15,8 @@ namespace Twisted
 	public:
 		CRenderer(EntityID entityID, World* world) :AComponent(entityID, world) {}
 
-		std::shared_ptr<Material> Material;
-		std::shared_ptr<Mesh> Mesh;
+		SRef<Material> Material;
+		SRef<Mesh> Mesh;
 
 	};
 

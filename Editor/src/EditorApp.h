@@ -3,24 +3,26 @@
 #include "Twisted/AppBase.h"
 #include "UI/Panels/EditorPanel.h"
 #include "Project/Project.h"
-
-namespace Twisted
-{
-	class Entity;
-}
+#include "UI/FileBrowser/FileBrowser.h"
 
 namespace Twisted::Editor
 {
+	const std::string editorRootFolder = "F:/Programiranje/C++/GameEngine/TestGame/Assets/"; //TODO:...
+	const std::string windowTitle = "Twisted Editor";
+	const Twisted::Vec2i windowSize(1280, 720);
 
 	class EditorApp :public AppBase
 	{
 	public:
+		void Run(Twisted::RuntimeBase* runtime) override;
+
 		void SelectEntity(EntityID selectedEntity)
 		{
 			if (m_selectedEntityID == selectedEntity)
 				return;
 			m_selectedEntityID = selectedEntity;
 		}
+
 		EntityID GetSelectedEntity()const { return m_selectedEntityID; }
 
 		template<typename T>
@@ -37,24 +39,28 @@ namespace Twisted::Editor
 				return;
 
 			m_activeProject = newProject;
+			if (m_activeProject)
+				m_window->SetTitle("Twisted Editor: " + newProject->GetName());
 		}
-		std::shared_ptr<Project> GetActiveProject() { return m_activeProject; }
-	protected:
-		void CreateNewWindow(const AppParams& params) override;
-		void RenderUI();
-		void Run() override;
 
+		std::shared_ptr<Project> GetActiveProject() { return m_activeProject; }
+
+	protected:
+		void InitIMGUI();
+		void LoadResources();
+		bool Init();
+		void Terminate();
+
+		void RenderUI();
 		void RenderDockSpace();
 		void RenderMenuBar();
-		void RenderCreateProjectWindow();
-		void RenderOpenProjectWindow();
-
-		virtual void LoadResources(const AppParams& params)override;
-
+		void RenderModals();
 	protected:
 		std::vector<std::unique_ptr<EditorPanel>> m_panels;
 		EntityID m_selectedEntityID = NullEntity;
 		std::shared_ptr<Project> m_activeProject;
+
+		std::unique_ptr<FileBrowser> m_fileBrowser = nullptr;
 	};
 
 }

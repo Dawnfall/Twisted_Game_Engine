@@ -22,7 +22,7 @@ namespace Twisted::Utils
 
 	TWISTED_API std::string GenerateGUID();
 
-
+	TWISTED_API void StringToArray(const std::string& str, char* buffer, size_t bufferSize);
 
 
 

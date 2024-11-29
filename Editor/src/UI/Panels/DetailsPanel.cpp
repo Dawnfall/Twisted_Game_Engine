@@ -9,10 +9,14 @@ namespace Twisted::Editor
 {
 	void DetailsPanel::RenderContent(EditorApp* editor)
 	{
+		auto world = editor->GetActiveWorld();
+		if (!world)
+			return;
+
 		EntityID selectedEntity = editor->GetSelectedEntity();
-		CTransform* transform = editor->GetWorld()->GetComponent<CTransform>(selectedEntity);
+		CTransform* transform = editor->GetActiveWorld()->GetComponent<CTransform>(selectedEntity);
 		RenderTransform(transform);
-		CRenderer* renderer = editor->GetWorld()->GetComponent<CRenderer>(selectedEntity);
+		CRenderer* renderer = editor->GetActiveWorld()->GetComponent<CRenderer>(selectedEntity);
 		RenderRenderer(renderer);
 	}
 

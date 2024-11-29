@@ -36,9 +36,9 @@ namespace Twisted
 		serializeComponents.operator() < CLight > ();
 	}
 
-	std::shared_ptr<World> WorldSerializer::DeserializeWorld(SerializationBuffer& buffer)
+	SRef<World> WorldSerializer::DeserializeWorld(SerializationBuffer& buffer)
 	{
-		std::shared_ptr<World> world = std::make_shared<World>();
+		SRef<World> world = std::make_shared<World>();
 
 		//entities
 		std::vector<EntityID> allEntityIDs = buffer.ReadVec<EntityID>();

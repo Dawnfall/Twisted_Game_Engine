@@ -5,33 +5,29 @@
 
 namespace Twisted::Editor
 {
-	std::shared_ptr<Project> Project::CreateNewProject(const std::string& folderPath, const std::string& projectName)
+	std::shared_ptr<Project> Project::CreateNewProject(const fs::path& folderPath)
 	{
-		std::filesystem::path projectPath = Utils::CombinePaths(folderPath, projectName);
 		try
 		{
-			if (Utils::IsExistingFolder(projectPath))
+			if (Utils::IsExistingFolder(folderPath) && !Utils::IsEmptyDirectory(folderPath))
 			{
-				TWISTED_WARN("Project path already exists: " + projectPath.string());
+				TWISTED_WARN("Project path must be empty directory: " + folderPath.string());
 				return nullptr;
 			}
 
-			Utils::CreateFolder(projectPath);
-			Utils::CreateFolder(projectPath / "Assets");
-			Utils::CreateFolder(projectPath / "Meta");
-			Utils::CreateFolder(projectPath / "Internal");
+			if (!Utils::IsExistingFolder(folderPath))
+				Utils::CreateFolder(folderPath);
 
-			return std::make_shared<Project>(projectPath);
-
+			return OpenProject(folderPath);
 		}
 		catch (...)
 		{
-			TWISTED_WARN("Error creating project " + projectPath.string());
+			TWISTED_WARN("Error creating project " + folderPath.string());
 			return nullptr;
 		}
 	}
 
-	std::shared_ptr<Project> Project::OpenProject(const std::string& projectFolder)
+	std::shared_ptr<Project> Project::OpenProject(const fs::path& projectFolder)
 	{
 		std::filesystem::path projectPath(projectFolder);
 
@@ -42,10 +38,13 @@ namespace Twisted::Editor
 				TWISTED_WARN("Project not existing at path: " + projectPath.string());
 				return nullptr;
 			}
-			//TODO: check subfolders
+
+			Utils::CreateFolder(projectPath / "Assets");
+			Utils::CreateFolder(projectPath / "Meta");
+			Utils::CreateFolder(projectPath / "Internal");
+			Utils::CreateNewFile(projectPath / "twisted.editor");
 
 			return std::make_shared<Project>(projectPath);
-
 		}
 		catch (...)
 		{

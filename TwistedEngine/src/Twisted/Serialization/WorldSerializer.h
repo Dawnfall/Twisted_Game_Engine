@@ -11,7 +11,7 @@ namespace Twisted
 	public:
 
 		void SerializeWorld(const World* world);
-		std::shared_ptr<World> DeserializeWorld(SerializationBuffer& serializer);
+		SRef<World> DeserializeWorld(SerializationBuffer& serializer);
 
 		size_t RegisterObject(void* obj)
 		{

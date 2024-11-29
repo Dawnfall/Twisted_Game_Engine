@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Assets/MeshData.h"
+#include "Assets/TextureData.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/Material.h"
 #include "Twisted/Rendering/Shader.h"
@@ -21,7 +22,7 @@ namespace Twisted::RenderAPI
 	void TWISTED_API Terminate();
 
 	void TWISTED_API Render(const CRenderer& renderer);
-	std::shared_ptr<Mesh> TWISTED_API CreateMesh(std::shared_ptr<MeshData> meshData);
+	SRef<Mesh> TWISTED_API CreateMesh(SRef<MeshData> meshData);
 
 	void TWISTED_API ClearWindow(Colors::Color color);
 	void TWISTED_API SetViewPort(float width, float height);
@@ -43,9 +44,9 @@ namespace Twisted::RenderAPI
 	//*****************************
 	// Texture
 
-	std::shared_ptr<Texture> TWISTED_API LoadTexture(const std::string& name, int width, int height, unsigned char* data);
-	void TWISTED_API BindTexture(std::shared_ptr<Texture> texture);
-
+	SRef<Texture> TWISTED_API LoadTexture(SRef<TextureData> texData);
+	void TWISTED_API BindTexture(SRef<Texture> texture);
+	void TWISTED_API DestroyTexture(Texture* texture);
 
 	//	static void BindTexture(int id);
 	void TWISTED_API glfwErrorCallback(int code, const char* description);

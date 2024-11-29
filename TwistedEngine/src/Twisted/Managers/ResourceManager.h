@@ -18,27 +18,27 @@ namespace Twisted
 	public:
 		void LoadAssets(const std::filesystem::path& assetFolder);
 
-		std::shared_ptr<Material> CreateNewMaterial(const std::string& name);
-		const std::shared_ptr<Material> GetMaterial(const std::string matrialName);
-		const std::shared_ptr<Shader> GetShader(const std::string& shaderName);
-		const std::shared_ptr<Texture> GetTexture(const std::string& textureName);
-		const std::shared_ptr<Mesh> GetMesh(const std::string& meshName);
+		SRef<Material> CreateNewMaterial(const std::string& name);
+		const SRef<Material> GetMaterial(const std::string matrialName);
+		const SRef<Shader> GetShader(const std::string& shaderName);
+		const SRef<Texture> GetTexture(const std::string& textureName);
+		const SRef<Mesh> GetMesh(const std::string& meshName);
 
 		template<typename T>
-		bool AddAsset(const std::string& name, std::shared_ptr<T> asset)
+		bool AddAsset(const std::string& name, SRef<T> asset)
 		{
 			return m_assets.try_emplace(name, asset).second;
 		}
 
 	private:
 
-		std::unordered_map<std::string, std::shared_ptr<Resource>> m_resources;
-		std::unordered_map<std::string, std::shared_ptr<Material>> m_materials;
-		std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
-		std::unordered_map<std::string, std::shared_ptr<Shader>> m_shaders;
-		std::unordered_map<std::string, std::shared_ptr<Mesh>> m_meshes;
+		std::unordered_map<std::string, SRef<Resource>> m_resources;
+		std::unordered_map<std::string, SRef<Material>> m_materials;
+		std::unordered_map<std::string, SRef<Texture>> m_textures;
+		std::unordered_map<std::string, SRef<Shader>> m_shaders;
+		std::unordered_map<std::string, SRef<Mesh>> m_meshes;
 
-		std::unordered_map<std::string, std::shared_ptr<Asset>> m_assets;
+		std::unordered_map<std::string, SRef<Asset>> m_assets;
 
 	};
 }

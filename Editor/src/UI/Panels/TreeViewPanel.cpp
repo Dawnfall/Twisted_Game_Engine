@@ -9,17 +9,20 @@ namespace Twisted::Editor
 {
 	void TreeViewPanel::RenderContent(EditorApp* editor)
 	{
-		auto world = editor->GetWorld();
-		std::vector<CTransform*> rootTransforms = CTransform::GetRootTransforms(*editor->GetWorld());
+		auto world = editor->GetActiveWorld();
+		if (!world)
+			return;
+
+		std::vector<CTransform*> rootTransforms = CTransform::GetRootTransforms(*editor->GetActiveWorld());
 
 		std::function<void(const CTransform*)> renderTreeObject;
-		renderTreeObject = [&world, &renderTreeObject](const CTransform* transform)
+		renderTreeObject = [&editor, &renderTreeObject](const CTransform* transform)
 			{
 				if (ImGui::TreeNodeEx((transform->GetName() + std::to_string((int)transform->GetEntityID())).c_str()))
 				{
 					for (EntityID child : transform->GetChildren())
 					{
-						renderTreeObject(world->GetComponent<CTransform>(child));
+						renderTreeObject(editor->GetActiveWorld()->GetComponent<CTransform>(child));
 					}
 					ImGui::TreePop();
 				}

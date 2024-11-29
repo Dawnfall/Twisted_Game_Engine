@@ -1,10 +1,14 @@
 #pragma once
 #include "editorpch.h"
 
+namespace Twisted
+{
+	class World;
+}
+
 namespace Twisted::Editor
 {
 	class EditorApp;
-
 	class EditorPanel
 	{
 	public:

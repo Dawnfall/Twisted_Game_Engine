@@ -10,7 +10,7 @@ namespace Twisted::ShaderAPI
 		shader.ProgramID = -1;
 	}
 
-	std::shared_ptr<Shader> CreateShader(std::shared_ptr<ShaderData> shaderData)
+	SRef<Shader> CreateShader(SRef<ShaderData> shaderData)
 	{
 		GLuint vertexID = 0;
 		GLuint fragmentID = 0;
@@ -118,7 +118,7 @@ namespace Twisted::ShaderAPI
 		return uniforms;
 	}
 
-	void SetUniforms(const std::shared_ptr<Material>& material)
+	void SetUniforms(const SRef<Material>& material)
 	{
 		for (auto& var : material->m_bools)
 			setBool(var.second.ID, var.second.value);

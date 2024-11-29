@@ -7,14 +7,14 @@ namespace Twisted
 	class TWISTED_API Mesh
 	{
 	public:
-		Mesh(std::shared_ptr<MeshData> meshData,unsigned int vao,unsigned int vbo,unsigned int ebo) :
+		Mesh(SRef<MeshData> meshData,unsigned int vao,unsigned int vbo,unsigned int ebo) :
 			Data(meshData),
 			VAO(vao),
 			VBO(vbo),
 			EBO(ebo)
 		{}
 
-		std::shared_ptr<MeshData> Data;
+		SRef<MeshData> Data;
 		unsigned int VAO = -1;
 		unsigned int VBO = -1;
 		unsigned int EBO = -1;

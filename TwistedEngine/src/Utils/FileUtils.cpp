@@ -3,12 +3,90 @@
 
 namespace Twisted::Utils
 {
-	bool IsFolder(const std::string& path)
+	bool IsFolder(const fs::path& path)
 	{
-		return std::filesystem::is_directory(path);
+		std::error_code ec;
+		bool isDir = fs::is_directory(path, ec);
+		if (ec || !isDir)
+			return false;
+		return true;
 	}
 
-	std::vector<std::filesystem::directory_entry> GetFilesInFolder(const std::string& folderPath)
+	bool IsFile(const fs::path& path)
+	{
+		std::error_code ec;
+		bool isFile = fs::is_regular_file(path, ec);
+		if (ec || !isFile)
+			return false;
+		return true;
+	}
+
+	size_t FileSize(const fs::path& path)
+	{
+		std::error_code ec;
+		size_t size = fs::file_size(path, ec);
+		if (ec)
+			return 0;
+		return size;
+	}
+
+	time_t DateModified(const fs::path& path)
+	{
+		struct stat attr;
+		stat(path.string().c_str(), &attr);
+		return attr.st_ctime;
+	}
+
+	std::vector<fs::path> SubEntries(const fs::path& path)
+	{
+		std::vector<fs::path> subEntries;
+		std::error_code ec;
+		for (auto entry : fs::directory_iterator(path, ec))
+			subEntries.emplace_back(entry);
+
+		return subEntries;
+	}
+
+	std::vector<fs::path> SubFiles(const fs::path& path)
+	{
+		std::vector<fs::path> subEntries;
+		std::error_code ec;
+		for (auto entry : fs::directory_iterator(path, ec))
+			if (IsFile(entry))
+				subEntries.emplace_back(entry);
+
+		return subEntries;
+	}
+
+	std::vector<fs::path> SubFolders(const fs::path& path)
+	{
+		std::vector<fs::path> subEntries;
+		std::error_code ec;
+		for (auto entry : fs::directory_iterator(path, ec))
+			if (IsFolder(entry.path()))
+				subEntries.emplace_back(entry);
+
+		return subEntries;
+	}
+
+	std::vector<fs::path> GetAllDrives()
+	{
+		std::vector<fs::path> drives;
+
+		char drive = 'A';
+		while (drive <= 'Z')
+		{
+			std::string drivePath = std::string(1, drive) + ":\\";
+			if (fs::exists(drivePath))
+			{
+				drives.push_back(drivePath);
+			}
+			++drive;
+		}
+		return drives;
+	}
+
+	std::vector<fs::directory_entry> GetFilesInFolder(const std::string& folderPath)
 	{
 		std::vector<std::filesystem::directory_entry> files;
 		if (!Utils::IsFolder(folderPath))
@@ -25,30 +103,29 @@ namespace Twisted::Utils
 		return files;
 	}
 
-	bool CreateFolder(const std::filesystem::path& folderPath)
+	bool CreateFolder(const fs::path& folderPath)
+	{
+		std::error_code ec;
+		if (fs::create_directories(folderPath, ec) && !ec)
+			return true;
+		return false;
+	}
+
+	bool CreateNewFile(const fs::path& filePath)
 	{
 		try
 		{
-			if (std::filesystem::create_directories(folderPath))
-			{
-				std::cout << "Folder created: " << folderPath << std::endl;
-				return true;
-			}
-			else
-			{
-				std::cerr << "Folder already exists or failed to create: " << folderPath << std::endl;
-				return false;
-			}
+			std::ofstream file(filePath);
+			file.close();
+			return true;
 		}
-		catch (const std::filesystem::filesystem_error& e)
+		catch (...)
 		{
-			std::cerr << "Filesystem error: " << e.what() << std::endl;
 			return false;
 		}
 	}
 
-
-	std::string ReadFileContent(const std::filesystem::path& filePath)
+	std::string ReadFileContent(const fs::path& filePath)
 	{
 		std::ifstream file(filePath);
 		if (!file.is_open())
@@ -68,12 +145,25 @@ namespace Twisted::Utils
 		return path;
 	}
 
-	bool IsExistingFolder(const std::filesystem::path& path)
+	bool IsExistingFolder(const fs::path& path)
 	{
-		return std::filesystem::exists(path) && std::filesystem::is_directory(path);
+		std::error_code ec;
+		if (fs::exists(path, ec) && !ec)
+			if (fs::is_directory(path, ec) && !ec)
+				return true;
+		return false;
 	}
 
-	std::vector<std::filesystem::path> LoadFiles(const std::filesystem::path& folderPath, const std::string& extension)
+	bool IsEmptyDirectory(const fs::path& path)
+	{
+		std::error_code ec;
+		if (fs::is_directory(path, ec) && !ec)
+			if (fs::is_empty(path, ec) && !ec)
+				return true;
+		return false;
+	}
+
+	std::vector<fs::path> LoadFiles(const fs::path& folderPath, const std::string& extension)
 	{
 		std::vector<std::filesystem::path> files;
 

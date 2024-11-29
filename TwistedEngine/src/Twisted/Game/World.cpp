@@ -3,13 +3,17 @@
 #include "SystemBase.h"
 
 #include "Twisted/Game/Components/CTransform.h"
+#include "Twisted/Game/Systems/RenderSystem.h"
 
 namespace Twisted
 {
-	void World::UpdateFrame(AppBase* app, TimeManager& time)
+	World::World()
 	{
-		time.UpdateNewFrame();
+		m_systems.emplace_back(std::make_unique<RenderSystem>());
+	}
 
+	void World::UpdateFrame(AppBase* app)
+	{
 		for (auto& system : m_systems)
 			system->Update(app);
 	}

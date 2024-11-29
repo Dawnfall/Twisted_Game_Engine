@@ -57,4 +57,10 @@ namespace Twisted::Utils
 		TWISTED_ERROR("Failed to create GUID");
 		return "";
 	}
+
+	void StringToArray(const std::string& str, char* buffer, size_t bufferSize)
+	{
+		std::strncpy(buffer, str.c_str(), bufferSize - 1);
+		buffer[bufferSize - 1] = '\0'; // Ensure null-termination
+	}
 }

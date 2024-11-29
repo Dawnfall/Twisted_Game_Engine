@@ -38,5 +38,11 @@
 //#define _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
 //#define _AFX_SECURE_NO_WARNINGS
 
+template<typename T>
+using SRef = std::shared_ptr<T>;
+
+template<typename T>
+using URef = std::unique_ptr<T>;
+
 using EntityID = entt::entity;
 constexpr entt::entity NullEntity = entt::null;

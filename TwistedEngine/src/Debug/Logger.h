@@ -15,7 +15,7 @@ namespace Twisted
 		inline static void Warn(const std::string& str) { s_logger->warn(str); }
 		inline static void Error(const std::string& str) { s_logger->error(str); }
 	private:
-		static std::shared_ptr<spdlog::logger> s_logger;
+		static SRef<spdlog::logger> s_logger;
 	};
 }
 

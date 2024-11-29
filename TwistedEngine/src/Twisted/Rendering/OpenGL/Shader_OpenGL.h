@@ -11,10 +11,10 @@ namespace Twisted::ShaderAPI
 	//	//************
 //	// Shader
 
-	std::shared_ptr<Shader> CreateShader(std::shared_ptr<ShaderData> shaderData);
+	SRef<Shader> CreateShader(SRef<ShaderData> shaderData);
 	void UnCompileShader(Shader& shader);
 
-	void SetUniforms(const std::shared_ptr<Material>& material);
+	void SetUniforms(const SRef<Material>& material);
 
 	// Utility uniform functions
 	void setBool(GLint locationID, bool value);
