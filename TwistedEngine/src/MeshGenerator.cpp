@@ -1,10 +1,12 @@
 #include "twistedpch.h"
 #include "MeshGenerator.h"
+#include "Windows/Window.h"
 
 namespace Twisted
 {
 	void CreateIcosahedron()
 	{
+		//Window::CreateNewWindow("a", nullptr, Vec2i(), Vec2i());
 		/*float t = (1.0f + std::sqrt(5.0f) / 2);
 
 		AddVertex(-1, t, 0);

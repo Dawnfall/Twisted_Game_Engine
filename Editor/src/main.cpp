@@ -3,12 +3,7 @@
 
 void main()
 {
-
 	Twisted::Editor::EditorApp* app = new Twisted::Editor::EditorApp();
-
-	app->Run(nullptr);
-
+	app->Run();
 	delete app;
-
-
 }

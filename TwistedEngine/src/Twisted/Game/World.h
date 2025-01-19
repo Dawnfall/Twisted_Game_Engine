@@ -1,9 +1,10 @@
 #pragma once
 
-#include "twistedpch.h"
 #include "AppCore.h"
 #include "Twisted/Managers/TimeManager.h"
 #include "Twisted/Game/SystemBase.h"
+#include "Entity.h"
+
 
 
 namespace Twisted

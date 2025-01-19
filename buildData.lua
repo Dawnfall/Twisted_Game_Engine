@@ -1,9 +1,13 @@
 -- Includes
 
 IncludeDirs = {}
+IncludeDirs["Core"]= "%{wks.location}/Core/src";
+IncludeDirs["Utils"]= "%{wks.location}/Utils/src";
+IncludeDirs["Rendering"]= "%{wks.location}/Rendering/src";
 IncludeDirs["TwistedEngine"]="%{wks.location}/TwistedEngine/src";
 IncludeDirs["Editor"]="%{wks.location}/Editor/src";
 IncludeDirs["TestGame"]="%{wks.location}/TestGame/src";
+IncludeDirs["Standalone"]="%{wks.location}/Standalone/src";
 
 -----3rd
 IncludeDirs["imgui"]="%{wks.location}/3rd/imgui"

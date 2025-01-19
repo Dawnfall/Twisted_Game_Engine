@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Twisted/Rendering/Texture.h"
-#include "Twisted/Rendering/Shader.h"
-#include "Twisted/Rendering/Mesh.h"
-#include "Twisted/Rendering/Material.h"
-#include "Debug/Logger.h"
-
 #include "AppCore.h"
+#include "Assets/Asset.h"
+#include "Rendering/Texture.h"
+#include "Rendering/Shader.h"
+#include "Rendering/Mesh.h"
+#include "Rendering/Material.h"
+#include "AppCore.h"
+
 #include "Utils/FileUtils.h"
 
 //**************

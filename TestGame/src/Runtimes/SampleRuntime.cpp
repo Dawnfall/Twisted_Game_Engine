@@ -1,10 +1,10 @@
-#include "SampleRuntime.h"
-#include "Dawn.h"
-#include "Systems/SCameraController.h"
-#include <vector>
-#include <string>
+//#include "SampleRuntime.h"
+//#include "Dawn.h"
+//#include "Systems/SCameraController.h"
+//#include <vector>
+//#include <string>
 
-using namespace Twisted;
+//using namespace Twisted;
 
 //void SampleRuntime::OnBeforeRun(Twisted::AppBase* app)
 //{

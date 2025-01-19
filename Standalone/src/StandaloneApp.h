@@ -1,38 +1,23 @@
 #pragma once
+
+#include "AppCore.h"
 #include "Twisted/AppBase.h"
-#include "Twisted/Rendering/RenderingAPI.h"
 
 namespace Twisted::Standalone
 {
-	class StandaloneApp :public Twisted::AppBase
+	class StandaloneApp : public AppBase
 	{
-		virtual void Run(const Twisted::AppParams& params, Twisted::RuntimeBase* runtime) override
-		{
-			if (IsRunning())
-			{
-				TWISTED_WARN("Cannot start application; Application already running!");
-				return;
-			}
+	public:
 
-			m_runtime = runtime;
-			if (!Init(params))
-				return;
+		virtual void Run() override;
 
-			CreateNewWindow(params);
+		void SetActiveWorld(SRef<World> world) { m_world = world; }
+		SRef<World> GetActiveWorld() { return m_world; }
+	
+	private:
+		void LoadResources();
 
-			m_isRunning = true;
-			while (IsRunning())
-			{
-				WindowAPI::PollEvents();
-				RenderAPI::ClearWindow(Colors::blue);
-
-				//m_world->UpdateFrame(this,m_time);
-
-				WindowAPI::SwapBuffers(GetWindow());
-
-				//if (m_runtime)
-				//	m_runtime->OnRun(this);
-			}
-		}
+		SRef<World> m_world = nullptr;
+		bool Init();
 	};
 }

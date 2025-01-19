@@ -1,10 +1,12 @@
 #pragma once
 
 #include "AppCore.h"
-#include "Debug/Logger.h"
-#include "Collections/Geometry.h"
+#include "AppCore.h"
+#include "Utils/GlmUtils.h"
 #include "Twisted/Game/AComponent.h"
-#include "Twisted/Serialization/WorldSerializer.h"
+#include "Serialization/WorldSerializer.h"
+#include "Twisted/Game/Entity.h"
+
 namespace Twisted
 {
 	enum TWISTED_API CameraProjectionType
@@ -44,14 +46,14 @@ namespace Twisted
 		float BotEdge = 1.0f;
 		float TopEdge = 1.0f;
 
-		friend void Serialize(const CCamera& camera, SerializationBuffer& serializer);
-		friend void Deserialize(CCamera& camera, SerializationBuffer& serializer);
+		friend void Serialize(const CCamera& camera, BinSerializer& serializer);
+		friend void Deserialize(CCamera& camera, BinSerializer& serializer);
 	};
 }
 namespace Twisted
 {
 	template<>
-	inline void Serialize(const CCamera& camera, SerializationBuffer& serializer)
+	inline void Serialize(const CCamera& camera, BinSerializer& serializer)
 	{
 		serializer.Write<CameraProjectionType>(camera.CameraType);
 		serializer.Write<float>(camera.NearPlane);
@@ -65,7 +67,7 @@ namespace Twisted
 	}
 
 	template<>
-	inline void Deserialize(CCamera& camera, SerializationBuffer& serializer)
+	inline void Deserialize(CCamera& camera, BinSerializer& serializer)
 	{
 		camera.CameraType = serializer.Read<CameraProjectionType>();
 		camera.NearPlane = serializer.Read<float>();

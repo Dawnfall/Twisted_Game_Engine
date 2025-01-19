@@ -1,7 +1,6 @@
 #pragma once
-#include "editorpch.h"
-#include "Assets/TextureData.h"
-#include "Twisted/Rendering/Texture.h"
+#include "Data/TextureData.h"
+#include "Rendering/Texture.h"
 
 namespace Twisted
 {

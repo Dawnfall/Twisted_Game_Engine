@@ -21,19 +21,27 @@ project "Standalone"
     links
     {
         "TwistedEngine",
+        "Core",
+        "Utils",
+
+        "Rendering",
         "GLFW",
+        "Glad",
+        
+        "%{LibDirs.Assimp_debug}"
     }
 
     includedirs
     {
-        "%{IncludeDirs.TestGame}",
+        "%{IncludeDirs.Standalone}",
+        "%{IncludeDirs.Core}",
+        "%{IncludeDirs.Utils}",
+        "%{IncludeDirs.Rendering}",
         "%{IncludeDirs.TwistedEngine}",
-        "%{IncludeDirs.spdlog}",  
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.Glad}",
         "%{IncludeDirs.GLM}",
-        "%{IncludeDirs.EnTT}",
-        "%{IncludeDirs.stbi_image}"
+        "%{IncludeDirs.EnTT}"
     }
 
     defines

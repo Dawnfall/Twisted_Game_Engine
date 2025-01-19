@@ -2,7 +2,7 @@
 #include "RenderSystem.h"
 #include "Constants.h"
 
-#include "Twisted/Rendering/RenderingAPI.h"
+#include "Rendering/RenderingAPI.h"
 
 #include "Twisted/AppBase.h"
 #include "Twisted/Game/World.h"
@@ -12,9 +12,8 @@
 
 namespace Twisted
 {
-	void RenderSystem::Update(AppBase* app)
+	void RenderSystem::Update(AppBase* app, World* world)
 	{
-		auto world = app->GetActiveWorld();
 		auto cameras = world->GetComponents<CCamera>();
 		auto renderers = world->GetComponents<CRenderer, CTransform>();
 
@@ -30,7 +29,16 @@ namespace Twisted
 				r.Material->SetMat4x4f(SHADER_UNIFORM_NAME_PROJECTION, camera.GetProjectionMatrix());
 				r.Material->SetMat4x4f(SHADER_UNIFORM_NAME_VIEW, camera.GetViewMatrix());
 
-				RenderAPI::Render(r);
+				app->GetFrameBuffer()->Bind();
+				r.Material->GetShader()->Bind();
+				r.Material->ApplyUniforms();
+				r.Mesh->Bind();
+
+				r.Mesh->Render();
+
+				app->GetFrameBuffer()->UnBind();
+				r.Material->GetShader()->UnBind();
+				r.Mesh->UnBind();
 			}
 		}
 	}

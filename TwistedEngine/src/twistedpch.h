@@ -23,17 +23,6 @@
 //entt
 #include <EnTT/entt.hpp>
 
-//spdlog
-#include <spdlog/spdlog.h>
-#include <spdlog/async_logger.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-
-//glfw
-#include <GLFW/glfw3.h>
-
-//glad
-#include <glad/glad.h>
-
 //glm
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
@@ -42,8 +31,7 @@
 #include <gtc/matrix_inverse.hpp>
 #include <gtx/string_cast.hpp>
 
-//stbi
-#include <stbi_image/stb_image.h>
+
 
 #ifdef TWISTED_ENGINE
 
@@ -52,7 +40,6 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-//pugixml
-#include <pugixml/pugixml.hpp>
+
 
 #endif

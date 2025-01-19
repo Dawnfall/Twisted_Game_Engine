@@ -3,8 +3,5 @@
 
 namespace Twisted::Editor
 {
-	void EditorPanel::RenderContent(EditorApp* editor)
-	{
 
-	}
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include "editorpch.h"
 
 namespace Twisted::Editor
 {
@@ -15,9 +14,9 @@ namespace Twisted::Editor
 		std::filesystem::path GetAssetsFolder()const { return RootPath / "Assets"; }
 		std::string GetName()const { return RootPath.stem().string(); }
 
-		std::filesystem::path RootPath;
-
 		static std::shared_ptr<Project> CreateNewProject(const fs::path& folderPath);
 		static std::shared_ptr<Project> OpenProject(const fs::path& projectFolder);
+
+		std::filesystem::path RootPath;
 	};
 }

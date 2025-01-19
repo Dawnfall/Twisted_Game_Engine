@@ -1,14 +1,15 @@
 #pragma once
-#include "twistedpch.h"
 
 #include "AppCore.h"
+#include <chrono>
+#include <array>
 
 namespace Twisted
 {
 	class TWISTED_API TimeManager
 	{
 	public:
-		void Init()
+		void Start()
 		{
 			m_startAppTime = m_updateLastTwoTimes[0] = m_updateLastTwoTimes[1] = std::chrono::high_resolution_clock::now();
 		}

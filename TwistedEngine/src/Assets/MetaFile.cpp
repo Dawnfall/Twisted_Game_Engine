@@ -1,6 +1,5 @@
 #include "twistedpch.h"
 #include "MetaFile.h"
-#include "Debug/Logger.h"
 
 namespace Twisted::Editor
 {

@@ -4,6 +4,8 @@
 #include "Twisted/Game/World.h"
 namespace Twisted
 {
+	std::vector<CTransform*> CTransform::m_rootTransforms;
+
 	CTransform::CTransform(EntityID entityID, World* world) :
 		AComponent(entityID, world),
 		m_name("new object"),
@@ -12,6 +14,14 @@ namespace Twisted
 		m_scale(1.0f, 1.0f, 1.0f),
 		m_parentID(NullEntity)
 	{
+		//m_parentID = parentID;
+		//if (parentID == NullEntity)
+		//	m_rootTransforms.emplace_back(this);
+		//else
+		//{
+		//	CTransform* parent = world->GetComponent<CTransform>(parentID);
+		//	parent->m_childrenIDs.emplace_back(entityID);
+		//}
 	}
 
 	void CTransform::SetParent(EntityID newParentID)
@@ -19,17 +29,27 @@ namespace Twisted
 		if (newParentID == m_parentID)
 			return;
 
-		if (m_parentID != NullEntity)
+		if (m_parentID == NullEntity)
+		{
+			m_rootTransforms.erase(std::remove(m_rootTransforms.begin(), m_rootTransforms.end(), this), m_rootTransforms.end());
+		}
+		else
 		{
 			CTransform* currentParentTransform = m_world->GetComponent<CTransform>(m_parentID);
 			std::remove(currentParentTransform->m_childrenIDs.begin(), currentParentTransform->m_childrenIDs.end(), m_entityID);
-			m_parentID = NullEntity;
 		}
 
-		CTransform* newParentTransform = m_world->GetComponent<CTransform>(newParentID);
 		m_parentID = newParentID;
-		if (newParentTransform != nullptr)
-			newParentTransform->m_childrenIDs.emplace_back(m_entityID);
+		if (m_parentID == NullEntity)
+		{
+			m_rootTransforms.emplace_back(this);
+		}
+		else
+		{
+			CTransform* newParentTransform = m_world->GetComponent<CTransform>(newParentID);
+			if (newParentTransform != nullptr)
+				newParentTransform->m_childrenIDs.emplace_back(m_entityID);
+		}
 	}
 
 
@@ -75,20 +95,5 @@ namespace Twisted
 			return GetInvertLocalModelMatrix() * parentTransform->GetWorldInvertModelMatrix();
 		}
 		return GetInvertLocalModelMatrix();
-	}
-
-	std::vector<CTransform*> CTransform::GetRootTransforms(World& world)
-	{
-		std::vector<CTransform*> result;
-		auto view = world.GetComponents<CTransform>();
-		for (auto entity : view)
-		{
-			CTransform& transform = view.get<CTransform>(entity);
-			if (transform.GetParentID() != NullEntity)
-			{
-				result.emplace_back(&transform);
-			}
-		}
-		return result;
 	}
 }

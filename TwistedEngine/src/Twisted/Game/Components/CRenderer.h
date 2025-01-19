@@ -1,9 +1,8 @@
 #pragma once
 
-#include "twistedpch.h"
 #include "AppCore.h"
 #include "Twisted/Game/AComponent.h"
-#include "Twisted/Serialization/WorldSerializer.h"
+#include "Serialization/WorldSerializer.h"
 
 namespace Twisted
 {
@@ -21,13 +20,13 @@ namespace Twisted
 	};
 
 	template<>
-	inline void Serialize(const CRenderer& renderer,SerializationBuffer& serializer)
+	inline void Serialize(const CRenderer& renderer,BinSerializer& serializer)
 	{
 		
 	}
 
 	template<>
-	inline void Deserialize(CRenderer& renderer,SerializationBuffer& serializer)
+	inline void Deserialize(CRenderer& renderer,BinSerializer& serializer)
 	{
 
 	}

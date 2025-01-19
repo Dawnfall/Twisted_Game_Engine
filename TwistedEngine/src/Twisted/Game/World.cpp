@@ -15,7 +15,7 @@ namespace Twisted
 	void World::UpdateFrame(AppBase* app)
 	{
 		for (auto& system : m_systems)
-			system->Update(app);
+			system->Update(app,this);
 	}
 
 	EntityID World::CreateNewEntity(EntityID id)

@@ -254,7 +254,7 @@ namespace Twisted::Editor
 		ImGui::PushStyleColor(ImGuiCol_Button, 0);
 		if (noBackHistory)
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-		if (ImGui::ArrowButtonEx("##back", ImGuiDir_Left, ImVec2(ImGui::GUI_ELEMENT_SIZE(), ImGui::GUI_ELEMENT_SIZE()), m_backHistory.empty() * ImGuiItemFlags_Disabled))
+		if (ImGui::ArrowButtonEx("##back", ImGuiDir_Left, ImVec2(Im::GUI_ELEMENT_SIZE(), Im::GUI_ELEMENT_SIZE()), m_backHistory.empty() * ImGuiItemFlags_Disabled))
 			GoBackHistory();
 		if (noBackHistory)
 			ImGui::PopStyleVar();
@@ -262,21 +262,21 @@ namespace Twisted::Editor
 
 		if (noForwardHistory)
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-		if (ImGui::ArrowButtonEx("##forward", ImGuiDir_Right, ImVec2(ImGui::GUI_ELEMENT_SIZE(), ImGui::GUI_ELEMENT_SIZE()), m_forwardHistory.empty() * ImGuiItemFlags_Disabled))
+		if (ImGui::ArrowButtonEx("##forward", ImGuiDir_Right, ImVec2(Im::GUI_ELEMENT_SIZE(), Im::GUI_ELEMENT_SIZE()), m_forwardHistory.empty() * ImGuiItemFlags_Disabled))
 			GoForwardHistory();
 		if (noForwardHistory) ImGui::PopStyleVar();
 		ImGui::SameLine();
 
-		if (ImGui::ArrowButtonEx("##up", ImGuiDir_Up, ImVec2(ImGui::GUI_ELEMENT_SIZE(), ImGui::GUI_ELEMENT_SIZE())))
+		if (ImGui::ArrowButtonEx("##up", ImGuiDir_Up, ImVec2(Im::GUI_ELEMENT_SIZE(), Im::GUI_ELEMENT_SIZE())))
 			GoUpDir();
 
 		std::filesystem::path curDirCopy = m_currentDir;
-		if (ImGui::PathBox("##pathbox", curDirCopy, &m_pathBuffer[0], ImVec2(-250, ImGui::GUI_ELEMENT_SIZE())))
+		if (Im::PathBox("##pathbox", curDirCopy, &m_pathBuffer[0], ImVec2(-250, Im::GUI_ELEMENT_SIZE())))
 			SetDirectory(curDirCopy, true);
 		ImGui::SameLine();
 
 		bool isFavourite = IsFavourite(m_currentDir);
-		if (ImGui::FavoriteButton("##dirfav", isFavourite)) {
+		if (Im::FavoriteButton("##dirfav", isFavourite)) {
 			if (isFavourite)
 				RemoveFavorite(m_currentDir);
 			else
@@ -285,7 +285,7 @@ namespace Twisted::Editor
 		ImGui::SameLine();
 		ImGui::PopStyleColor();
 
-		if (ImGui::InputTextEx("##searchTB", "Search", m_searchBuffer, sizeof(m_searchBuffer), ImVec2(-FLT_MIN, ImGui::GUI_ELEMENT_SIZE()), 0)) // TODO: no hardcoded literals
+		if (ImGui::InputTextEx("##searchTB", "Search", m_searchBuffer, sizeof(m_searchBuffer), ImVec2(-FLT_MIN, Im::GUI_ELEMENT_SIZE()), 0)) // TODO: no hardcoded literals
 			SetDirectory(m_currentDir, false); // refresh 
 
 		/***** CONTENT *****/
@@ -344,7 +344,7 @@ namespace Twisted::Editor
 
 
 		// buttons
-		float ok_cancel_width = ImGui::GUI_ELEMENT_SIZE() * 7;
+		float ok_cancel_width = Im::GUI_ELEMENT_SIZE() * 7;
 		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ok_cancel_width);
 		if (ImGui::Button(Data.BrowserType == BrowserType::SAVE ? "Save" : "Open", ImVec2(ok_cancel_width / 2 - ImGui::GetStyle().ItemSpacing.x, 0.0f)))
 		{
@@ -404,7 +404,7 @@ namespace Twisted::Editor
 
 					// file name
 					ImGui::TableSetColumnIndex(0);
-					ImGui::Image((ImTextureID)m_iconDatabase.GetIconTexture(path)->TextureID, ImVec2(ImGui::ICON_SIZE(), ImGui::ICON_SIZE()));
+					ImGui::Image((ImTextureID)m_iconDatabase.GetIconTexture(path)->TextureID, ImVec2(Im::ICON_SIZE(), Im::ICON_SIZE()));
 					ImGui::SameLine();
 					if (ImGui::Selectable(filename.c_str(), IsSelected(path), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick))
 					{
@@ -447,7 +447,7 @@ namespace Twisted::Editor
 
 				auto tex = GetTexture(path, true);
 				ImVec2 size(32 + 16 * m_zoom, 32 + 16 * m_zoom);
-				if (ImGui::FileIcon(filename.c_str(), IsSelected(path), (ImTextureID)tex->TextureID, size))
+				if (Im::FileIcon(filename.c_str(), IsSelected(path), (ImTextureID)tex->TextureID, size))
 				{
 					if (ImGui::IsMouseDoubleClicked(0))
 						clickCount = 2;
@@ -473,7 +473,7 @@ namespace Twisted::Editor
 		std::string displayName = path.stem().string();
 		if (displayName.size() == 0)
 			displayName = path.string();
-		if (ImGui::FolderNode(displayName.c_str(), (ImTextureID)m_iconDatabase.GetIconTexture(path)->TextureID, isClicked))
+		if (Im::FolderNode(displayName.c_str(), (ImTextureID)m_iconDatabase.GetIconTexture(path)->TextureID, isClicked))
 		{
 			// display children
 			for (fs::path& childPath : Utils::SubFolders(path))

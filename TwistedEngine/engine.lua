@@ -24,6 +24,9 @@ project "TwistedEngine"
     includedirs
     {
         "%{IncludeDirs.TwistedEngine}",
+        "%{IncludeDirs.Core}",
+        "%{IncludeDirs.Utils}",
+        "%{IncludeDirs.Rendering}",
         "%{IncludeDirs.spdlog}",
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.Glad}",
@@ -37,9 +40,12 @@ project "TwistedEngine"
     links
     {
         "%{LibDirs.Assimp_debug}", --TODO...debug and release
+        "Core",
+        "Utils",
+        "Rendering",
         "Glad",
         "GLFW",
-
+        "pugixml",
         --default
         "opengl32.lib",
         "kernel32.lib",

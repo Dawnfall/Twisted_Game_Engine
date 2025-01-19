@@ -32,6 +32,14 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 
+//glm
+#include <glm.hpp>
+#include <gtc/quaternion.hpp>
+#include <gtx/quaternion.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/matrix_inverse.hpp>
+#include <gtx/string_cast.hpp>
+
 //From file dialog
 #ifdef _WIN32
 #define NOMINMAX

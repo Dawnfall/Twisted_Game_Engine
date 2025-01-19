@@ -1,5 +1,5 @@
 #pragma once
-#include "editorpch.h"
+#include "Utils/Event.h"
 
 namespace Twisted
 {
@@ -12,10 +12,14 @@ namespace Twisted::Editor
 	class EditorPanel
 	{
 	public:
-		virtual void RenderContent(EditorApp* editor);
-		virtual std::string GetName() { return "New Panel"; }
+		EditorPanel(EditorApp* editor) {}
+		virtual void RenderContent(EditorApp* editor) = 0;
+		virtual std::string GetName() = 0;
+
+		Event<> PanelResizeEvent;
 
 		bool IsShowing = true;
 		ImGuiID DockParentID = -1;
+		ImVec2 Size;
 	};
 }

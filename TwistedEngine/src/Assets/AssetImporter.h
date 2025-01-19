@@ -1,11 +1,10 @@
 #pragma once
 
-#include "twistedpch.h"
 #include "Asset.h"
-#include "TextureData.h"
-#include "ShaderData.h"
-#include "MeshData.h"
-#include "MaterialData.h"
+#include "Data/TextureData.h"
+#include "Data/ShaderData.h"
+#include "Data/MeshData.h"
+#include "Data/MaterialData.h"
 
 namespace Twisted
 {

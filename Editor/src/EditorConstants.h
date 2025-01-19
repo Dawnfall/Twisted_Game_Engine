@@ -1,5 +1,4 @@
 #pragma once
-#include "editorpch.h"
 
 namespace Twisted::Editor::Constants
 {

@@ -2,9 +2,10 @@
 #include "AssetImporter.h"
 #include "Utils/FileUtils.h"
 #include "Assets/MetaFile.h"
-#include "Twisted/Rendering/Texture.h"
-#include "Assets/TextureData.h"
+#include "Rendering/Texture.h"
+#include "Data/TextureData.h"
 #include "Constants.h"
+#include "AppCore.h"
 
 namespace Twisted::AssetImporter
 {
@@ -42,22 +43,22 @@ namespace Twisted::AssetImporter
 
 	SRef<Asset> ImportAsset(const std::filesystem::path& assetPath)
 	{
-		std::string ext = assetPath.extension().string();
+		//std::string ext = assetPath.extension().string();
 
-		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == "bmp" || ext == ".psd"); //TODO....
-		{
-			return TextureData::ImportTextureData(assetPath);
-		}
-		if (ext == ".shader")
-		{
-			return ImportShaderData(assetPath);
-		}
-		if (ext == ".obj")
-		{
-			return ImportMeshData(assetPath);
-		}
+		//if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == "bmp" || ext == ".psd"); //TODO....
+		//{
+		//	return TextureData::ImportTextureData(assetPath);
+		//}
+		//if (ext == ".shader")
+		//{
+		//	return ImportShaderData(assetPath);
+		//}
+		//if (ext == ".obj")
+		//{
+		//	return ImportMeshData(assetPath);
+		//}
 
-		TWISTED_WARN("Asset not supported: " + assetPath.filename().string());
+		//TWISTED_WARN("Asset not supported: " + assetPath.filename().string());
 		return nullptr;
 	}
 

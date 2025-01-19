@@ -1,10 +1,9 @@
 #pragma once
-#include "editorpch.h"
 #include "UI/FileBrowser/IconDatabase.h"
 
-#include "Twisted/Rendering/Texture.h"
-#include "Assets/TextureData.h"
-#include "Twisted/Rendering/RenderingAPI.h"
+#include "Rendering/Texture.h"
+#include "Data/TextureData.h"
+#include "Rendering/RenderingAPI.h"
 
 namespace Twisted::Editor
 {

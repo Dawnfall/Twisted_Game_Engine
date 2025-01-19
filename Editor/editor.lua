@@ -24,7 +24,13 @@ project "Editor"
     links
     {
         "TwistedEngine",
+        "Core",
+        "Utils",
+        
+        "Rendering",
         "GLFW",
+        "Glad",
+
         "imgui",
         "%{LibDirs.Assimp_debug}"
     }
@@ -32,16 +38,15 @@ project "Editor"
     includedirs
     {
         "%{IncludeDirs.Editor}",
+        "%{IncludeDirs.Core}",
+        "%{IncludeDirs.Utils}",
+        "%{IncludeDirs.Rendering}",
         "%{IncludeDirs.TwistedEngine}",
-        "%{IncludeDirs.TestGame}",
-        "%{IncludeDirs.spdlog}",  
+        "%{IncludeDirs.GLM}",
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.Glad}",
-        "%{IncludeDirs.GLM}",
         "%{IncludeDirs.EnTT}",
         "%{IncludeDirs.imgui}",
-        "%{IncludeDirs.pugixml}",
-        "%{IncludeDirs.stbi_image}"
     }
 
     defines

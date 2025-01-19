@@ -1,5 +1,5 @@
-#include "SCameraController.h"
-#include "Dawn.h"
+//#include "SCameraController.h"
+//#include "Dawn.h"
 //
 //void SCameraController::Update(Twisted::AppBase* app)
 //{

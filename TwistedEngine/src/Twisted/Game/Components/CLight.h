@@ -2,7 +2,7 @@
 
 #include "AppCore.h"
 #include "Twisted/Game/AComponent.h"
-#include "Twisted/Serialization/WorldSerializer.h"
+#include "Serialization/WorldSerializer.h"
 
 namespace Twisted
 {
@@ -20,13 +20,13 @@ namespace Twisted
 	};
 
 	template<>
-	inline void Serialize(const CLight& light, SerializationBuffer& serializer)
+	inline void Serialize(const CLight& light, BinSerializer& serializer)
 	{
 		serializer.Write<LightType>(light.Type);
 	}
 
 	template<>
-	inline void Deserialize(CLight& light, SerializationBuffer& serializer)
+	inline void Deserialize(CLight& light, BinSerializer& serializer)
 	{
 		light.Type = serializer.Read<LightType>();
 	}

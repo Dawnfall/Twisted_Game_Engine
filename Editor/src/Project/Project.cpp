@@ -1,7 +1,7 @@
 #include "editorpch.h"
 #include "Project.h"
 #include "Utils/FileUtils.h"
-#include "Debug/Logger.h"
+#include "AppCore.h"
 
 namespace Twisted::Editor
 {

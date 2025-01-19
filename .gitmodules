@@ -10,3 +10,6 @@
 [submodule "3rd/glfw"]
 	path = 3rd/glfw
 	url = https://github.com/Dawnfall/glfw.git
+[submodule "3rd/rapidobj"]
+	path = 3rd/rapidobj
+	url = https://github.com/guybrush77/rapidobj.git

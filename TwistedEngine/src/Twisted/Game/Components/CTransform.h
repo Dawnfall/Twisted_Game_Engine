@@ -1,13 +1,12 @@
 #pragma once
 
-#include "twistedpch.h"
 #include "AppCore.h"
 #include "Utils/Utils.h"
-#include "Collections/Geometry.h"
+#include "Utils/GlmUtils.h"
+#include "Twisted/Game/Entity.h"
 
 #include "Twisted/Game/AComponent.h"
-#include "Twisted/Serialization/WorldSerializer.h"
-
+#include "Serialization/WorldSerializer.h"
 namespace Twisted
 {
 	enum class TWISTED_API RelativeSpace
@@ -146,27 +145,28 @@ namespace Twisted
 			SetLocalRotation(newRotation);
 		}
 
-
 	private:
 
 		std::string m_name;
 		EntityID m_parentID;
-		std::vector<EntityID> m_childrenIDs;
 
 		Vec3f m_position;
 		Quat m_rotation;
 		Vec3f m_scale;
+		std::vector<EntityID> m_childrenIDs;
+
+		static std::vector<CTransform*> m_rootTransforms;
 
 	public:
-		static std::vector<CTransform*> GetRootTransforms(World& world);
+		static const std::vector<CTransform*>& GetRootTransforms() { return m_rootTransforms; }
 
-		friend void Serialize<CTransform>(const CTransform& transform, SerializationBuffer& serializer);
-		friend void Deserialize<CTransform>(CTransform& transform, SerializationBuffer& serializer);
+		friend void Serialize<CTransform>(const CTransform& transform, BinSerializer& serializer);
+		friend void Deserialize<CTransform>(CTransform& transform, BinSerializer& serializer);
 	};
 
 
 	template<>
-	inline void Serialize<CTransform>(const CTransform& transform, SerializationBuffer& serializer)
+	inline void Serialize<CTransform>(const CTransform& transform, BinSerializer& serializer)
 	{
 		serializer.Write<std::string>(transform.m_name);
 		serializer.Write<EntityID>(transform.m_parentID);
@@ -178,7 +178,7 @@ namespace Twisted
 	}
 
 	template<>
-	inline void Deserialize<CTransform>(CTransform& transform, SerializationBuffer& serializer)
+	inline void Deserialize<CTransform>(CTransform& transform, BinSerializer& serializer)
 	{
 		transform.m_name = serializer.Read<std::string>();
 		transform.m_parentID = serializer.Read<EntityID>();
