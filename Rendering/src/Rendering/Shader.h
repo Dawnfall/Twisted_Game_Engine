@@ -27,7 +27,7 @@ namespace Twisted
 	class Shader
 	{
 	public:
-		Shader(SRef<ShaderData> data) :
+		Shader(const ShaderData& data) :
 			Data(data)
 		{
 		}
@@ -49,7 +49,7 @@ namespace Twisted
 		void SetVar(GLint locationID, const Mat4x4f& value)const;
 		void SetTex(GLint locationID, GLuint texID)const;
 
-		SRef<ShaderData> Data;
+		ShaderData Data;
 		GLuint ProgramID = 0;
 
 		std::vector<ShaderUniformVar> Uniforms;

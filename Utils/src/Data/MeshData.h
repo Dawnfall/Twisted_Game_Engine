@@ -5,12 +5,14 @@
 #include "Data/Vertex.h"
 
 #include <vector>
+#include <filesystem>
 
 namespace Twisted
 {
 	struct MeshData
 	{
-		std::vector<Vertex>       Vertices;
+		std::filesystem::path Name;
+		std::vector<Vertex> Vertices;
 		std::vector<unsigned int> Indices;
 	};
 }

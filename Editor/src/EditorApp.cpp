@@ -85,7 +85,6 @@ namespace Twisted::Editor
 	}
 	void EditorApp::LoadResources()
 	{
-
 		m_resources.LoadAssets(m_activeProject->GetAssetsFolder());
 	}
 

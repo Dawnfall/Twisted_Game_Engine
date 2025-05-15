@@ -25,7 +25,8 @@ project "Utils"
         "%{IncludeDirs.Core}",
         "%{IncludeDirs.spdlog}", 
         "%{IncludeDirs.GLM}",
-        "%{IncludeDirs.stbi_image}"
+        "%{IncludeDirs.stbi_image}",
+        "%{IncludeDirs.rapidobj}"
     }
 
     defines

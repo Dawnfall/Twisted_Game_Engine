@@ -16,7 +16,6 @@ namespace Twisted
 			Data(data)
 		{
 		}
-
 		~TextureData();
 
 		std::string Name;
@@ -25,6 +24,6 @@ namespace Twisted
 		int NrChannels;
 		unsigned char* Data;
 
-		static SRef<TextureData> ImportTextureData(const std::filesystem::path& assetPath);
+		static URef<TextureData> ImportTextureData(const std::filesystem::path& assetPath);
 	};
 }

@@ -9,7 +9,6 @@ project "TestGame"
 
     postbuildcommands {
         "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
-        "{COPY} %{DllDirs.Assimp_debug} %{cfg.targetdir}"
      }
 
     files

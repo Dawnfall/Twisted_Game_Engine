@@ -9,7 +9,6 @@ project "Standalone"
 
     postbuildcommands {
         "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
-        "{COPY} %{DllDirs.Assimp_debug} %{cfg.targetdir}"
      }
 
     files
@@ -26,9 +25,7 @@ project "Standalone"
 
         "Rendering",
         "GLFW",
-        "Glad",
-        
-        "%{LibDirs.Assimp_debug}"
+        "Glad"
     }
 
     includedirs

@@ -32,14 +32,13 @@ project "TwistedEngine"
         "%{IncludeDirs.Glad}",
         "%{IncludeDirs.GLM}",
 		"%{IncludeDirs.EnTT}",
-        "%{IncludeDirs.Assimp}",
+        "%{IncludeDirs.rapidobj}",
         "%{IncludeDirs.pugixml}",
         "%{IncludeDirs.stbi_image}",
     }
 
     links
     {
-        "%{LibDirs.Assimp_debug}", --TODO...debug and release
         "Core",
         "Utils",
         "Rendering",

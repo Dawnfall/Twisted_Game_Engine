@@ -6,8 +6,7 @@
 #include "Rendering/Shader.h"
 #include "Rendering/Mesh.h"
 #include "Rendering/Material.h"
-#include "AppCore.h"
-
+#include "Rendering/Model.h"
 #include "Utils/FileUtils.h"
 
 //**************
@@ -17,13 +16,16 @@ namespace Twisted
 	class TWISTED_API ResourceManager
 	{
 	public:
+		const SRef<Texture> GetTexture(const std::filesystem::path& path);
+		const SRef<Shader> GetShader(const std::filesystem::path& path);
+		SRef<Model> GetModel(const std::filesystem::path& assetPath);
+
+		//SRef<Asset> ImportAsset(const std::filesystem::path& assetPath);
 		void LoadAssets(const std::filesystem::path& assetFolder);
 
+		const SRef<Mesh> GetMesh(const std::filesystem::path& path);
 		SRef<Material> CreateNewMaterial(const std::string& name);
 		const SRef<Material> GetMaterial(const std::string matrialName);
-		const SRef<Shader> GetShader(const std::string& shaderName);
-		const SRef<Texture> GetTexture(const std::string& textureName);
-		const SRef<Mesh> GetMesh(const std::string& meshName);
 
 		template<typename T>
 		bool AddAsset(const std::string& name, SRef<T> asset)
@@ -38,7 +40,7 @@ namespace Twisted
 		std::unordered_map<std::string, SRef<Texture>> m_textures;
 		std::unordered_map<std::string, SRef<Shader>> m_shaders;
 		std::unordered_map<std::string, SRef<Mesh>> m_meshes;
-
+		std::unordered_map<std::string, SRef<Model>> m_models;
 		std::unordered_map<std::string, SRef<Asset>> m_assets;
 
 	};

@@ -12,7 +12,6 @@ project "Editor"
     
     postbuildcommands {
         "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
-        "{COPY} %{DllDirs.Assimp_debug} %{cfg.targetdir}"
      }
      
     files
@@ -31,8 +30,7 @@ project "Editor"
         "GLFW",
         "Glad",
 
-        "imgui",
-        "%{LibDirs.Assimp_debug}"
+        "imgui"
     }
 
     includedirs
@@ -46,7 +44,7 @@ project "Editor"
         "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.Glad}",
         "%{IncludeDirs.EnTT}",
-        "%{IncludeDirs.imgui}",
+        "%{IncludeDirs.imgui}"
     }
 
     defines

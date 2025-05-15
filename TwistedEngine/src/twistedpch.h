@@ -31,15 +31,7 @@
 #include <gtc/matrix_inverse.hpp>
 #include <gtx/string_cast.hpp>
 
-
-
+#include <rapidobj/rapidobj.hpp>
 #ifdef TWISTED_ENGINE
-
-//assimp
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
-
 
 #endif

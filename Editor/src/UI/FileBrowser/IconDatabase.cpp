@@ -20,7 +20,7 @@ namespace Twisted
 			return nullptr;
 		}
 
-		std::shared_ptr<Twisted::Texture> tex = Texture::CreateTexture(texData);
+		std::shared_ptr<Twisted::Texture> tex = Texture::CreateTexture(*texData);
 		m_previewTextures[path] = tex;
 		return tex;
 	}
@@ -79,8 +79,8 @@ namespace Twisted
 		GetBitmapBits(iconInfo.hbmColor, byteSize, data);
 
 		std::shared_ptr<TextureData> texData = std::make_shared<TextureData>(ds.dsBm.bmWidth, ds.dsBm.bmHeight, 4, data);
-		std::shared_ptr<Twisted::Texture> tex = Texture::CreateTexture(texData);
-		m_iconTextures[path] = Texture::CreateTexture(texData);
+		std::shared_ptr<Twisted::Texture> tex = Texture::CreateTexture(*texData);
+		m_iconTextures[path] = Texture::CreateTexture(*texData);
 		return m_iconTextures[pathString];
 	}
 

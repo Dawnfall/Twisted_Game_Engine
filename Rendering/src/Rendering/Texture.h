@@ -23,6 +23,6 @@ namespace Twisted
 		std::string Name;
 		unsigned int TextureID;
 
-		static SRef<Texture> CreateTexture(SRef<TextureData> texData);
+		static SRef<Texture> CreateTexture(const TextureData& texData);
 	};
 }

@@ -7,12 +7,12 @@ namespace Twisted
 {
 	bool Shader::Compile()
 	{
-		ProgramID = RenderAPI::CreateShaderProgram(Data->VertShaderCode, Data->FragShaderCode);
+		ProgramID = RenderAPI::CreateShaderProgram(Data.VertShaderCode, Data.FragShaderCode);
 		if (ProgramID == 0)
 			return false;
 
 		glUseProgram(ProgramID);
-		TWISTED_INFO("Shader compile success; shader: " + Data->Name);
+		TWISTED_INFO("Shader compile success; shader: " + Data.Name);
 
 		DetectUniformVars();
 	}
