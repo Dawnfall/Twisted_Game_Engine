@@ -8,127 +8,127 @@
 
 namespace Twisted
 {
-	const SRef<Texture> ResourceManager::GetTexture(const std::filesystem::path& path)
-	{
-		auto texture = m_textures.find(path.string());
-		if (texture != m_textures.end())
-			return texture->second;
+	//const SRef<Texture> ResourceManager::GetTexture(const std::filesystem::path& path)
+	//{
+	//	auto texture = m_textures.find(path.string());
+	//	if (texture != m_textures.end())
+	//		return texture->second;
 
-		auto texData = TextureData::ImportTextureData(path);
-		if (!texData)
-			return nullptr;
+	//	auto texData = TextureData::ImportTextureData(path);
+	//	if (!texData)
+	//		return nullptr;
 
-		SRef<Texture> tex = Texture::CreateTexture(*texData);
-		if (tex)
-			m_textures[path.string()] = tex;
-		return tex;
-	}
-	const SRef<Shader> ResourceManager::GetShader(const std::filesystem::path& path)
-	{
-		auto shader = m_shaders.find(path.string());
-		if (shader != m_shaders.end())
-			return shader->second;
+	//	SRef<Texture> tex = Texture::CreateTexture(*texData);
+	//	if (tex)
+	//		m_textures[path.string()] = tex;
+	//	return tex;
+	//}
+	//const SRef<Shader> ResourceManager::GetShader(const std::filesystem::path& path)
+	//{
+	//	auto shader = m_shaders.find(path.string());
+	//	if (shader != m_shaders.end())
+	//		return shader->second;
 
-		auto shaderData = ShaderData::ImportShaderData(path);
-		if (!shaderData)
-			return nullptr;
+	//	auto shaderData = ShaderData::ImportShaderData(path);
+	//	if (!shaderData)
+	//		return nullptr;
 
-		SRef<Shader> shad = std::make_shared<Shader>(*shaderData);
-		if (!shad)
-			return nullptr;
+	//	SRef<Shader> shad = std::make_shared<Shader>(*shaderData);
+	//	if (!shad)
+	//		return nullptr;
 
-		m_shaders[path.string()] = shad;
-		return shad;
-	}
-	SRef<Model> ResourceManager::GetModel(const std::filesystem::path& path)
-	{
-		auto model = m_models.find(path.string());
-		if (model != m_models.end())
-			return model->second;
+	//	m_shaders[path.string()] = shad;
+	//	return shad;
+	//}
+	//SRef<Model> ResourceManager::GetModel(const std::filesystem::path& path)
+	//{
+	//	auto model = m_models.find(path.string());
+	//	if (model != m_models.end())
+	//		return model->second;
 
-		auto result = rapidobj::ParseFile(path);
-		if (result.error)
-		{
-			TWISTED_WARN(result.error.code.message());
-			return nullptr;
-		}
-		if (!rapidobj::Triangulate(result))
-		{
-			TWISTED_WARN(result.error.code.message());
-			return nullptr;
-		}
+	//	auto result = rapidobj::ParseFile(path);
+	//	if (result.error)
+	//	{
+	//		TWISTED_WARN(result.error.code.message());
+	//		return nullptr;
+	//	}
+	//	if (!rapidobj::Triangulate(result))
+	//	{
+	//		TWISTED_WARN(result.error.code.message());
+	//		return nullptr;
+	//	}
 
-		std::vector<SRef<Model::MaterialData>> materialDatas;
-		for (const auto& material : result.materials)
-		{
-			SRef<Model::MaterialData> materialData = std::make_shared<Model::MaterialData>();
-			materialData->Name = material.name;
-			if (!material.diffuse_texname.empty())
-			{
-				std::filesystem::path texturePath = path.parent_path() / material.diffuse_texname;
-				auto texture = GetTexture(texturePath);
-				if (texture)
-					materialData->Diffuse = texture;
-			}
-			materialDatas.emplace_back(materialData);
-		}
+	//	std::vector<SRef<Model::MaterialData>> materialDatas;
+	//	for (const auto& material : result.materials)
+	//	{
+	//		SRef<Model::MaterialData> materialData = std::make_shared<Model::MaterialData>();
+	//		materialData->Name = material.name;
+	//		if (!material.diffuse_texname.empty())
+	//		{
+	//			std::filesystem::path texturePath = path.parent_path() / material.diffuse_texname;
+	//			auto texture = GetTexture(texturePath);
+	//			if (texture)
+	//				materialData->Diffuse = texture;
+	//		}
+	//		materialDatas.emplace_back(materialData);
+	//	}
 
-		std::vector<SRef<Mesh>> meshes;
-		bool isUVs = !result.attributes.texcoords.empty();
-		bool isNormals = !result.attributes.normals.empty();
-		bool isColors = !result.attributes.colors.empty();
+	//	std::vector<SRef<Mesh>> meshes;
+	//	bool isUVs = !result.attributes.texcoords.empty();
+	//	bool isNormals = !result.attributes.normals.empty();
+	//	bool isColors = !result.attributes.colors.empty();
 
-		for (const auto& shape : result.shapes)
-		{
-			MeshData meshData;
-			for (const auto& index : shape.mesh.indices)
-			{
-				Vertex v;
-				v.Position = {
-					result.attributes.positions[3 * index.position_index + 0],
-					result.attributes.positions[3 * index.position_index + 1],
-					result.attributes.positions[3 * index.position_index + 2]
-				};
-				if (isNormals)
-				{
-					v.Normal = {
-						result.attributes.normals[3 * index.normal_index + 0],
-						result.attributes.normals[3 * index.normal_index + 1],
-						result.attributes.normals[3 * index.normal_index + 2]
-					};
-				}
-				if (isUVs)
-				{
-					v.TexCoord = {
-						result.attributes.texcoords[2 * index.texcoord_index + 0],
-						result.attributes.texcoords[2 * index.texcoord_index + 1],
-					};
-				}
-				meshData.Name = shape.name;
-				meshData.Vertices.emplace_back(v);
-				meshData.Indices.emplace_back(meshData.Indices.size());
+	//	for (const auto& shape : result.shapes)
+	//	{
+	//		MeshData meshData;
+	//		for (const auto& index : shape.mesh.indices)
+	//		{
+	//			Vertex v;
+	//			v.Position = {
+	//				result.attributes.positions[3 * index.position_index + 0],
+	//				result.attributes.positions[3 * index.position_index + 1],
+	//				result.attributes.positions[3 * index.position_index + 2]
+	//			};
+	//			if (isNormals)
+	//			{
+	//				v.Normal = {
+	//					result.attributes.normals[3 * index.normal_index + 0],
+	//					result.attributes.normals[3 * index.normal_index + 1],
+	//					result.attributes.normals[3 * index.normal_index + 2]
+	//				};
+	//			}
+	//			if (isUVs)
+	//			{
+	//				v.TexCoord = {
+	//					result.attributes.texcoords[2 * index.texcoord_index + 0],
+	//					result.attributes.texcoords[2 * index.texcoord_index + 1],
+	//				};
+	//			}
+	//			meshData.Name = shape.name;
+	//			meshData.Vertices.emplace_back(v);
+	//			meshData.Indices.emplace_back(meshData.Indices.size());
 
-				auto mesh = std::make_shared<Mesh>(meshData);
-				if (!mesh)
-				{
-					TWISTED_WARN("Cannot create mesh from obj shape");
-					continue;
-				}
-				meshes.emplace_back(mesh); //TODO...
+	//			auto mesh = std::make_shared<Mesh>(meshData);
+	//			if (!mesh)
+	//			{
+	//				TWISTED_WARN("Cannot create mesh from obj shape");
+	//				continue;
+	//			}
+	//			meshes.emplace_back(mesh); //TODO...
 
-				Model::ModelNode node;
-				node.Name = shape.name;
-				node.Mesh = mesh;
+	//			Model::ModelNode node;
+	//			node.Name = shape.name;
+	//			node.Mesh = mesh;
 
-				if (!shape.mesh.material_ids.empty())
-				{
+	//			if (!shape.mesh.material_ids.empty())
+	//			{
 
-				}
-				int material_id = shape.mesh.material_ids[0];
-				node.Material = materialDatas[material_id];
-			}
-		}
-	}
+	//			}
+	//			int material_id = shape.mesh.material_ids[0];
+	//			node.Material = materialDatas[material_id];
+	//		}
+	//	}
+	//}
 
 	/*void ResourceManager::LoadAssets(const std::filesystem::path & assetsFolder)
 	{*/

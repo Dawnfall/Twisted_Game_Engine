@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 
 namespace Twisted::Editor
 {
@@ -16,6 +17,7 @@ namespace Twisted::Editor
 
 		static std::shared_ptr<Project> CreateNewProject(const fs::path& folderPath);
 		static std::shared_ptr<Project> OpenProject(const fs::path& projectFolder);
+		static void ValidateProject(const fs::path& projFolder);
 
 		std::filesystem::path RootPath;
 	};

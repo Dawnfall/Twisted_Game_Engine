@@ -1,55 +1,49 @@
 #include "editorpch.h"
 #include "DetailsPanel.h"
 
-#include "EditorApp.h"
-#include "Twisted/Game/Components/CTransform.h"
-#include "Twisted/Game/Components/CRenderer.h"
+#include "EditorLayer.h"
+#include "UI/Details/CNameRenderer.h"
+#include "UI/Details/CTransformRenderer.h"
 
 namespace Twisted::Editor
 {
-	void DetailsPanel::RenderContent(EditorApp* editor)
+	void DetailsPanel::RenderContent()
 	{
 		auto world = editor->GetActiveWorld();
-		if (!world)
+		if (!world || editor->GetSelectedEntity() == NullEntity)
 			return;
 
-		EntityID selectedEntity = editor->GetSelectedEntity();
-		CTransform* transform = editor->GetActiveWorld()->GetComponent<CTransform>(selectedEntity);
-		RenderTransform(transform);
-		CRenderer* renderer = editor->GetActiveWorld()->GetComponent<CRenderer>(selectedEntity);
-		RenderRenderer(renderer);
-	}
+		// Centered entity ID
+		std::string idLabel = "ID: " + std::to_string(static_cast<int>(editor->GetSelectedEntity()));
+		float idWidth = ImGui::CalcTextSize(idLabel.c_str()).x;
+		float idPosX = (ImGui::GetContentRegionAvail().x - idWidth) * 0.5f;
+		if (idPosX > 0.0f)
+			ImGui::SetCursorPosX(idPosX);
+		ImGui::Text("%s", idLabel.c_str());
 
-	void DetailsPanel::RenderTransform(CTransform* transform)
-	{
-		if (transform)
-		{
-			// Position
-			Vec3f position = transform->GetLocalPosition();
-			if (ImGui::InputFloat3("Position", &position.x))
-			{
-				transform->SetLocalPosition(position);
-			}
-			// Rotation (Euler angles in degrees)
-			Vec3f rotationEuler = transform->GetLocalRotationEulerRad() * (180.0f / 3.14159265359f); // Convert radians to degrees
-			if (ImGui::InputFloat3("Rotation", &rotationEuler.x))
-			{
-				Vec3f rotationEulerRad = rotationEuler * (3.14159265359f / 180.0f); // Convert degrees back to radians
-				transform->SetLocalRotation(Quat(rotationEulerRad));
-			}
-			// Scale
-			Vec3f scale = transform->GetLocalScale();
-			if (ImGui::InputFloat3("Scale", &scale.x))
-			{
-				transform->SetLocalScale(scale);
-			}
-		}
-	}
-	void DetailsPanel::RenderRenderer(CRenderer* renderer)
-	{
-		if (renderer)
-		{
+		ImGui::Separator();
+		RenderComponent<CName>();
+		RenderComponent<CTransform>();
 
+
+		// --- AddComponent Button ---
+		if (ImGui::Button("Add Component"))
+			ImGui::OpenPopup("AddComponentPopup");
+
+		if (ImGui::BeginPopup("AddComponentPopup"))
+		{
+			//// Example: List of available components
+			//if (!world->HasComponent<CRenderer>(editor->GetSelectedEntity()))
+			//{
+			//	if (ImGui::Selectable("CRenderer"))
+			//	{
+			//		world->AddComponents<CRenderer>(editor->GetSelectedEntity());
+			//		ImGui::CloseCurrentPopup();
+			//	}
+			//}
+			// Add more components here as needed
+
+			ImGui::EndPopup();
 		}
 	}
 }

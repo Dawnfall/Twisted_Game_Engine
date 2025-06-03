@@ -1,7 +1,9 @@
 #pragma once
 #include "Utils/GlmUtils.h"
 #include "Serialization/XmlSerializer.h"
-#include "EditorApp.h"
+
+#include <string>
+#include <filesystem>
 
 namespace Twisted::Editor
 {
@@ -17,12 +19,11 @@ namespace Twisted::Editor
 	struct EditorConfig
 	{
 		std::string windowTitle = "Twisted Editor";
-		glm::ivec2 windowSize = glm::ivec2(1280, 720);
-		glm::ivec2 windowPos = glm::ivec2(100, 100);
-		glm::ivec2 framebufferSize = glm::ivec2(1280, 720);
+		Vec2i windowSize{ 1280, 720 };
+		Vec2i windowPos{ 100, 100 };
+		Vec2i framebufferSize{ 1280, 720 };
 
 		unsigned int imguiSize = 0;
 		char* imguiData = nullptr;
-
 	};
 }

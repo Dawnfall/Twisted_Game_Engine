@@ -9,13 +9,13 @@ namespace Twisted::Editor
 	{
 		try
 		{
-			if (Utils::IsExistingFolder(folderPath) && !Utils::IsEmptyDirectory(folderPath))
+			if (Utils::IsExisting(folderPath) && !Utils::IsEmptyDirectory(folderPath))
 			{
 				TWISTED_WARN("Project path must be empty directory: " + folderPath.string());
 				return nullptr;
 			}
 
-			if (!Utils::IsExistingFolder(folderPath))
+			if (!Utils::IsExisting(folderPath))
 				Utils::CreateFolder(folderPath);
 
 			return OpenProject(folderPath);
@@ -33,16 +33,13 @@ namespace Twisted::Editor
 
 		try
 		{
-			if (!Utils::IsExistingFolder(projectPath))
+			if (!Utils::IsExisting(projectPath))
 			{
 				TWISTED_WARN("Project not existing at path: " + projectPath.string());
 				return nullptr;
 			}
 
-			Utils::CreateFolder(projectPath / "Assets");
-			Utils::CreateFolder(projectPath / "Meta");
-			Utils::CreateFolder(projectPath / "Internal");
-			Utils::CreateNewFile(projectPath / "twisted.editor");
+			ValidateProject(projectFolder);
 
 			return std::make_shared<Project>(projectPath);
 		}
@@ -52,7 +49,11 @@ namespace Twisted::Editor
 			return nullptr;
 		}
 	}
+	
+	void Project::ValidateProject(const fs::path& projFolder)
+	{
+		Utils::CreateNewFile(projFolder / "twisted.editor");
 
-
+	}
 
 }

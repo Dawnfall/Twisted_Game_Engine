@@ -31,7 +31,7 @@
 #include <gtc/matrix_inverse.hpp>
 #include <gtx/string_cast.hpp>
 
-#include <rapidobj/rapidobj.hpp>
-#ifdef TWISTED_ENGINE
+//glfw
+#include <GLFW/glfw3.h>
 
-#endif
+#include <rapidobj/rapidobj.hpp>

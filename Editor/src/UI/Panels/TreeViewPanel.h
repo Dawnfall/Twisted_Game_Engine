@@ -2,22 +2,21 @@
 #include "EditorPanel.h"
 #include "Twisted/Game/Components/CTransform.h"
 
-namespace Twisted
-{
-	class World;
-}
-
 namespace Twisted::Editor
 {
-	class EditorApp;
 	class TreeViewPanel :public EditorPanel
 	{
 	public:
-		TreeViewPanel(EditorApp* editor) :EditorPanel(editor) {}
-		virtual void RenderContent(EditorApp* editor)override;
-
+		TreeViewPanel(EditorLayer* editor) :EditorPanel(editor) {}
+		virtual void RenderContent()override;
 		virtual std::string GetName()override { return "Tree View"; }
 
-		static ImGuiTreeNodeFlags SetTreeFlags(const CTransform& transform,EditorApp* app);
+	private:
+		int m_siblingIndex = -1;
+		EntityID m_draggedEnt = NullEntity;
+		EntityID m_dropedOnEnt = NullEntity;
+
+		void RenderTreeNode(EntityID entity);
+		void RenderDropZone(EntityID entity, unsigned int position, bool isAfter);
 	};
 }

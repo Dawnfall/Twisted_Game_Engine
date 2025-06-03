@@ -3,20 +3,18 @@
 #include "Shader.h"
 #include "Utils/GlmUtils.h"
 #include "Texture.h"
-
-
 #include <unordered_map>
 
-namespace Twisted
+namespace Twisted::Render
 {
 	template<typename T>
-	struct MaterialValue
+	struct TWISTED_API MaterialValue
 	{
 		int ID = -1;
 		T value = T();
 	};
 
-	class Material
+	class TWISTED_API Material
 	{
 	public:
 		void SetShader(const SRef<Shader>& shader)

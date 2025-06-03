@@ -1,30 +1,44 @@
 #pragma once
 #include "AppCore.h"
-#include "Data/ShaderData.h"
 #include "Utils/GlmUtils.h"
 
-#include <glad/glad.h>
 #include <string>
 #include <vector>
 
-namespace Twisted
+namespace Twisted::Render
 {
-	struct ShaderUniformVar
+	enum class TWISTED_API ShaderVarType : uint8_t
 	{
-		std::string Name;
-		GLenum Type;
-		GLint UniformID;
+		Float, Vec2, Vec3, Vec4, Mat4, Int, Bool, Sampler2D, Unknown
 	};
 
-	struct ShaderTextureVar
+
+	struct TWISTED_API ShaderData
 	{
-		std::string Name;
-		GLenum Type;
-		GLint UniformID;
-		GLint TextureUnit;
+		std::string Name = "";
+		std::string VertShaderCode = "";
+		std::string FragShaderCode = "";
+
+		bool IsEmpty() { return VertShaderCode == ""; }
+
 	};
 
-	class Shader
+	struct TWISTED_API ShaderUniformVar
+	{
+		std::string Name;
+		ShaderVarType Type;
+		unsigned int UniformID;
+	};
+
+	struct TWISTED_API ShaderTextureVar
+	{
+		std::string Name;
+		ShaderVarType Type;
+		unsigned int TextureUnit;
+		unsigned int UniformID;
+	};
+
+	class TWISTED_API Shader
 	{
 	public:
 		Shader(const ShaderData& data) :
@@ -40,18 +54,17 @@ namespace Twisted
 		void Bind()const;
 		void UnBind()const;
 
-		void SetVar(GLint locationID, bool value)const;
-		void SetVar(GLint locationID, int value)const;
-		void SetVar(GLint locationID, float value)const;
-		void SetVar(GLint locationID, const Vec2f& value)const;
-		void SetVar(GLint locationID, const Vec3f& value)const;
-		void SetVar(GLint locationID, const Vec4f& value)const;
-		void SetVar(GLint locationID, const Mat4x4f& value)const;
-		void SetTex(GLint locationID, GLuint texID)const;
+		void SetVar(int locationID, bool value)const;
+		void SetVar(int locationID, int value)const;
+		void SetVar(int locationID, float value)const;
+		void SetVar(int locationID, const Vec2f& value)const;
+		void SetVar(int locationID, const Vec3f& value)const;
+		void SetVar(int locationID, const Vec4f& value)const;
+		void SetVar(int locationID, const Mat4x4f& value)const;
+		void SetTex(int locationID, unsigned int texID)const;
 
 		ShaderData Data;
-		GLuint ProgramID = 0;
-
+		unsigned int ProgramID = 0;
 		std::vector<ShaderUniformVar> Uniforms;
 		std::vector<ShaderTextureVar> Textures;
 
@@ -59,5 +72,7 @@ namespace Twisted
 		void DetectUniformVars();
 
 	};
+
+
 }
 

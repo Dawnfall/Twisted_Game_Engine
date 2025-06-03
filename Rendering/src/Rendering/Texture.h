@@ -1,16 +1,32 @@
 #pragma once
 #include "AppCore.h"
-#include "Data/TextureData.h"
+//#include <stbi_image/stb_image.h>
 
-namespace Twisted
+namespace Twisted::Render
 {
-	//enum class TextureType
-	//{
-	//	TEXTURE2D,
-	//	CUBEMAP
-	//};
+	struct TWISTED_API TextureData
+	{
+		TextureData(int width, int height, int nrChannels, unsigned char* data) :
+			Width(width),
+			Height(height),
+			NrChannels(nrChannels),
+			Data(data)
+		{
+		}
+		~TextureData()
+		{
+			//TODO...stbi_image_free(Data);
+		}
 
-	struct Texture
+		std::string Name;
+		int Width;
+		int Height;
+		int NrChannels;
+		unsigned char* Data;
+
+	};
+
+	struct TWISTED_API Texture
 	{
 		Texture(const std::string& name, unsigned int textureID) :
 			Name(name),
@@ -19,7 +35,6 @@ namespace Twisted
 		}
 		~Texture();
 
-		//TextureType Type;
 		std::string Name;
 		unsigned int TextureID;
 

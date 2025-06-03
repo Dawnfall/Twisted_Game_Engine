@@ -1,7 +1,10 @@
-#include "StandaloneApp.h"
+#include "TestApp.h"
+#include "Twisted/Application/Application.h"
+#include "Twisted/Application/StandaloneLayer.h"
 
-void main()
+int main()
 {
-	Twisted::Standalone::StandaloneApp app;
+	Twisted::Application app;
+	app.AddLayer<Twisted::StandaloneLayer>();
 	app.Run();
 }

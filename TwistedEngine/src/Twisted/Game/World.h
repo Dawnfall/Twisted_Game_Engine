@@ -1,11 +1,10 @@
 #pragma once
 
 #include "AppCore.h"
-#include "Twisted/Managers/TimeManager.h"
 #include "Twisted/Game/SystemBase.h"
 #include "Entity.h"
-
-
+#include "Twisted/Application/Application.h"
+#include "Serialization/Serializer.h"
 
 namespace Twisted
 {
@@ -14,7 +13,7 @@ namespace Twisted
 	class TWISTED_API World //TODO: error handling
 	{
 	public:
-		World();
+		World(Application* app);
 		EntityID CreateNewEntity(EntityID id);
 
 		template<typename... ComponentTypes>
@@ -43,17 +42,38 @@ namespace Twisted
 		}
 
 		template <typename T>
-		T* GetComponent(EntityID entityID)
+		T& GetComponent(EntityID entityID)
+		{
+			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
+			return m_registry.get<T>(entityID);
+		}
+
+		template <typename T>
+		const T& GetComponent(EntityID entityID)const
+		{
+			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
+			return m_registry.get<T>(entityID);
+		}
+
+		template <typename T>
+		T* TryGetComponent(EntityID entityID)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
 			return m_registry.try_get<T>(entityID);
 		}
 
-		template <typename T>
-		const T* GetComponent(EntityID entityID)const
+		template<typename T>
+		bool HasComponent(EntityID entityID)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return m_registry.try_get<T>(entityID);
+			return m_registry.any_of<T>(entityID);
+		}
+
+		template<typename... ComponentTypes>
+		bool HasComponents(EntityID entityID)
+		{
+			static_assert(std::is_base_of<AComponent, ComponentTypes>::value, "T must derive from AComponent");
+			return m_registry.all_of<ComponentTypes...>(entityID);
 		}
 
 		template<typename... ComponentTypes>
@@ -99,13 +119,13 @@ namespace Twisted
 		}
 
 		template<typename T>
-		void AddSystem(AppBase* app)
+		void AddSystem()
 		{
 			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
-			m_systems.emplace_back(std::make_unique<T>());
+			m_systems.emplace_back(std::make_unique<T>(this));
 		}
 
-		void UpdateFrame(AppBase* app);
+		void UpdateFrame();
 
 		template<typename... ComponentTypes>
 		void RemoveComponents(EntityID entityID)
@@ -118,12 +138,47 @@ namespace Twisted
 			(m_registry.remove<ComponentTypes>(entityID), ...);
 		}
 
+		Application& GetApplication() { return *m_app; }
+		const std::vector<EntityID>& GetRootEntities()const { return m_rootEntities; }
+
+		//Serialization
+
+		void Serialize(BinSerializer& buffer)const;
+		void Deserialize(BinSerializer& buffer);
+
+		template<typename T>
+		void serializeComponents(BinSerializer& buffer)const
+		{
+			auto componentsView = GetComponents<T>();
+			buffer.Write<size_t>(componentsView.size());
+			for (auto entId : componentsView)
+			{
+				const T component = componentsView.get<0>(entId);
+				buffer.Write<EntityID>(component.GetEntityID());
+				component.Serialize(buffer);
+			}
+			buffer.Write<std::vector<EntityID>>(m_rootEntities);
+		}
+
+		template<typename T>
+		void deSerializeComponents(BinSerializer& buffer)
+		{
+			size_t compCount = buffer.Read<size_t>();
+			for (size_t i = 0; i < compCount; i++)
+			{
+				EntityID entityID = buffer.Read<EntityID>();
+				T& component = m_registry.emplace<T>(entityID, entityID, this);
+				component.Deserialize(buffer);
+			}
+			m_rootEntities = buffer.Read<std::vector<EntityID>>();
+		}
+
 	private:
+		Application* m_app;
 		entt::registry m_registry;
 		std::vector<std::unique_ptr<SystemBase>> m_systems;
+		std::vector<EntityID> m_rootEntities;
 
-		friend class WorldSerializer;
+		friend class CTransform;
 	};
-
-
 }

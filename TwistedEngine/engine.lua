@@ -29,7 +29,6 @@ project "TwistedEngine"
         "%{IncludeDirs.Rendering}",
         "%{IncludeDirs.spdlog}",
         "%{IncludeDirs.GLFW}",
-        "%{IncludeDirs.Glad}",
         "%{IncludeDirs.GLM}",
 		"%{IncludeDirs.EnTT}",
         "%{IncludeDirs.rapidobj}",
@@ -40,9 +39,7 @@ project "TwistedEngine"
     links
     {
         "Core",
-        "Utils",
         "Rendering",
-        "Glad",
         "GLFW",
         "pugixml",
         --default
@@ -72,11 +69,14 @@ project "TwistedEngine"
         }
 
     filter "configurations:Debug"
+        targetname "TwistedEngine_d"
         defines "TWISTED_DEBUG"
         runtime "Debug"
         symbols "on"
+        optimize "off"
 
     filter "configurations:Release"
+        targetname "TwistedEngine"
         defines "TWISTED_RELEASE"
         runtime "Release"
         optimize "on"

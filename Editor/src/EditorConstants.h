@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace Twisted::Editor::Constants
 {
 	std::string rootFolder = "F:/Programiranje/C++/GameEngine/TestGame/Assets/";

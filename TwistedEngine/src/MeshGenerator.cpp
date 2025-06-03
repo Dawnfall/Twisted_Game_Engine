@@ -1,6 +1,5 @@
 #include "twistedpch.h"
 #include "MeshGenerator.h"
-#include "Windows/Window.h"
 
 namespace Twisted
 {

@@ -9,10 +9,10 @@ namespace Twisted
 {
 	Mat4x4f CCamera::GetViewMatrix()const
 	{
-		const CTransform* transform = m_world->GetComponent<CTransform>(m_entityID);
+		const CTransform& transform = m_world->GetComponent<CTransform>(m_entityID);
 
-		auto position = transform->GetWorldPosition();
-		auto target = position + transform->GetWorldForward();
+		auto position = transform.GetWorldPosition();
+		auto target = position + transform.GetWorldForward();
 		auto viewMat = glm::lookAt(position, target, Directions::Up);
 
 		//std::cout << "World Pos:\n " << glm::to_string(position) << std::endl;

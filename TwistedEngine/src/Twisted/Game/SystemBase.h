@@ -5,11 +5,14 @@
 namespace Twisted
 {
 	class World;
-	class AppBase;
 	class TWISTED_API SystemBase
 	{
 	public:
+		SystemBase(World* world):m_world(world){}
 		virtual ~SystemBase() = default;
-		virtual void Update(AppBase* app, World* world) = 0;
+		virtual void Update() = 0;
+
+	protected:
+		World* m_world;
 	};
 }

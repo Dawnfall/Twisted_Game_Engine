@@ -1,10 +1,19 @@
 #pragma once
 #include "AppCore.h"
-#include "Data/MeshData.h"
 
-namespace Twisted
+#include <filesystem>
+#include <Data/Vertex.h>
+
+namespace Twisted::Render
 {
-	class Mesh
+	struct TWISTED_API MeshData
+	{
+		std::filesystem::path Name;
+		std::vector<Vertex> Vertices;
+		std::vector<unsigned int> Indices;
+	};
+
+	class TWISTED_API Mesh
 	{
 	public:
 		Mesh(const MeshData& meshData);
@@ -20,5 +29,4 @@ namespace Twisted
 		unsigned int VBO = 0;
 		unsigned int EBO = 0;
 	};
-
 }

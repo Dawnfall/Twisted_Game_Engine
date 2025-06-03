@@ -1,17 +1,17 @@
 #pragma once
 #include "AppCore.h"
+#include <filesystem>
 
 namespace Twisted::Editor
 {
-	const std::filesystem::path editorRootFolder = "F:\Programiranje\C++\GameEngine\EditorConfig"; //TODO:...
+	const std::filesystem::path editorRootFolder = "F:/Programiranje/C++/GameEngine/EditorConfig"; //TODO:...
 
-	class EditorApp;
 	class EditorConfig;
 	class Configurator
 	{
 	public:
 		void LoadConfig();
-		void WriteConfig(EditorApp* editor) const;
+		void WriteConfig() const;
 
 		SRef<EditorConfig> Data;
 	};

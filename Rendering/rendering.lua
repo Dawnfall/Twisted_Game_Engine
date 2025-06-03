@@ -1,14 +1,11 @@
 project "Rendering"
-    kind "StaticLib"
+    kind "SharedLib"
     language "C++"
     cppdialect "C++20"
     staticruntime "off"
 
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
-
-    pchheader "renderingpch.h"  -- This is the precompiled header file
-    pchsource "src/renderingpch.cpp" -- This is the source file that compiles the precompiled header
 
     files
     {
@@ -19,9 +16,7 @@ project "Rendering"
     links
     {
         "Core",
-        "Utils",
-        "Glad",
-        "GLFW"
+        "Glad"
     }
 
     includedirs
@@ -30,7 +25,6 @@ project "Rendering"
         "%{IncludeDirs.Core}",
         "%{IncludeDirs.Utils}",
         "%{IncludeDirs.Glad}",
-        "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.spdlog}", 
         "%{IncludeDirs.GLM}",
         "%{IncludeDirs.stbi_image}"
@@ -49,11 +43,13 @@ project "Rendering"
         systemversion "latest"
 
     filter "configurations:Debug"
+        targetname "Rendering_d"
         defines "TWISTED_DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
+        targetname "Rendering"
         defines "TWISTED_RELEASE"
         runtime "Release"
         optimize "on"

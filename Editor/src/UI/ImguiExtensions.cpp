@@ -1,6 +1,6 @@
 #include "editorpch.h"
-#include "AppCore.h"
 #include "ImguiExtensions.h"
+#include "AppCore.h"
 #include <GLFW/glfw3.h>
 
 namespace Im
@@ -299,7 +299,7 @@ namespace Im
 		Im::SetFlags();
 		Im::SetStyle();
 
-		ImGui::GetIO().IniFilename = nullptr;
+		//ImGui::GetIO().IniFilename = nullptr;
 	}
 
 	void SetFlags()
@@ -340,5 +340,16 @@ namespace Im
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	bool InputText(const std::string& label, std::string& value, ImGuiInputTextFlags flags)
+	{
+		char buf[256];
+		strncpy(buf, value.c_str(), sizeof(buf));
+		buf[sizeof(buf) - 1] = 0;
+		bool changed = ImGui::InputText(label.c_str(), buf, sizeof(buf), flags);
+		if (changed)
+			value = buf;
+		return changed;
 	}
 }

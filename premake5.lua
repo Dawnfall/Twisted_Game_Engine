@@ -21,7 +21,6 @@ workspace "TwistedEngine"
 
     group "Engine"
         include "Core/core.lua"
-        include "Utils/utils.lua"
         include "Rendering/rendering.lua"
         include "TwistedEngine/engine.lua"
     group ""
@@ -30,6 +29,5 @@ workspace "TwistedEngine"
         include "Editor/editor.lua"
     group ""
 
-    include "TestGame/test.lua"
     include "Standalone/standalone.lua"
     --TODO: rename file

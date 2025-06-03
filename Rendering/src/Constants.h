@@ -2,6 +2,9 @@
 
 namespace Twisted
 {
+	const std::string SHADER_EXTENSION = ".shader";
+	const std::string SHADER_DELIMITER = "---";
+
 	const std::string BUILT_IN_DEFAULT_SHADER_PATH = "F:/Programiranje/C++/GameEngine/TwistedEngine/src/BuiltIn/Shaders/defaultShader.shader";
 	const std::string BUILT_IN_DEFAULT_SHADER_NAME = "DefaultShader";
 	const std::string BUILT_IN_SIMPLE_SHADER_PATH = "F:/Programiranje/C++/GameEngine/TwistedEngine/src/BuiltIn/Shaders/SimpleShader.shader";

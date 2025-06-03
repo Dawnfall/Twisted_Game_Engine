@@ -1,11 +1,8 @@
 #pragma once
 
-//core
-#include "Twisted/AppBase.h"
-
 //managers
 #include "Twisted/Managers/ResourceManager.h"
-#include "Twisted/Managers/TimeManager.h"
+
 //systems
 #include "Twisted/Game/SystemBase.h"
 #include "Twisted/Game/Systems/RenderSystem.h"

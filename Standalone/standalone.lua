@@ -7,9 +7,6 @@ project "Standalone"
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
 
-    postbuildcommands {
-        "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
-     }
 
     files
     {
@@ -19,13 +16,11 @@ project "Standalone"
 
     links
     {
-        "TwistedEngine",
         "Core",
-        "Utils",
 
         "Rendering",
-        "GLFW",
-        "Glad"
+        "TwistedEngine",
+        "GLFW"
     }
 
     includedirs
@@ -35,9 +30,8 @@ project "Standalone"
         "%{IncludeDirs.Utils}",
         "%{IncludeDirs.Rendering}",
         "%{IncludeDirs.TwistedEngine}",
-        "%{IncludeDirs.GLFW}",
-        "%{IncludeDirs.Glad}",
         "%{IncludeDirs.GLM}",
+        "%{IncludeDirs.GLFW}",
         "%{IncludeDirs.EnTT}"
     }
 
@@ -55,11 +49,21 @@ project "Standalone"
         systemversion "latest"
 
     filter "configurations:Debug"
+        targetname "Standalone_d"
         defines "TWISTED_DEBUG"
         runtime "Debug"
         symbols "on"
+        postbuildcommands {
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine_d.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Rendering/Rendering_d.dll %{cfg.targetdir}",
+        }
 
     filter "configurations:Release"
+        targetname "Standalone"
         defines "TWISTED_RELEASE"
         runtime "Release"
         optimize "on"
+        postbuildcommands {
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Rendering/Rendering.dll %{cfg.targetdir}",
+        }

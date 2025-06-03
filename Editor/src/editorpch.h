@@ -25,6 +25,7 @@
 #include <type_traits>
 
 #include <sys/stat.h>
+#include <Windows.h>
 
 //imgui
 #include <imgui.h>
@@ -43,7 +44,7 @@
 //From file dialog
 #ifdef _WIN32
 #define NOMINMAX
-#include <Windows.h>
+
 #include <shellapi.h>
 #include <lmcons.h>
 #pragma comment(lib, "Shell32.lib")

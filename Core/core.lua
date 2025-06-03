@@ -14,15 +14,13 @@ project "Core"
         "src/**.cpp"
     }
 
-    links
-    {
-        
-    }
-
     includedirs
     {
         "%{IncludeDirs.Core}",
-        "%{IncludeDirs.spdlog}"
+        "%{IncludeDirs.spdlog}",
+        "%{IncludeDirs.GLM}",
+        "%{IncludeDirs.stbi_image}",
+        "%{IncludeDirs.rapidobj}"
     }
 
     defines

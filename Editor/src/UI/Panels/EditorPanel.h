@@ -1,5 +1,6 @@
 #pragma once
 #include "Utils/Event.h"
+#include "Utils/GlmUtils.h"
 
 namespace Twisted
 {
@@ -8,18 +9,19 @@ namespace Twisted
 
 namespace Twisted::Editor
 {
-	class EditorApp;
+	class EditorLayer;
 	class EditorPanel
 	{
 	public:
-		EditorPanel(EditorApp* editor) {}
-		virtual void RenderContent(EditorApp* editor) = 0;
+		EditorPanel(EditorLayer* editor) :editor(editor) {}
+		virtual void RenderContent() = 0;
 		virtual std::string GetName() = 0;
 
 		Event<> PanelResizeEvent;
 
 		bool IsShowing = true;
 		ImGuiID DockParentID = -1;
-		ImVec2 Size;
+		Vec2i Size = { 0,0 };
+		EditorLayer* editor;
 	};
 }

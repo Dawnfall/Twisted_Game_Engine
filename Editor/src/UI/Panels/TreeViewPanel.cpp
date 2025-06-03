@@ -1,70 +1,106 @@
 #include "editorpch.h"
 
 #include "TreeViewPanel.h"
-#include "EditorApp.h"
-#include "Twisted/Game/World.h"
+#include "EditorLayer.h"
+//#include "Twisted/Game/World.h"
 #include "Twisted/Game/Components/CTransform.h"
+#include "Twisted/Game/Components/CName.h"
 
 namespace Twisted::Editor
 {
-	void TreeViewPanel::RenderContent(EditorApp* editor)
+	void TreeViewPanel::RenderContent()
 	{
 		auto world = editor->GetActiveWorld();
 		if (!world)
 			return;
 
-		std::vector<CTransform*> rootTransforms = CTransform::GetRootTransforms();
+		RenderTreeNode(NullEntity);
 
-		std::function<void(const CTransform*)> renderTreeObject;
-		renderTreeObject = [&editor, &renderTreeObject](const CTransform* transform)
-			{
-				bool isSelected = (editor->GetSelectedEntity() == transform->GetEntityID());
-				ImGuiTreeNodeFlags flags = SetTreeFlags(*transform, editor);
-				std::string nodeID = transform->GetName() + std::to_string((int)transform->GetEntityID());
-				// Drag source
-				if (ImGui::BeginDragDropSource())
-				{
-					ImGui::SetDragDropPayload("drag_tree_transform", &transform, sizeof(CTransform*));
-					ImGui::Text("Dragging %s", transform->GetName().c_str());
-					ImGui::EndDragDropSource();
-				}
-				// Drop target
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("drag_tree_transform"))
-					{
-						CTransform* droppedTransform = *(CTransform**)payload->Data;
-						// Handle the drop action here, e.g., reparenting the droppedTransform
-					}
-					ImGui::EndDragDropTarget();
-				}
-				if (ImGui::TreeNodeEx(nodeID.c_str(),flags))
-				{
-					if (ImGui::IsItemClicked())
-					{
-						editor->SetSelectedEntity(transform->GetEntityID());
-					}
-					for (EntityID child : transform->GetChildren())
-					{
-						renderTreeObject(editor->GetActiveWorld()->GetComponent<CTransform>(child));
-					}
-					ImGui::TreePop();
-				}
-			};
-
-		for (const CTransform* root : rootTransforms)
+		//handle change
+		if (m_siblingIndex >= 0)
 		{
-			renderTreeObject(root);
+			CTransform& draggedTransform = world->GetComponent<CTransform>(m_draggedEnt);
+			draggedTransform.SetParent(m_dropedOnEnt);
+			draggedTransform.SetSiblingsIndex(m_siblingIndex);
+
+			m_draggedEnt = NullEntity;
+			m_dropedOnEnt = NullEntity;
+			m_siblingIndex = -1;
+
 		}
 	}
 
-	ImGuiTreeNodeFlags TreeViewPanel::SetTreeFlags(const CTransform& transform, EditorApp* app)
+	void TreeViewPanel::RenderTreeNode(EntityID entity)
 	{
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
-		if (transform.GetChildCount() == 0)
-			flags |= ImGuiTreeNodeFlags_Leaf;
-		if (app->GetSelectedEntity() == transform.GetEntityID())
-			flags |= ImGuiTreeNodeFlags_Selected;
-		return flags;
+		if (entity == NullEntity)
+		{
+			int rootsCount = editor->GetActiveWorld()->GetRootEntities().size();
+			for (int i = 0; i < rootsCount; i++)
+			{
+				RenderDropZone(NullEntity, i,false);
+				RenderTreeNode(editor->GetActiveWorld()->GetRootEntities()[i]);
+				if (i == rootsCount - 1)
+					RenderDropZone(NullEntity, i + 1,true);
+			}
+		}
+		else
+		{
+			CTransform& transform = editor->GetActiveWorld()->GetComponent<CTransform>(entity);
+			const CName& name = editor->GetActiveWorld()->GetComponent<CName>(entity);
+
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
+			if (transform.GetChildCount() == 0)
+				flags |= ImGuiTreeNodeFlags_Leaf;
+			if (editor->GetSelectedEntity() == transform.GetEntityID())
+				flags |= ImGuiTreeNodeFlags_Selected;
+
+			std::string nodeID = name.GetName() + "###" + std::to_string((int)entity);
+
+			if (ImGui::TreeNodeEx(nodeID.c_str(), flags))
+			{
+				// Drag source
+				if (ImGui::BeginDragDropSource())
+				{
+					ImGui::SetDragDropPayload("drag_tree_transform", &entity, sizeof(CTransform*));
+					ImGui::Text("Dragging %s", name.GetName().c_str());
+					ImGui::EndDragDropSource();
+				}
+				if (ImGui::IsItemClicked())
+				{
+					editor->SetSelectedEntity(entity);
+				}
+
+				RenderDropZone(entity, transform.GetSiblingsIndex(), false);
+				for (EntityID child : transform.GetChildren())
+					RenderTreeNode(child);
+				if (transform.GetSiblingsIndex() == transform.GetSiblingsCount() - 1)
+					RenderDropZone(entity, transform.GetSiblingsCount()+1,true);
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
+	void TreeViewPanel::RenderDropZone(EntityID entity, unsigned int position,bool isAfter)
+	{
+		// Insert a dummy drop zone BEFORE the node for unparenting
+		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+		ImVec2 dropZoneSize(ImGui::GetContentRegionAvail().x, 4.0f);
+
+		std::string idPart1 = (isAfter) ? "##drop_zone_after_" : "##drop_zone_before_";
+
+		ImGui::InvisibleButton((idPart1 + std::to_string((int)entity)).c_str(), dropZoneSize);
+
+		// Check for drop before the node
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("drag_tree_transform"))
+			{
+				m_dropedOnEnt = entity;
+				m_siblingIndex = position;
+				m_draggedEnt = *static_cast<EntityID*>(payload->Data);
+			}
+			ImGui::EndDragDropTarget();
+		}
 	}
 }

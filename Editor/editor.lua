@@ -9,11 +9,7 @@ project "Editor"
 
     pchheader "editorpch.h"  -- This is the precompiled header file
     pchsource "src/editorpch.cpp" -- This is the source file that compiles the precompiled header
-    
-    postbuildcommands {
-        "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
-     }
-     
+      
     files
     {
         "src/**.h",
@@ -22,13 +18,11 @@ project "Editor"
 
     links
     {
-        "TwistedEngine",
         "Core",
-        "Utils",
         
         "Rendering",
+        "TwistedEngine",
         "GLFW",
-        "Glad",
 
         "imgui"
     }
@@ -42,7 +36,6 @@ project "Editor"
         "%{IncludeDirs.TwistedEngine}",
         "%{IncludeDirs.GLM}",
         "%{IncludeDirs.GLFW}",
-        "%{IncludeDirs.Glad}",
         "%{IncludeDirs.EnTT}",
         "%{IncludeDirs.imgui}"
     }
@@ -62,11 +55,21 @@ project "Editor"
         systemversion "latest"
 
     filter "configurations:Debug"
+        targetname "Editor_d"
         defines "TWISTED_DEBUG"
         runtime "Debug"
         symbols "on"
+        postbuildcommands {
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine_d.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Rendering/Rendering_d.dll %{cfg.targetdir}",
+        }
 
     filter "configurations:Release"
+        targetname "Editor"
         defines "TWISTED_RELEASE"
         runtime "Release"
         optimize "on"
+        postbuildcommands {
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Rendering/Rendering.dll %{cfg.targetdir}",
+        }

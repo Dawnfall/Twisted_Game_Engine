@@ -15,7 +15,10 @@ namespace Twisted
 		{
 		}
 
-		const EntityID GetEntityID()const { return m_entityID; }
+		const EntityID GetEntityID()const 
+		{
+			return m_entityID; 
+		}
 	protected:
 		EntityID m_entityID;
 		World* m_world;

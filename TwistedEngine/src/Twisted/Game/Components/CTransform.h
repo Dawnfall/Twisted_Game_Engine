@@ -7,6 +7,8 @@
 
 #include "Twisted/Game/AComponent.h"
 #include "Serialization/WorldSerializer.h"
+#include "Serialization/Serializer.h"
+
 namespace Twisted
 {
 	enum class TWISTED_API RelativeSpace
@@ -16,17 +18,12 @@ namespace Twisted
 	};
 
 	class World;
+
 	class TWISTED_API CTransform :public AComponent
 	{
 	public:
 		CTransform(EntityID entityID, World* world);
 		//	CTransform(EntityID entity, const Vec3f& position, const Quat& rotation, const Vec3f& scale);
-
-		//***************
-		// ID
-
-		const std::string& GetName()const { return m_name; }
-		void SetName(const std::string& newName) { m_name = newName; }
 
 		//***************
 		// Transform
@@ -58,8 +55,12 @@ namespace Twisted
 		const EntityID GetParentID()const { return m_parentID; }
 		const std::vector<EntityID>& GetChildren()const { return m_childrenIDs; }
 		const size_t GetChildCount() const { return m_childrenIDs.size(); }
+		const unsigned int GetSiblingsIndex()const;
+		const size_t GetSiblingsCount()const;
 
+		void SetSiblingsIndex(unsigned int newIndex);
 		void SetParent(EntityID newParentID);
+		bool IsDescendant(EntityID potentialChildID)const;
 
 		//**************
 		// Transformation matrices
@@ -145,47 +146,37 @@ namespace Twisted
 			SetLocalRotation(newRotation);
 		}
 
-	private:
+		//Serialization
+		void Serialize(BinSerializer& buffer)const
+		{
+			buffer.Write<Vec3f>(m_position);
+			buffer.Write<Vec3f>(m_scale);
+			buffer.Write<Quat>(m_rotation);
 
-		std::string m_name;
-		EntityID m_parentID;
+			buffer.Write<EntityID>(m_parentID);
+			buffer.Write<std::vector<EntityID>>(m_childrenIDs);
+		}
+
+		void Deserialize(BinSerializer& buffer)
+		{
+			m_position = buffer.Read<Vec3f>();
+			m_scale = buffer.Read<Vec3f>();
+			m_rotation = buffer.Read<Quat>();
+
+			m_parentID = buffer.Read<EntityID>();
+			m_childrenIDs = buffer.Read<std::vector<EntityID>>();
+		}
+
+	private:
 
 		Vec3f m_position;
 		Quat m_rotation;
 		Vec3f m_scale;
+
+		EntityID m_parentID;
 		std::vector<EntityID> m_childrenIDs;
 
-		static std::vector<CTransform*> m_rootTransforms;
-
 	public:
-		static const std::vector<CTransform*>& GetRootTransforms() { return m_rootTransforms; }
-
-		friend void Serialize<CTransform>(const CTransform& transform, BinSerializer& serializer);
-		friend void Deserialize<CTransform>(CTransform& transform, BinSerializer& serializer);
 	};
 
-
-	template<>
-	inline void Serialize<CTransform>(const CTransform& transform, BinSerializer& serializer)
-	{
-		serializer.Write<std::string>(transform.m_name);
-		serializer.Write<EntityID>(transform.m_parentID);
-		serializer.WriteVec<EntityID>(transform.m_childrenIDs);
-
-		serializer.Write<Vec3f>(transform.m_position);
-		serializer.Write<Vec3f>(transform.m_scale);
-		serializer.Write<Quat>(transform.m_rotation);
-	}
-
-	template<>
-	inline void Deserialize<CTransform>(CTransform& transform, BinSerializer& serializer)
-	{
-		transform.m_name = serializer.Read<std::string>();
-		transform.m_parentID = serializer.Read<EntityID>();
-		transform.m_childrenIDs = serializer.ReadVec<EntityID>();
-
-		transform.m_position = serializer.Read<Vec3f>();
-		transform.m_scale = serializer.Read<Vec3f>();
-		transform.m_rotation = serializer.Read<Quat>();
-	}
 }
