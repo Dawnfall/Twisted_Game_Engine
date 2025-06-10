@@ -7,9 +7,6 @@ project "TwistedEngine"
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
     
-    pchheader "twistedpch.h"  -- This is the precompiled header file
-    pchsource "src/twistedpch.cpp" -- This is the source file that compiles the precompiled header
-    
     files
     {
         "src/**.h",
@@ -25,12 +22,13 @@ project "TwistedEngine"
     {
         "%{IncludeDirs.TwistedEngine}",
         "%{IncludeDirs.Core}",
-        "%{IncludeDirs.Utils}",
+        "%{IncludeDirs.Gameing}",
         "%{IncludeDirs.Rendering}",
-        "%{IncludeDirs.spdlog}",
-        "%{IncludeDirs.GLFW}",
-        "%{IncludeDirs.GLM}",
+        "%{IncludeDirs.Windowing}",
 		"%{IncludeDirs.EnTT}",
+        "%{IncludeDirs.spdlog}",
+        --"%{IncludeDirs.GLFW}",
+        "%{IncludeDirs.GLM}",
         "%{IncludeDirs.rapidobj}",
         "%{IncludeDirs.pugixml}",
         "%{IncludeDirs.stbi_image}",
@@ -39,8 +37,10 @@ project "TwistedEngine"
     links
     {
         "Core",
+        "Windowing",
         "Rendering",
-        "GLFW",
+        "Gameing",
+        --"GLFW",
         "pugixml",
         --default
         "opengl32.lib",

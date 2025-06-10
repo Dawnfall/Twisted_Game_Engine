@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utils/Color.h"
+#include "Data/Color.h"
 #include "Utils/GlmUtils.h"
 
 namespace Twisted::Render

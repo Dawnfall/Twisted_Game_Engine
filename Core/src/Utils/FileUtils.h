@@ -1,5 +1,4 @@
 #pragma once
-#include "AppCore.h"
 #include <filesystem>
 #include <vector>
 #include <string>
@@ -14,41 +13,43 @@ namespace Twisted::Utils
 	/// <param name="path">path to check</param>
 	/// <returns>true if the path is a folder, false otherwise</returns>
 	/// 
-	bool TWISTED_API IsFolder(const fs::path& path);
+	bool IsFolder(const fs::path& path);
 
-	bool TWISTED_API IsFile(const fs::path& path);
+	bool IsFile(const fs::path& path);
 
-	size_t TWISTED_API FileSize(const fs::path& path);
+	size_t FileSize(const fs::path& path);
 
-	time_t TWISTED_API DateModified(const fs::path& path);
+	time_t DateModified(const fs::path& path);
 
-	std::vector<fs::path> TWISTED_API SubEntries(const fs::path& path);
+	std::vector<fs::path> SubEntries(const fs::path& path);
 
-	std::vector<fs::path> TWISTED_API SubFiles(const fs::path& path);
+	std::vector<fs::path> SubFiles(const fs::path& path);
 
-	std::vector<fs::path> TWISTED_API SubFolders(const fs::path& path);
+	std::vector<fs::path> SubFolders(const fs::path& path);
 
-	std::vector<fs::path> TWISTED_API GetAllDrives();
+	std::vector<fs::path> GetAllDrives();
 
-	bool TWISTED_API IsExisting(const fs::path& path);
+	bool IsExisting(const fs::path& path);
 	
-	std::vector<fs::directory_entry> TWISTED_API GetFilesInFolder(const std::string& folderPath);
+	std::vector<fs::directory_entry> GetFilesInFolder(const std::string& folderPath);
 
-	bool TWISTED_API CreateFolder(const fs::path& folderPath);
+	bool CreateFolder(const fs::path& folderPath);
 
-	bool TWISTED_API CreateNewFile(const fs::path& filePath);
+	bool CreateNewFile(const fs::path& filePath);
 
-	std::string TWISTED_API ReadFileContent(const fs::path& filePath);
+	std::string ReadFileContent(const fs::path& filePath);
 
-	std::filesystem::path TWISTED_API CombinePaths(const std::string& absolutePath, const std::string& folderName);
+	std::filesystem::path CombinePaths(const std::string& absolutePath, const std::string& folderName);
 
-	bool TWISTED_API IsEmptyDirectory(const fs::path& path);
+	bool IsEmptyDirectory(const fs::path& path);
 
-	std::vector<std::filesystem::path> TWISTED_API LoadFiles(const fs::path& folderPath, const std::string& extension);
+	std::vector<std::filesystem::path> LoadFiles(const fs::path& folderPath, const std::string& extension);
 
-	bool TWISTED_API WriteBufferToFile(const std::filesystem::path& filepath, const char* buffer, std::size_t size);
+	bool EnsureFileExists(const std::filesystem::path& folder, const std::filesystem::path& filename);
 
-	bool TWISTED_API ReadBufferFromFile(const std::filesystem::path& filepath, char* buffer, std::size_t size);
+	bool WriteBufferToFile(const std::filesystem::path& filepath, const char* buffer, std::size_t size);
+
+	bool ReadBufferFromFile(const std::filesystem::path& filepath, char* buffer, std::size_t size);
 
 	//// Method to write buffer to a binary file
 	//bool WriteBufferToFile(const std::string& filePath, const Buffer& buffer);

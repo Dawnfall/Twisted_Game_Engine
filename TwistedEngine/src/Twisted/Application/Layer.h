@@ -7,17 +7,14 @@ namespace Twisted
 	class TWISTED_API Layer
 	{
 	public:
-		Layer(Application* app):
+		Layer(Application* app) :
 			m_app(app)
-		{ }
+		{
+		}
+		virtual ~Layer(){}
 
-		virtual void OnInit() {}
-		virtual void OnFrameBegin() {}
-		virtual void OnFrame() {}
-		virtual void OnFrameEnd() {}
-		virtual void OnTerminate() {}
-		virtual void OnBeforeRun() {}
-	
+		Application* GetApplication() { return m_app; }
+
 	protected:
 		Application* m_app;
 	};

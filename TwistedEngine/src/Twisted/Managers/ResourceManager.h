@@ -1,22 +1,25 @@
 #pragma once
 
 #include "AppCore.h"
-#include "Assets/Asset.h"
+#include "Data/Asset.h"
 #include "Rendering/Texture.h"
 #include "Rendering/Shader.h"
 #include "Rendering/Mesh.h"
 #include "Rendering/Material.h"
 #include "Rendering/Model.h"
+#include "Data/ShaderData.h"
 #include "Utils/FileUtils.h"
 
 #include <unordered_map>
 #include <string>
 #include <memory>
-
 //**************
 
 namespace Twisted
 {
+	URef<ShaderData> TWISTED_API ImportShaderData(const std::filesystem::path& assetPath);
+	URef<TextureData> TWISTED_API ImportTextureData(const std::filesystem::path& assetPath);
+
 	//class TWISTED_API ResourceManager
 	//{
 	//public:

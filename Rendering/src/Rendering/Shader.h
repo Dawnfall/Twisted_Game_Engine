@@ -1,6 +1,7 @@
 #pragma once
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
+#include "Data/ShaderData.h"
 
 #include <string>
 #include <vector>
@@ -10,17 +11,6 @@ namespace Twisted::Render
 	enum class TWISTED_API ShaderVarType : uint8_t
 	{
 		Float, Vec2, Vec3, Vec4, Mat4, Int, Bool, Sampler2D, Unknown
-	};
-
-
-	struct TWISTED_API ShaderData
-	{
-		std::string Name = "";
-		std::string VertShaderCode = "";
-		std::string FragShaderCode = "";
-
-		bool IsEmpty() { return VertShaderCode == ""; }
-
 	};
 
 	struct TWISTED_API ShaderUniformVar

@@ -15,13 +15,15 @@ workspace "TwistedEngine"
     group "Dependecies"
         include "3rd/GLFW"
         include "3rd/imgui"   
-        include "TwistedEngine/3rd/Glad"
-        include "TwistedEngine/3rd/pugixml"
+        include "3rd/Glad"
+        include "3rd/pugixml"
     group ""
 
     group "Engine"
         include "Core/core.lua"
+        include "Windowing/windowing.lua"
         include "Rendering/rendering.lua"
+        include "Gameing/gameing.lua"
         include "TwistedEngine/engine.lua"
     group ""
 
@@ -30,4 +32,3 @@ workspace "TwistedEngine"
     group ""
 
     include "Standalone/standalone.lua"
-    --TODO: rename file

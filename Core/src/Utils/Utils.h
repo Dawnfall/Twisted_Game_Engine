@@ -31,12 +31,12 @@ namespace Twisted::Utils
 		vec.insert(vec.begin() + to, item);
 	}
 
-	std::string TWISTED_API ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
+	std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
 
-	std::vector<std::string> TWISTED_API SplitString(const std::string& str, const std::string& delimiter);
+	std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 
-	std::string TWISTED_API GenerateGUID();
+	std::string GenerateGUID();
 
-	void TWISTED_API StringToArray(const std::string& str, char* buffer, size_t bufferSize);
+	void StringToArray(const std::string& str, char* buffer, size_t bufferSize);
 
 }

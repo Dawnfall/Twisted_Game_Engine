@@ -1,30 +1,12 @@
 #pragma once
 #include "AppCore.h"
+#include "Data/TextureData.h"
+
 //#include <stbi_image/stb_image.h>
 
 namespace Twisted::Render
 {
-	struct TWISTED_API TextureData
-	{
-		TextureData(int width, int height, int nrChannels, unsigned char* data) :
-			Width(width),
-			Height(height),
-			NrChannels(nrChannels),
-			Data(data)
-		{
-		}
-		~TextureData()
-		{
-			//TODO...stbi_image_free(Data);
-		}
 
-		std::string Name;
-		int Width;
-		int Height;
-		int NrChannels;
-		unsigned char* Data;
-
-	};
 
 	struct TWISTED_API Texture
 	{

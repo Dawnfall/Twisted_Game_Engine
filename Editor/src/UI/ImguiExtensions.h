@@ -1,4 +1,11 @@
 #pragma once
+#define NOMINMAX
+#include <algorithm>
+#include <filesystem>
+
+//#include <GLFW/glfw3.h>
+#include "imgui.h"
+#include "imgui_internal.h"
 
 namespace Im
 {
@@ -7,11 +14,13 @@ namespace Im
 
 	constexpr float GUI_ELEMENT_SIZE()
 	{
-		return std::max(GImGui->FontSize + 10.0f, 24.0f);
+		return std::max<float>(GImGui->FontSize + 10.0f, 24.0f);
 	}
 	float ICON_SIZE();
 
-	void Init(GLFWwindow* windowPointer);
+	//void Init(GLFWwindow* windowPointer);
+	void Init(void* windowPointer);
+
 	void SetFlags();
 	void SetStyle();
 	void Terminate();

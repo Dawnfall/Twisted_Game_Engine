@@ -1,8 +1,9 @@
 #pragma once
-#include "EditorPanel.h"
+#include "UI/EditorPanel.h"
 #include "AppCore.h"
-#include <string>
 #include "Rendering/RenderContext.h"
+
+#include <string>
 
 namespace rend = Twisted::Render;
 
@@ -11,12 +12,11 @@ namespace Twisted::Editor
 	class WorldViewPanel :public EditorPanel
 	{
 	public:
-		WorldViewPanel(EditorLayer* editor);
+		WorldViewPanel(EditorRuntime* editor);
 
 		virtual void RenderContent()override;
 		virtual std::string GetName()override { return "World View"; }
 
-		rend::RenderContext m_context;
+		rend::RenderContext* m_context = nullptr;
 	};
-
 }

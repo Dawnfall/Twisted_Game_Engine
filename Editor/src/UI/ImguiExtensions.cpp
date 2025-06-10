@@ -1,7 +1,10 @@
-#include "editorpch.h"
 #include "ImguiExtensions.h"
 #include "AppCore.h"
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
+
 #include <GLFW/glfw3.h>
+#include <filesystem>
 
 namespace Im
 {
@@ -283,7 +286,8 @@ namespace Im
 		return ret;
 	}
 
-	void Init(GLFWwindow* windowPointer)
+
+	void Init(void* windowPointer)
 	{
 		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
 		{
@@ -293,14 +297,34 @@ namespace Im
 		//Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGui_ImplGlfw_InitForOpenGL(windowPointer, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(windowPointer), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 		ImGui_ImplOpenGL3_Init();
 
 		Im::SetFlags();
 		Im::SetStyle();
 
-		//ImGui::GetIO().IniFilename = nullptr;
+		ImGui::GetIO().IniFilename = nullptr;
 	}
+
+
+	//void Init(GLFWwindow* windowPointer)
+	//{
+		//if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
+		//{
+		//	Twisted::TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
+		//}
+
+		////Setup Dear ImGui context
+		//IMGUI_CHECKVERSION();
+		//ImGui::CreateContext();
+		//ImGui_ImplGlfw_InitForOpenGL(windowPointer, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+		//ImGui_ImplOpenGL3_Init();
+
+		//Im::SetFlags();
+		//Im::SetStyle();
+
+		//ImGui::GetIO().IniFilename = nullptr;
+	//}
 
 	void SetFlags()
 	{

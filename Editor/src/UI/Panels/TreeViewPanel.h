@@ -1,13 +1,13 @@
 #pragma once
-#include "EditorPanel.h"
-#include "Twisted/Game/Components/CTransform.h"
+#include "UI/EditorPanel.h"
+#include "Game/Components/CTransform.h"
 
 namespace Twisted::Editor
 {
 	class TreeViewPanel :public EditorPanel
 	{
 	public:
-		TreeViewPanel(EditorLayer* editor) :EditorPanel(editor) {}
+		TreeViewPanel(EditorRuntime* editor) :EditorPanel(editor) {}
 		virtual void RenderContent()override;
 		virtual std::string GetName()override { return "Tree View"; }
 

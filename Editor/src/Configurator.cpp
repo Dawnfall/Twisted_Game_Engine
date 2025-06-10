@@ -1,4 +1,3 @@
-#include "editorpch.h"
 #include "Configurator.h"
 #include "EditorConfig.h"
 

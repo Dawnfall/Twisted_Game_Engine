@@ -1,6 +1,6 @@
 #pragma once
 #include "Utils/GlmUtils.h"
-#include "Serialization/XmlSerializer.h"
+#include "Game/Serialization/XmlSerializer.h"
 
 #include <string>
 #include <filesystem>

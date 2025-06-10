@@ -1,4 +1,3 @@
-#include "editorpch.h"
 #include "Project.h"
 #include "Utils/FileUtils.h"
 #include "AppCore.h"

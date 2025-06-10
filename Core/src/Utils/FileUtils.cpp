@@ -1,7 +1,7 @@
 
 #include "FileUtils.h"
 #include "AppCore.h"
-#include "Buffer.h"
+#include "Data/Buffer.h"
 
 #include <filesystem>
 #include <fstream>
@@ -165,6 +165,19 @@ namespace Twisted::Utils
 			if (fs::is_empty(path, ec) && !ec)
 				return true;
 		return false;
+	}
+
+	bool EnsureFileExists(const std::filesystem::path& folder, const std::filesystem::path& filename)
+	{
+		std::error_code ec;
+		std::filesystem::create_directories(folder, ec); // No throw, error in ec
+
+		std::filesystem::path filePath = folder / filename;
+		if (std::filesystem::exists(filePath, ec))
+			return true;
+
+		std::ofstream ofs(filePath);
+		return ofs.good();
 	}
 
 	std::vector<fs::path> LoadFiles(const fs::path& folderPath, const std::string& extension)

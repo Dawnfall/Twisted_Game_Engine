@@ -1,17 +1,14 @@
-#include "editorpch.h"
-
 #include "TreeViewPanel.h"
-#include "EditorLayer.h"
 //#include "Twisted/Game/World.h"
-#include "Twisted/Game/Components/CTransform.h"
-#include "Twisted/Game/Components/CName.h"
+#include "Game/Components/CTransform.h"
+#include "Game/Components/CName.h"
+#include "EditorRuntime.h"
 
 namespace Twisted::Editor
 {
 	void TreeViewPanel::RenderContent()
 	{
-		auto world = editor->GetActiveWorld();
-		if (!world)
+		if (!m_editor->GetGameWorld())
 			return;
 
 		RenderTreeNode(NullEntity);
@@ -19,7 +16,7 @@ namespace Twisted::Editor
 		//handle change
 		if (m_siblingIndex >= 0)
 		{
-			CTransform& draggedTransform = world->GetComponent<CTransform>(m_draggedEnt);
+			CTransform& draggedTransform = m_editor->GetGameWorld()->GetComponent<CTransform>(m_draggedEnt);
 			draggedTransform.SetParent(m_dropedOnEnt);
 			draggedTransform.SetSiblingsIndex(m_siblingIndex);
 
@@ -34,24 +31,24 @@ namespace Twisted::Editor
 	{
 		if (entity == NullEntity)
 		{
-			int rootsCount = editor->GetActiveWorld()->GetRootEntities().size();
+			int rootsCount = m_editor->GetGameWorld()->GetRootEntities().size();
 			for (int i = 0; i < rootsCount; i++)
 			{
-				RenderDropZone(NullEntity, i,false);
-				RenderTreeNode(editor->GetActiveWorld()->GetRootEntities()[i]);
+				RenderDropZone(NullEntity, i, false);
+				RenderTreeNode(m_editor->GetGameWorld()->GetRootEntities()[i]);
 				if (i == rootsCount - 1)
-					RenderDropZone(NullEntity, i + 1,true);
+					RenderDropZone(NullEntity, i + 1, true);
 			}
 		}
 		else
 		{
-			CTransform& transform = editor->GetActiveWorld()->GetComponent<CTransform>(entity);
-			const CName& name = editor->GetActiveWorld()->GetComponent<CName>(entity);
+			CTransform& transform = m_editor->GetGameWorld()->GetComponent<CTransform>(entity);
+			const CName& name = m_editor->GetGameWorld()->GetComponent<CName>(entity);
 
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
 			if (transform.GetChildCount() == 0)
 				flags |= ImGuiTreeNodeFlags_Leaf;
-			if (editor->GetSelectedEntity() == transform.GetEntityID())
+			if (m_editor->GetSelectedEntity() == transform.GetEntityID())
 				flags |= ImGuiTreeNodeFlags_Selected;
 
 			std::string nodeID = name.GetName() + "###" + std::to_string((int)entity);
@@ -67,21 +64,21 @@ namespace Twisted::Editor
 				}
 				if (ImGui::IsItemClicked())
 				{
-					editor->SetSelectedEntity(entity);
+					m_editor->SetSelectedEntity(entity);
 				}
 
 				RenderDropZone(entity, transform.GetSiblingsIndex(), false);
 				for (EntityID child : transform.GetChildren())
 					RenderTreeNode(child);
 				if (transform.GetSiblingsIndex() == transform.GetSiblingsCount() - 1)
-					RenderDropZone(entity, transform.GetSiblingsCount()+1,true);
+					RenderDropZone(entity, transform.GetSiblingsCount() + 1, true);
 
 				ImGui::TreePop();
 			}
 		}
 	}
 
-	void TreeViewPanel::RenderDropZone(EntityID entity, unsigned int position,bool isAfter)
+	void TreeViewPanel::RenderDropZone(EntityID entity, unsigned int position, bool isAfter)
 	{
 		// Insert a dummy drop zone BEFORE the node for unparenting
 		ImVec2 cursorPos = ImGui::GetCursorScreenPos();

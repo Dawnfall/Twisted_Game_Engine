@@ -1,20 +1,19 @@
-#include "editorpch.h"
 #include "DetailsPanel.h"
 
-#include "EditorLayer.h"
 #include "UI/Details/CNameRenderer.h"
 #include "UI/Details/CTransformRenderer.h"
+#include "EditorRuntime.h"
 
 namespace Twisted::Editor
 {
 	void DetailsPanel::RenderContent()
 	{
-		auto world = editor->GetActiveWorld();
-		if (!world || editor->GetSelectedEntity() == NullEntity)
+		auto world = m_editor->GetGameWorld();
+		if (!world || m_editor->GetSelectedEntity() == NullEntity)
 			return;
 
 		// Centered entity ID
-		std::string idLabel = "ID: " + std::to_string(static_cast<int>(editor->GetSelectedEntity()));
+		std::string idLabel = "ID: " + std::to_string(static_cast<int>(m_editor->GetSelectedEntity()));
 		float idWidth = ImGui::CalcTextSize(idLabel.c_str()).x;
 		float idPosX = (ImGui::GetContentRegionAvail().x - idWidth) * 0.5f;
 		if (idPosX > 0.0f)

@@ -1,10 +1,6 @@
-#include "twistedpch.h"
 #include "Application.h"
 #include "Twisted.h"
 
-#include "Window.h"
-#include "Monitor.h"
-#include "Layer.h"
 
 namespace Twisted
 {
@@ -15,46 +11,26 @@ namespace Twisted
 			Twisted::TWISTED_WARN("Cannot start application; Application already running!");
 			return;
 		}
+		if (m_runtime)
+			m_runtime->OnCreate();
 
-		if (!Twisted::Init())
-			return;
-
-		for (auto& layer : m_layers)
-			layer->OnInit();
-
+		Logger::Init(); //makro for these debug
 		m_time.Start();
 
-		m_monitor = Monitor::CreateMonitorInfo();
-		m_window = Window::CreateNewWindow("Temp name", nullptr, Vec2i(800, 600), Vec2i(400, 400));
+		if (m_runtime)
+			m_runtime->OnInit();
 
-		m_window->CloseWindowEvent.AddListener([&]() {
-			this->Stop();
-			});
-
-		for (auto& layer : m_layers)
-			layer->OnBeforeRun();
+		if (m_runtime)
+			m_runtime->OnBeforeRun();
 
 		m_isRunning = true;
 		while (m_isRunning)
 		{
-			m_window->PollEvents();
-			//m_window->ClearWindow();
-
-			for (auto& layer : m_layers)
-				layer->OnFrameBegin();
-
-			for (auto& layer : m_layers)
-				layer->OnFrame();
-
-			for (auto& layer : m_layers)
-				layer->OnFrameEnd();
-
-			m_window->SwapBuffers();
+			if (m_runtime)
+				m_runtime->OnFrame();
 		}
 
-		for (auto& layer : m_layers)
-			layer->OnTerminate();
-
-		Twisted::Terminate();
+		if (m_runtime)
+			m_runtime->OnTerminate();
 	}
 }

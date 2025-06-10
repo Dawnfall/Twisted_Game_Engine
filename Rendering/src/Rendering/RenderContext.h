@@ -1,7 +1,7 @@
 #pragma once
 #include "AppCore.h"
 #include "FrameBuffer.h"
-#include "Utils/Color.h"
+#include "Data/Color.h"
 
 namespace Twisted::Render
 {

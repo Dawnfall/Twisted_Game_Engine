@@ -1,11 +1,10 @@
-#include "editorpch.h"
-#include "EditorLayer.h"
 #include "Twisted/Application/Application.h"
+#include "EditorRuntime.h"
 
 int main()
 {
-	Twisted::Application app;
-	app.AddLayer<Twisted::Editor::EditorLayer>();
+	Twisted::Editor::EditorRuntime runtime;
+	Twisted::Application app(&runtime);
 	app.Run();
 
 	return 0;

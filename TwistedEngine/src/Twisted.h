@@ -1,16 +1,25 @@
 #pragma once
-#include "AppCore.h"
-#include "Rendering/Shader.h"
-#include "Rendering/Texture.h"
 
-namespace rend = Twisted::Render;
+//managers
+#include "Twisted/Managers/ResourceManager.h"
 
-namespace Twisted
-{
-	bool TWISTED_API Init();
-	void TWISTED_API Terminate();
+//systems
+#include "Game/SystemBase.h"
+#include "Game/Systems/RenderSystem.h"
 
-	URef<rend::ShaderData> TWISTED_API ImportShaderData(const std::filesystem::path& assetPath);
-	URef<rend::TextureData> TWISTED_API ImportTextureData(const std::filesystem::path& assetPath);
+//********************
+// World
 
-}
+#include "Game/World.h"
+
+
+//components
+
+#include "Game/Components/CTransform.h"
+#include "Game/Components/CCamera.h"
+#include "Game/Components/CRenderer.h"
+#include "Game/Components/CLight.h"
+
+//resources
+
+//#include "Twisted/Resources/KeyCodes.h"

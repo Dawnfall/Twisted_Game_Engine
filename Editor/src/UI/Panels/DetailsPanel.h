@@ -1,7 +1,8 @@
 #pragma once
-#include "EditorPanel.h"
-#include "EditorLayer.h"
+#include "UI/EditorPanel.h"
 #include "UI/Details/DetailsRenderer.h"
+#include "EditorRuntime.h"
+#include "Game/Entity.h"
 
 namespace Twisted
 {
@@ -13,7 +14,7 @@ namespace Twisted::Editor
 	class DetailsPanel :public EditorPanel
 	{
 	public:
-		DetailsPanel(EditorLayer* editor) :EditorPanel(editor) {}
+		DetailsPanel(EditorRuntime* editor) :EditorPanel(editor) {}
 		virtual void RenderContent()override;
 		virtual std::string GetName()override { return "Details Panel"; }
 
@@ -21,8 +22,8 @@ namespace Twisted::Editor
 		template<typename T>
 		void RenderComponent()
 		{
-			EntityID selectedEntity = editor->GetSelectedEntity();
-			T* component = editor->GetActiveWorld()->template TryGetComponent<T>(selectedEntity);
+			EntityID selectedEntity = m_editor->GetSelectedEntity();
+			T* component = m_editor->GetGameWorld()->template TryGetComponent<T>(selectedEntity);
 
 			if (!component)
 				return;

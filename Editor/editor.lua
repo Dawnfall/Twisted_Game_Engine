@@ -7,9 +7,6 @@ project "Editor"
     targetdir ("%{wks.location}/bin/" .. outputDir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputDir .. "/%{prj.name}")
 
-    pchheader "editorpch.h"  -- This is the precompiled header file
-    pchsource "src/editorpch.cpp" -- This is the source file that compiles the precompiled header
-      
     files
     {
         "src/**.h",
@@ -20,7 +17,9 @@ project "Editor"
     {
         "Core",
         
+        "Windowing",
         "Rendering",
+        "Gameing",
         "TwistedEngine",
         "GLFW",
 
@@ -31,8 +30,9 @@ project "Editor"
     {
         "%{IncludeDirs.Editor}",
         "%{IncludeDirs.Core}",
-        "%{IncludeDirs.Utils}",
+        "%{IncludeDirs.Windowing}",
         "%{IncludeDirs.Rendering}",
+        "%{IncludeDirs.Gameing}",
         "%{IncludeDirs.TwistedEngine}",
         "%{IncludeDirs.GLM}",
         "%{IncludeDirs.GLFW}",
@@ -61,7 +61,9 @@ project "Editor"
         symbols "on"
         postbuildcommands {
             "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine_d.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Windowing/Windowing_d.dll %{cfg.targetdir}",
             "{COPY} %{wks.location}/bin/".. outputDir .. "/Rendering/Rendering_d.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Gameing/Gameing_d.dll %{cfg.targetdir}"
         }
 
     filter "configurations:Release"
@@ -71,5 +73,7 @@ project "Editor"
         optimize "on"
         postbuildcommands {
             "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Windowing/Windowing_d.dll %{cfg.targetdir}",
             "{COPY} %{wks.location}/bin/".. outputDir .. "/Rendering/Rendering.dll %{cfg.targetdir}",
+            "{COPY} %{wks.location}/bin/".. outputDir .. "/Gameing/Gameing.dll %{cfg.targetdir}"
         }

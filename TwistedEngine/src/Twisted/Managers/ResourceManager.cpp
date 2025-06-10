@@ -1,13 +1,51 @@
-#include "twistedpch.h"
 #include "ResourceManager.h"
 #include "AppCore.h"
-#include "Utils/MeshCollections.h"
+#include "Data/MeshCollections.h"
 #include "Utils/FileUtils.h"
 #include "Constants.h"
 #include "Rendering/Model.h"
+#include "Data/TextureData.h"
+#include "stbi_image/stb_image.h"
+
+namespace rend = Twisted::Render;
 
 namespace Twisted
 {
+	URef<ShaderData> ImportShaderData(const std::filesystem::path& assetPath)
+	{
+		std::string shaderText = Utils::ReadFileContent(assetPath);
+		std::vector<std::string> shaderCodes = Utils::SplitString(shaderText, SHADER_DELIMITER);
+
+		if (shaderCodes.size() != 2)
+		{
+			TWISTED_WARN("Invalid shader file: " + assetPath.string());
+			return nullptr;
+		}
+
+		URef<ShaderData> shaderData;
+		shaderData->Name = assetPath.stem().string();
+		shaderData->VertShaderCode = shaderCodes[0];
+		shaderData->FragShaderCode = shaderCodes[1];
+
+		return shaderData;
+	}
+
+	URef<TextureData> ImportTextureData(const std::filesystem::path& assetPath)
+	{
+		std::string ext = assetPath.extension().string();
+		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga")
+		{
+			int width, height, channels;
+			unsigned char* data = stbi_load(assetPath.string().c_str(), &width, &height, &channels, 0);
+
+			if (data != nullptr)
+				return std::make_unique<TextureData>(width, height, channels, data);
+			return nullptr;
+		}
+		TWISTED_WARN("Unsuported texture format");
+		return nullptr;
+	}
+
 	//const SRef<Texture> ResourceManager::GetTexture(const std::filesystem::path& path)
 	//{
 	//	auto texture = m_textures.find(path.string());

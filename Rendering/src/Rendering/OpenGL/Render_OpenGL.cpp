@@ -51,7 +51,6 @@ namespace Twisted::Render
 		//	type, severity, message);
 	}
 
-
 	bool InitRenderer(void* context)
 	{
 		if (!gladLoadGLLoader(static_cast<GLADloadproc>(context))) {

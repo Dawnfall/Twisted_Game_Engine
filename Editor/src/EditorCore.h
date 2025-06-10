@@ -12,3 +12,13 @@
 //	#define EDITOR_UPDATE(app)
 //#endif
 
+//From file dialog
+//#ifdef _WIN32
+//#define NOMINMAX
+//#include <shellapi.h>
+//#include <lmcons.h>
+//#pragma comment(lib, "Shell32.lib")
+//#else
+//#include <unistd.h>
+//#include <pwd.h>
+//#endif

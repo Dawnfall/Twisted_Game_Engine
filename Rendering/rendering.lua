@@ -23,11 +23,9 @@ project "Rendering"
     {
         "%{IncludeDirs.Rendering}",
         "%{IncludeDirs.Core}",
-        "%{IncludeDirs.Utils}",
         "%{IncludeDirs.Glad}",
         "%{IncludeDirs.spdlog}", 
-        "%{IncludeDirs.GLM}",
-        "%{IncludeDirs.stbi_image}"
+        "%{IncludeDirs.GLM}"
     }
 
     defines
