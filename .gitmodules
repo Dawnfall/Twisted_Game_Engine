@@ -1,3 +1,4 @@
 [submodule "3rd/imgui"]
 	path = 3rd/imgui
 	url = https://github.com/Dawnfall/imgui.git
+	branch = docking
