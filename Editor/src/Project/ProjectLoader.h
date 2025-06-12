@@ -2,9 +2,9 @@
 
 #include <imgui.h>
 #include "AppCore.h"
-#include "Windowing/NativeUtils.h"
+#include "Twisted/Windowing/NativeUtils.h"
 #include "Project/Project.h"
-#include "Windowing/Window.h"
+#include "Twisted/Windowing/Window.h"
 #include <string>
 
 namespace Twisted::Editor

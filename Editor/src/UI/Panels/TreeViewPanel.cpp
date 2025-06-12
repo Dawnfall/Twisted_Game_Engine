@@ -1,7 +1,7 @@
 #include "TreeViewPanel.h"
 //#include "Twisted/Game/World.h"
-#include "Game/Components/CTransform.h"
-#include "Game/Components/CName.h"
+#include "Twisted/Gameing/Components/CTransform.h"
+#include "Twisted/Gameing/Components/CName.h"
 #include "EditorRuntime.h"
 
 namespace Twisted::Editor

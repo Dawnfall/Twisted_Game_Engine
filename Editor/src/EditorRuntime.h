@@ -1,8 +1,8 @@
 #pragma once
 #include "Twisted/Application/RuntimeBase.h"
-#include "Game/GameLayer.h"
-#include "Rendering/RenderLayer.h"
-#include "Windowing/WindowLayer.h"
+#include "Twisted/Gameing/GameLayer.h"
+#include "Twisted/Rendering/RenderLayer.h"
+#include "Twisted/Windowing/WindowLayer.h"
 
 #include "Project/Project.h"
 #include "Configurator.h"

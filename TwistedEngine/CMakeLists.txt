@@ -1,55 +1,40 @@
-add_library(TwistedEngine SHARED)
+file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
+    "src/*.cpp"
+    "src/*.h"
+    )
+
+add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES})
 
 set_target_properties(TwistedEngine PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
+
+    OUTPUT_NAME "TwistedEngine$<$<CONFIG:Debug>:_d>"
 )
 
-set_property(TARGET TwistedEngine PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded&<&<CONFIG:Debug>:Debug>DLL")
-
-set_target_properties(TwistedEngine PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${outputDir}/$<TARGET_NAME>_static"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${outputDir}/$<TARGET_NAME>_exe"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${outputDir}/$<TARGET_NAME>_dynamic"
-)
-
-file(GLOB_RECURSE TWISTED_ENGINE_SOURCES
-    "src/*.h"
-    "src/*.cpp"
-)
-target_sources(TwistedEngine PRIVATE ${TWISTED_ENGINE_SOURCES})
-
+set_property(TARGET TwistedEngine PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 target_include_directories(TwistedEngine PUBLIC
     ${IncludeDirs_TwistedEngine}
-    ${IncludeDirs_Core}
-    ${IncludeDirs_Gameing}
-    ${IncludeDirs_Rendering}
-    ${IncludeDirs_Windowing}
-    ${includeDirs_spdlog}
-    ${IncludeDirs_EnTT}
-    ${IncludeDirs_GLM}
+    "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
 )
 
-target_link_libraries(Gameing PRIVATE
-    Core
-    Windowing
-    Rendering
-    Gameing
+target_link_libraries(TwistedEngine PRIVATE
+    glm::glm
+    glfw
+    glad::glad
+    spdlog::spdlog
 )
 
-target_compile_definitions(Gameing PRIVATE
+target_compile_definitions(TwistedEngine PRIVATE
     TWISTED_ENGINE
     GLFW_INCLUDE_NONE
     GLFW_EXCLUDE_VULKAN
-)
 
-target_compile_definitions(Rendering PRIVATE
-    "$<$<CONFIG:Debug>:TWISTED_DEBUG>"
-    "$<$<CONFIG:Release>:TWISTED_RELEASE>"
+    $<$<CONFIG:Debug>:TWISTED_DEBUG>
+    $<$<CONFIG:Release>:TWISTED_RELEASE>
 )
-
-target_compile_options(Rendering PRIVATE
-    "$<$<CONFIG:Debug>:/Zi>"      # Enable debug info (MSVC)
-    "$<$<CONFIG:Release>:/O2>"    # Optimize for speed (MSVC)
+target_compile_options(TwistedEngine PRIVATE
+    $<$<CONFIG:Debug>:/Zi>      # Enable debug info (MSVC)
+    $<$<CONFIG:Release>:/O2>    # Optimize for speed (MSVC)
 )

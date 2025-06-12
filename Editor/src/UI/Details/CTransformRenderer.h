@@ -1,7 +1,7 @@
 #pragma once
 #include "DetailsRenderer.h"
 
-#include "Game/Components/CTransform.h"
+#include "Twisted/Gameing/Components/CTransform.h"
 #include "imgui.h"
 
 namespace Twisted::Editor

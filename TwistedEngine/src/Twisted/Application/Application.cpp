@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "Twisted.h"
-
+#include "Logger.h"
 
 namespace Twisted
 {
@@ -8,7 +8,7 @@ namespace Twisted
 	{
 		if (m_isRunning)
 		{
-			Twisted::TWISTED_WARN("Cannot start application; Application already running!");
+			TWISTED_WARN("Cannot start application; Application already running!");
 			return;
 		}
 		if (m_runtime)

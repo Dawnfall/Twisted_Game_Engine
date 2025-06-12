@@ -2,7 +2,7 @@
 #include "UI/EditorPanel.h"
 #include "UI/Details/DetailsRenderer.h"
 #include "EditorRuntime.h"
-#include "Game/Entity.h"
+#include "Twisted/Gameing/Entity.h"
 
 namespace Twisted
 {

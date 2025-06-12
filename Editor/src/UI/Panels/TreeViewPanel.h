@@ -1,6 +1,6 @@
 #pragma once
 #include "UI/EditorPanel.h"
-#include "Game/Components/CTransform.h"
+#include "Twisted/Gameing/Components/CTransform.h"
 
 namespace Twisted::Editor
 {

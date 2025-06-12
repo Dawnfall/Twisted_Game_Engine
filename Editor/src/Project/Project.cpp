@@ -1,6 +1,6 @@
 #include "Project.h"
 #include "Utils/FileUtils.h"
-#include "AppCore.h"
+#include "Logger.h"
 
 namespace Twisted::Editor
 {

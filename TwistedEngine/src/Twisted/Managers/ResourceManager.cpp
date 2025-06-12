@@ -1,12 +1,11 @@
 #include "ResourceManager.h"
-#include "AppCore.h"
-#include "Data/MeshCollections.h"
+#include "Twisted/Data/MeshCollections.h"
 #include "Utils/FileUtils.h"
-#include "Constants.h"
-#include "Rendering/Model.h"
-#include "Data/TextureData.h"
-#include "stbi_image/stb_image.h"
-
+#include "Twisted/Rendering/Constants.h"
+#include "Twisted/Rendering/Model.h"
+#include "Twisted/Data/TextureData.h"
+#include "stb_image.h"
+#include "Logger.h"
 namespace rend = Twisted::Render;
 
 namespace Twisted

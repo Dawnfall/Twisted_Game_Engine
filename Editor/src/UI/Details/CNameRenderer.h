@@ -1,6 +1,6 @@
 #pragma once
 #include "DetailsRenderer.h"
-#include "Game/Components/CName.h"
+#include "Twisted/Gameing/Components/CName.h"
 #include "imgui.h"
 #include "UI/ImguiExtensions.h"
 

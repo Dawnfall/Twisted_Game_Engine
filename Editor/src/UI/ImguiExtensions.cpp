@@ -1,10 +1,10 @@
 #include "ImguiExtensions.h"
-#include "AppCore.h"
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 
 #include <GLFW/glfw3.h>
 #include <filesystem>
+#include "Logger.h"
 
 namespace Im
 {
@@ -291,7 +291,7 @@ namespace Im
 	{
 		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
 		{
-			Twisted::TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
+			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
 		}
 
 		//Setup Dear ImGui context

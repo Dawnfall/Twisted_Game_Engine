@@ -4,21 +4,21 @@
 #include "Twisted/Managers/ResourceManager.h"
 
 //systems
-#include "Game/SystemBase.h"
-#include "Game/Systems/RenderSystem.h"
+#include "Twisted/Gameing/SystemBase.h"
+#include "Twisted/Gameing/Systems/RenderSystem.h"
 
 //********************
 // World
 
-#include "Game/World.h"
+#include "Twisted/Gameing/World.h"
 
 
 //components
 
-#include "Game/Components/CTransform.h"
-#include "Game/Components/CCamera.h"
-#include "Game/Components/CRenderer.h"
-#include "Game/Components/CLight.h"
+#include "Twisted/Gameing/Components/CTransform.h"
+#include "Twisted/Gameing/Components/CCamera.h"
+#include "Twisted/Gameing/Components/CRenderer.h"
+#include "Twisted/Gameing/Components/CLight.h"
 
 //resources
 
