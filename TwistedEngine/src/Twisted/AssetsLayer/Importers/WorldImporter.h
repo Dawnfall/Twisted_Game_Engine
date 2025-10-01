@@ -1,0 +1,37 @@
+#pragma once
+#include "Twisted/AssetsLayer/AssetImporter.h"
+
+namespace Twisted
+{
+	const std::string ASSET_WORLD_TYPE = "world";
+
+	class TWISTED_API WorldImporter :public AssetImporter
+	{
+	public:
+		inline std::vector<fs::path> GetAssetExtensions()const
+		{
+			return { ".world" };
+		}
+		inline bool ImportOnStart()const { return false; }
+
+		AssetObjects CreateObjects(AssetObjects& currObjects)const override;
+		void PostCreate(const AssetInfo& assetInfo, AssetObjects& objects, AssetsLayer* assetsLayer)const override;
+
+		void FillDefaultInfo(YAML::Node& node)const override
+		{
+			node[ASSET_TYPE_KEY] = ASSET_WORLD_TYPE;
+		}
+
+		void Export()
+		{
+			//FillDefaultInfo();
+			//SaveInfo();
+			//buffer.SaveToFile(GetAssetPath());
+		}
+
+	private:
+
+	};
+
+
+}

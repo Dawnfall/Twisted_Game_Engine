@@ -1,5 +1,6 @@
 #pragma once
 #include "AppCore.h"
+
 #include <filesystem>
 #include <vector>
 #include <string>
@@ -48,9 +49,9 @@ namespace Twisted::Utils
 
 	bool TWISTED_API EnsureFileExists(const std::filesystem::path& folder, const std::filesystem::path& filename);
 
-	bool TWISTED_API WriteBufferToFile(const std::filesystem::path& filepath, const char* buffer, std::size_t size);
-
-	bool TWISTED_API ReadBufferFromFile(const std::filesystem::path& filepath, char* buffer, std::size_t size);
+	std::vector<fs::path> TWISTED_API ListAllRelativeFiles(const fs::path& folderPath, const std::vector<fs::path>& extensions = {});
+	
+	bool TWISTED_API DeleteAtPath(const std::filesystem::path& path);
 
 	//// Method to write buffer to a binary file
 	//bool WriteBufferToFile(const std::string& filePath, const Buffer& buffer);

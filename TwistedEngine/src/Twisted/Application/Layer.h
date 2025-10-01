@@ -11,7 +11,15 @@ namespace Twisted
 			m_app(app)
 		{
 		}
-		virtual ~Layer(){}
+
+		virtual void Init() {};
+
+		Layer(const Layer& other) = delete;
+		Layer(Layer&& other) = delete;
+		Layer& operator=(const Layer& other) = delete;
+		Layer& operator=(Layer&& other) = delete;
+
+		virtual ~Layer() {}
 
 		Application* GetApplication() { return m_app; }
 

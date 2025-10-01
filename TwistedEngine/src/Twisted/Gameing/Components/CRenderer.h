@@ -2,12 +2,13 @@
 
 #include "AppCore.h"
 #include "Twisted/Gameing/AComponent.h"
-#include "Twisted/Gameing/Serialization/WorldSerializer.h"
+#include "Twisted/RegisterLayer/ObjectManager.h"
+#include "Twisted/Rendering/Mesh.h"
+#include "Twisted/Rendering/Material.h"
 
-namespace Twisted::Render
+namespace Twisted
 {
-	class Material;
-	class Mesh;
+	class RegistrationLayer;
 }
 
 namespace Twisted
@@ -15,11 +16,21 @@ namespace Twisted
 	class TWISTED_API CRenderer :public AComponent
 	{
 	public:
-		CRenderer(EntityID entityID, World* world) :AComponent(entityID, world) {}
+		CRenderer(EntityID entity, World* world) :AComponent(entity,world) {}
+		
+		ObjectID& GetSharedMesh() { return m_mesh; }
+		void SetSharedMesh(ObjectID mesh) { m_mesh = mesh; }
+		ObjectID& GetSharedMaterial() { return m_material; }
+		void SetSharedMaterial(ObjectID material) { m_material = material; }
 
-		SRef<Render::Material> Material;
-		SRef<Render::Mesh> Mesh;
+		//Serialization
+		void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const override;
+		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) override;
 
+	private:
+
+		ObjectID m_material;
+		ObjectID m_mesh;
 	};
 
 	//template<>

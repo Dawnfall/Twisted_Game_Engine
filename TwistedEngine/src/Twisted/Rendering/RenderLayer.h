@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace Twisted::Render
+namespace Twisted
 {
 	class RenderLayer :public Layer
 	{
@@ -18,19 +18,19 @@ namespace Twisted::Render
 
 		void InitWindowContext(void* context)
 		{
-			Render::InitRenderer(context);
+			InitRenderer(context);
 		}
 
-		Twisted::Render::RenderContext* GetContext(const std::string& name)
+		RenderContext* GetContext(const std::string& name)
 		{
 			//auto res = std::find(m_contexts.begin(), m_contexts.end(), name);
 			//if (res != m_contexts.end())
 			//	return &res->second;
 			return nullptr;
 		}
-		Twisted::Render::RenderContext* CreateNew(const std::string& name,unsigned int width,unsigned int height)
+		RenderContext* CreateNew(const std::string& name,unsigned int width,unsigned int height)
 		{
-			m_contexts.emplace(name, Twisted::Render::RenderContext(width, height));
+			m_contexts.emplace(name, RenderContext(width, height));
 			return &m_contexts.at(name);
 		}
 		bool RemoveContext(const std::string& name)
@@ -39,7 +39,7 @@ namespace Twisted::Render
 		}
 
 	private:
-		std::unordered_map<std::string, Twisted::Render::RenderContext> m_contexts;
+		std::unordered_map<std::string, RenderContext> m_contexts;
 	};
 
 

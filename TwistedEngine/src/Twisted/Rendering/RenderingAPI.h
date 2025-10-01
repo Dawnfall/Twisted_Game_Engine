@@ -1,7 +1,7 @@
 #pragma once
 #include "AppCore.h"
 
-namespace Twisted::Render
+namespace Twisted
 {
 	bool TWISTED_API InitRenderer(void* context);
 }

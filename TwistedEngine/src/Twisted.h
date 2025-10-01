@@ -1,8 +1,5 @@
 #pragma once
 
-//managers
-#include "Twisted/Managers/ResourceManager.h"
-
 //systems
 #include "Twisted/Gameing/SystemBase.h"
 #include "Twisted/Gameing/Systems/RenderSystem.h"

@@ -3,7 +3,7 @@
 #include "Twisted/Data/Color.h"
 #include "Utils/GlmUtils.h"
 
-namespace Twisted::Render
+namespace Twisted
 {
 	class TWISTED_API FrameBuffer
 	{

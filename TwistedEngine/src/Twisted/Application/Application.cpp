@@ -6,19 +6,21 @@ namespace Twisted
 {
 	void Application::Run()
 	{
+		Logger::Init(); //makro for these debug
+
 		if (m_isRunning)
 		{
 			TWISTED_WARN("Cannot start application; Application already running!");
 			return;
 		}
+
 		if (m_runtime)
 			m_runtime->OnCreate();
 
-		Logger::Init(); //makro for these debug
-		m_time.Start();
+		for (auto& layer : m_layers)
+			layer->Init();
 
-		if (m_runtime)
-			m_runtime->OnInit();
+		m_time.Start();
 
 		if (m_runtime)
 			m_runtime->OnBeforeRun();

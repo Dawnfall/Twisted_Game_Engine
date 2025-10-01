@@ -42,7 +42,9 @@ namespace Twisted
 			}
 			return nullptr;
 		}
+
 	private:
+
 		RuntimeBase* m_runtime = nullptr;
 		TimeManager m_time;
 

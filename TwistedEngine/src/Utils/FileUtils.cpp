@@ -1,6 +1,5 @@
 
 #include "FileUtils.h"
-#include "Twisted/Data/Buffer.h"
 
 #include <filesystem>
 #include <fstream>
@@ -114,22 +113,43 @@ namespace Twisted::Utils
 	bool CreateFolder(const fs::path& folderPath) //corrected
 	{
 		std::error_code ec;
-		if (fs::create_directories(folderPath, ec) && !ec)
-			return true;
-		return false;
+		bool result = fs::create_directories(folderPath, ec);
+
+		if (ec)
+			TWISTED_WARN("Cannot create folder at path: " + folderPath.string() + ", error: " + ec.message());
+		return result;
 	}
 
 	bool CreateNewFile(const fs::path& filePath) //corrected
 	{
 		std::error_code ec;
-		if (fs::exists(filePath, ec) || ec)
+		bool doExists = fs::exists(filePath, ec);
+		if (ec)
+		{
+			TWISTED_WARN("Cannot create file at path: " + filePath.string() + ", error: " + ec.message());
 			return false; // File already exists or error checking
+		}
+		if (doExists)
+		{
+			TWISTED_INFO("File already exists: " + filePath.string());
+			return true;
+		}
 
-		std::ofstream file(filePath);
-		if (!file.is_open())
+		try
+		{
+			std::ofstream file(filePath);
+			if (!file.is_open())
+				return false;
+			file.close();
+			return true;
+
+		}
+		catch (...)
+		{
+			TWISTED_WARN("Error creating file: " + filePath.string());
 			return false;
-		file.close();
-		return true;
+		}
+
 	}
 
 	std::string ReadFileContent(const fs::path& filePath)
@@ -202,78 +222,28 @@ namespace Twisted::Utils
 		return files;
 	}
 
-	bool WriteBufferToFile(const std::filesystem::path& filepath, const Buffer& buffer)
+
+
+	// Add this method
+	std::vector<std::filesystem::path> TWISTED_API ListAllRelativeFiles(const std::filesystem::path& folderPath, const std::vector<std::filesystem::path>& extensions)
+	{
+		std::vector<std::filesystem::path> result;
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(folderPath))
+		{
+			if (entry.is_regular_file() && (extensions.empty() || std::find(extensions.begin(), extensions.end(), entry.path().extension()) != extensions.end()))
+			{
+				result.push_back(std::filesystem::relative(entry.path(), folderPath));
+			}
+		}
+		return result;
+	}
+
+	bool DeleteAtPath(const std::filesystem::path& path)
 	{
 		std::error_code ec;
-		std::ofstream file(filepath, std::ios::out | std::ios::binary);
-		if (!file)
-		{
-			TWISTED_WARN("Failed to open file for writing: ");
+		std::filesystem::remove(path, ec); // Use error_code to avoid exceptions
+		if (ec)
 			return false;
-		}
-
-		size_t dataSize = buffer.GetDataSize();
-		file.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
-		file.write(buffer.GetData(), dataSize);
-		file.close();
-
-		if (ec || !file.good())
-		{
-			TWISTED_WARN("Error occurred while writing to file: ");
-			return false;
-		}
-
 		return true;
 	}
-
-	Buffer ReadBufferFromFile(const std::filesystem::path& filepath)
-	{
-		std::ifstream file(filepath, std::ios::in | std::ios::binary);
-		if (!file)
-		{
-			TWISTED_WARN("Failed to open file for reading: ");
-			return Buffer(0);
-		}
-
-		size_t dataSize = 0;
-		file.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
-
-		Buffer buffer(dataSize);
-		file.read(buffer.DataPointer(), dataSize);
-		file.close();
-
-		if (!file.good())
-		{
-			TWISTED_WARN("Error occurred while reading from file: ");
-			return Buffer(0);
-		}
-
-		return buffer;
-	}
-
-	//bool ReadBufferFromFile(const std::string& filePath, Buffer& buffer)
-	//{
-	//	std::ifstream inFile(filePath, std::ios::binary | std::ios::ate);
-	//	if (!inFile)
-	//	{
-	//		std::cerr << "Failed to open file for reading: " << filePath << std::endl;
-	//		return false;
-	//	}
-	//	std::streamsize fileSize = inFile.tellg();
-	//	inFile.seekg(0, std::ios::beg);
-
-	//	buffer.Data = new char[fileSize];
-	//	buffer.Size = static_cast<size_t>(fileSize);
-
-	//	if (!inFile.read(buffer.Data, fileSize))
-	//	{
-	//		std::cerr << "Failed to read file: " << filePath << std::endl;
-	//		delete[] buffer.Data;
-	//		buffer.Data = nullptr;
-	//		buffer.Size = 0;
-	//		return false;
-	//	}
-	//	inFile.close();
-	//	return true;
-	//}
 }

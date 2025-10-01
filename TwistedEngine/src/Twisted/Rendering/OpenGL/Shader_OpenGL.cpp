@@ -1,8 +1,10 @@
 #include "Twisted/Rendering/Shader.h"
-#include <glad/glad.h>
-#include <Logger.h>
+#include "Logger.h"
+#include "Twisted/Rendering/Material.h"
+#include "Constants.h"
 
-namespace Twisted::Render
+#include <glad/glad.h>
+namespace Twisted
 {
 	ShaderVarType FromGLShaderType(GLenum glShaderVarType)
 	{
@@ -52,7 +54,6 @@ namespace Twisted::Render
 		}
 	}
 
-
 	GLuint CompileShaderCode(GLenum shaderType, const char* shaderName, const char* shaderCode)
 	{
 		GLuint shaderID = glCreateShader(shaderType);
@@ -77,99 +78,149 @@ namespace Twisted::Render
 		}
 		return shaderID;
 	}
-	GLuint CompileProgram(GLuint vertexID, GLuint fragmentID)
+
+	Shader::Shader(ObjectID id) :
+		BaseObject(id)
 	{
-		GLuint shaderProgramID = glCreateProgram();
-		glAttachShader(shaderProgramID, vertexID);
-		glAttachShader(shaderProgramID, fragmentID);
-		glLinkProgram(shaderProgramID);
 
-		int success;
-		char infoLog[512];
-
-		glGetProgramiv(shaderProgramID, GL_LINK_STATUS, &success);
-		if (success != GL_TRUE)
-		{
-			glGetProgramInfoLog(shaderProgramID, 512, NULL, infoLog);
-			TWISTED_ERROR(std::string("Error: Failed to compile shader program!") + infoLog);
-			return 0;
-		}
-		return shaderProgramID;
 	}
 
-	unsigned int CreateShaderProgram(const std::string& vertexShaderCode, const std::string& fragShaderCode)
+	Shader::Shader(ObjectID id, const ShaderData& shaderData) :
+		BaseObject(id)
 	{
-		GLuint vertexID = 0;
-		GLuint fragmentID = 0;
+		Compile(shaderData);
+		if (m_isValid)
+			DetectUniformVars();
+	}
 
-		if (vertexShaderCode != "")
-			vertexID = CompileShaderCode(GL_VERTEX_SHADER, "Vertex", vertexShaderCode.c_str());
-		if (fragShaderCode != "")
-			fragmentID = CompileShaderCode(GL_FRAGMENT_SHADER, "Fragment", fragShaderCode.c_str());
-		GLuint programID = CompileProgram(vertexID, fragmentID);
+	Shader::~Shader()
+	{
+		glDeleteShader(m_programID);
+	}
+
+	void Shader::Compile(const ShaderData& shaderData)
+	{
+		if (shaderData.VertShader == "")
+		{
+			TWISTED_ERROR("Shader compilation failed: missing vertex shader");
+			return;
+		}
+		if (shaderData.FragShader == "")
+		{
+			TWISTED_ERROR("Shader compilation failed: missing fragment shader");
+			return;
+		}
+
+		GLuint vertexID = CompileShaderCode(GL_VERTEX_SHADER, "Vertex", shaderData.VertShader.c_str());
+		GLuint fragmentID = CompileShaderCode(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShader.c_str());
+		GLuint geometryID = 0;
+		if (shaderData.GeoShader != "")
+			geometryID = CompileShaderCode(GL_GEOMETRY_SHADER, "Geometry", shaderData.GeoShader.c_str());
+
+		if (vertexID != 0 && fragmentID != 0 && (geometryID != 0 || shaderData.GeoShader == ""))
+		{
+			m_programID = glCreateProgram();
+			glAttachShader(m_programID, vertexID);
+			glAttachShader(m_programID, fragmentID);
+			if (geometryID != 0)
+				glAttachShader(m_programID, geometryID);
+			glLinkProgram(m_programID);
+
+			int success;
+			char infoLog[512];
+
+			glGetProgramiv(m_programID, GL_LINK_STATUS, &success);
+			if (success != GL_TRUE)
+			{
+				glGetProgramInfoLog(m_programID, 512, NULL, infoLog);
+				TWISTED_ERROR(std::string("Error: Failed to compile shader program!") + infoLog);
+			}
+			else
+			{
+				TWISTED_INFO("Shader compile success;");
+				m_isValid = true;
+			}
+		}
 
 		glDeleteShader(vertexID);
 		glDeleteShader(fragmentID);
-
-		if (programID < 1)
-		{
-			TWISTED_WARN("Shader compile failure; shader: ");
-			return 0;
-		}
-		return programID;
-	}
-
-	bool Shader::Compile()
-	{
-		ProgramID = CreateShaderProgram(Data.VertShaderCode, Data.FragShaderCode);
-		if (ProgramID == 0)
-			return false;
-
-		glUseProgram(ProgramID);
-		TWISTED_INFO("Shader compile success; shader: " + Data.Name);
-
-		DetectUniformVars();
-	}
-	void Shader::UnCompile()
-	{
-		glDeleteShader(ProgramID);
-		ProgramID = 0;
+		glDeleteShader(geometryID);
 	}
 
 	void Shader::DetectUniformVars()
 	{
+		glUseProgram(m_programID);
+
 		GLint count = 1;
-		GLint size; // size of the variable
-		GLenum type; // type of the variable (float, vec3 or mat4, etc)
+		GLint varSize;
+		GLenum varType;
 
-		const GLsizei bufSize = 16; // maximum name length
-		GLchar name[bufSize]; // variable name in GLSL
-		GLsizei length; // name length
+		const GLsizei nameBufferSize = 16; // maximum name length
+		GLchar nameBuffer[nameBufferSize];
+		GLsizei nameLength;
 
-		glGetProgramiv(ProgramID, GL_ACTIVE_UNIFORMS, &count);
+		glGetProgramiv(m_programID, GL_ACTIVE_UNIFORMS, &count);
 		GLint textureUnit = 0;
 		for (int i = 0; i < count; i++)
 		{
-			glGetActiveUniform(ProgramID, (GLuint)i, bufSize, &length, &size, &type, name);
-			GLint uniformID = glGetUniformLocation(ProgramID, name);
+			glGetActiveUniform(m_programID, (GLuint)i, nameBufferSize, &nameLength, &varSize, &varType, nameBuffer);
+			GLint uniformID = glGetUniformLocation(m_programID, nameBuffer);
 
-			if (type == GL_SAMPLER_2D)
+			if (varType == GL_SAMPLER_2D)
 			{
 				glUniform1i(uniformID, textureUnit);
-				ShaderTextureVar texVar{ name,FromGLShaderType(type), uniformID, textureUnit++ };
-				Textures.emplace_back(texVar);
+				ShaderTextureVar texVar{ nameBuffer,FromGLShaderType(varType), uniformID, textureUnit++ };
+				m_textures.emplace_back(texVar);
 			}
 			else
 			{
-				ShaderUniformVar uniVar{ name,FromGLShaderType(type),uniformID };
-				Uniforms.emplace_back(uniVar);
+				ShaderUniformVar uniVar{ nameBuffer,FromGLShaderType(varType),uniformID };
+				m_uniforms.emplace_back(uniVar);
 			}
+		}
+	}
+
+	void Shader::ApplyUniforms(Material* material)const
+	{
+		for (auto& var : m_uniforms)
+		{
+			switch (var.Type)
+			{
+			case ShaderVarType::Bool:
+				SetVar(var.UniformID, material->Get<bool>(var.Name));
+				break;
+			case ShaderVarType::Int:
+				SetVar(var.UniformID, material->Get<int>(var.Name));
+				break;
+			case ShaderVarType::Float:
+				SetVar(var.UniformID, material->Get<float>(var.Name));
+				break;
+			case ShaderVarType::Vec2:
+				SetVar(var.UniformID, material->Get<Vec2f>(var.Name));
+				break;
+			case ShaderVarType::Vec3:
+				SetVar(var.UniformID, material->Get<Vec3f>(var.Name));
+				break;
+			case ShaderVarType::Vec4:
+				SetVar(var.UniformID, material->Get<Vec4f>(var.Name));
+				break;
+			case ShaderVarType::Mat4:
+				SetVar(var.UniformID, material->Get<Mat4x4f>(var.Name));
+				break;
+			default:
+				TWISTED_WARN("Unknown shader uniform type");
+				break;
+			}
+		}
+		for (auto& var : m_textures)
+		{
+			//SetTex(var.TextureUnit, material->GetTextureID(var.Name, 0));
 		}
 	}
 
 	void Shader::Bind()const
 	{
-		glUseProgram(ProgramID);
+		glUseProgram(m_programID);
 	}
 	void Shader::UnBind()const
 	{

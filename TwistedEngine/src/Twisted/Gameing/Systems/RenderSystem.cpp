@@ -1,24 +1,21 @@
 #include "RenderSystem.h"
-#include "Twisted/Rendering/Constants.h"
 
-#include "Twisted/Rendering/RenderingAPI.h"
-
-#include "Twisted/Gameing/World.h"
-#include "Twisted/Gameing/Components/CRenderer.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/Components/CCamera.h"
-
-#include "Twisted/Rendering/Mesh.h"
-#include "Twisted/Rendering/Material.h"
-#include "Twisted/Rendering/RenderContext.h"
-
-namespace rend = Twisted::Render;
+//#include "Twisted/Rendering/RenderingAPI.h"
+//
+//#include "Twisted/Gameing/World.h"
+//#include "Twisted/Gameing/Components/CRenderer.h"
+//#include "Twisted/Gameing/Components/CTransform.h"
+//#include "Twisted/Gameing/Components/CCamera.h"
+//
+//#include "Twisted/Rendering/Mesh.h"
+//#include "Twisted/Rendering/Material.h"
+//#include "Twisted/Rendering/RenderContext.h"
 
 namespace Twisted
 {
-	void RenderSystem::Update()
-	{
-		for (auto& entry : m_entries)
+	//void RenderSystem::Update()
+	//{
+		/*for (auto& entry : m_entries)
 		{
 			const auto& camera = m_world->GetComponent<CCamera>(entry.Camera);
 			auto renderers = m_world->GetComponents<CRenderer, CTransform>();
@@ -43,6 +40,6 @@ namespace Twisted
 				r.Mesh->UnBind();
 			}
 			entry.Context->UnBind();
-		}
-	}
+		}*/
+	//}
 };

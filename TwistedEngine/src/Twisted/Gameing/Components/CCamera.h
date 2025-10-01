@@ -3,8 +3,7 @@
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
 #include "Twisted/Gameing/AComponent.h"
-#include "Twisted/Gameing/Serialization/WorldSerializer.h"
-#include "Twisted/Gameing/Entity.h"
+#include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
 
 namespace Twisted
 {
@@ -17,7 +16,7 @@ namespace Twisted
 	class TWISTED_API CCamera :public AComponent
 	{
 	public:
-		CCamera(EntityID entityID, World* world) : AComponent(entityID, world)
+		CCamera(EntityID entity,World* world) : AComponent(entity,world)
 		{
 
 		}
@@ -45,37 +44,7 @@ namespace Twisted
 		float BotEdge = 1.0f;
 		float TopEdge = 1.0f;
 
-		//friend void Serialize(const CCamera& camera, BinSerializer& serializer);
-		//friend void Deserialize(CCamera& camera, BinSerializer& serializer);
+		void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const override;
+		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) override;
 	};
 }
-//namespace Twisted
-//{
-//	template<>
-//	inline void Serialize(const CCamera& camera, BinSerializer& serializer)
-//	{
-//		serializer.Write<CameraProjectionType>(camera.CameraType);
-//		serializer.Write<float>(camera.NearPlane);
-//		serializer.Write<float>(camera.FarPlane);
-//		serializer.Write<float>(camera.FovDeg);
-//		serializer.Write<float>(camera.AspectRatio);
-//		serializer.Write<float>(camera.LeftEdge);
-//		serializer.Write<float>(camera.RightEdge);
-//		serializer.Write<float>(camera.BotEdge);
-//		serializer.Write<float>(camera.TopEdge);
-//	}
-//
-//	template<>
-//	inline void Deserialize(CCamera& camera, BinSerializer& serializer)
-//	{
-//		camera.CameraType = serializer.Read<CameraProjectionType>();
-//		camera.NearPlane = serializer.Read<float>();
-//		camera.FarPlane = serializer.Read<float>();
-//		camera.FovDeg = serializer.Read<float>();
-//		camera.AspectRatio = serializer.Read<float>();
-//		camera.LeftEdge = serializer.Read<float>();
-//		camera.RightEdge = serializer.Read<float>();
-//		camera.BotEdge = serializer.Read<float>();
-//		camera.TopEdge = serializer.Read<float>();
-//	}
-//}

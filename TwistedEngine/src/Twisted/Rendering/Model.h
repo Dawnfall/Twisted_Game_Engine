@@ -1,29 +1,19 @@
 #pragma once
 #include "AppCore.h"
+#include "Twisted/RegisterLayer/ObjectID.h"
 #include "Mesh.h"
-#include "Texture.h"
 #include "Material.h"
-#include <vector>
-#include <string>
 
-namespace Twisted::Render
+namespace Twisted
 {
-	struct TWISTED_API MaterialData
+	class TWISTED_API Model :public ObjectID
 	{
-		std::string Name;
-		SRef<Texture> Diffuse;
-	};
+	public:
+		Model(uint64_t id) :
+			ObjectID(id)
+		{}
 
-	struct TWISTED_API Model
-	{
-		struct TWISTED_API ModelNode
-		{
-			std::string Name;
-			SRef<Mesh> Mesh;
-			SRef<MaterialData> Material;
-		};
-
-		std::string Path;
-		std::vector<ModelNode> Nodes;
+		std::vector<Material*> Materials;
+		std::vector<Mesh*> Meshes;
 	};
 }

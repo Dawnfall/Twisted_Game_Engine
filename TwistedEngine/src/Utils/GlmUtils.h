@@ -8,8 +8,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/string_cast.hpp>
-
 #include <string>
+
+#include <yaml-cpp/yaml.h>
 
 using Quat = glm::quat;
 
@@ -30,24 +31,6 @@ using Mat4x4f = glm::mat<4, 4, float>;
 //**************
 // Directions
 
-namespace Directions
-{
-	const Vec3f Forward(0.0f, 0.0f, -1.0f);
-	const Vec3f Back(0.0f, 0.0f, 1.0f);
-	const Vec3f Right(1.0f, 0.0f, 0.0f);
-	const Vec3f Left(-1.0f, 0.0f, 0.0f);
-	const Vec3f Up(0.0f, 1.0f, 0.0f);
-	const Vec3f Down(0.0f, -1.0f, 0.0f);
-
-	const Vec3f Zero(0.0f);
-	const Vec3f One(1.0f);
-
-	const Mat4x4f IdentityMat(1.0f);
-	const Mat4x4f ZeroMat(0.0f);
-
-	const Quat IdentityQuat(1.0f, 0.0f, 0.0f, 0.0f);
-}
-
 namespace Utils
 {
 	std::string TWISTED_API toString(const glm::vec2& vec);
@@ -63,3 +46,133 @@ namespace Utils
     glm::mat3 TWISTED_API fromStringMat3(const std::string& str);
     glm::mat4 TWISTED_API fromStringMat4(const std::string& str);
 }
+
+template<>
+struct YAML::convert<glm::vec<2, float>>
+{
+	static YAML::Node encode(const glm::vec<2, float>& rhs) {
+		YAML::Node node;
+		node.push_back(rhs.x);
+		node.push_back(rhs.y);
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, glm::vec<2, float>& rhs) {
+		if (!node.IsSequence() || node.size() != 2)
+			return false;
+		rhs.x = node[0].as<float>();
+		rhs.y = node[1].as<float>();
+		return true;
+	}
+};
+
+template<>
+struct YAML::convert<glm::vec<3, float>>
+{
+	static YAML::Node encode(const glm::vec<3, float>& rhs) {
+		YAML::Node node;
+		node.push_back(rhs.x);
+		node.push_back(rhs.y);
+		node.push_back(rhs.z);
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, glm::vec<3, float>& rhs) {
+		if (!node.IsSequence() || node.size() != 3)
+			return false;
+		rhs.x = node[0].as<float>();
+		rhs.y = node[1].as<float>();
+		rhs.z = node[2].as<float>();
+		return true;
+	}
+};
+
+template<>
+struct YAML::convert<glm::vec<4, float>>
+{
+	static YAML::Node encode(const glm::vec<4, float>& rhs) {
+		YAML::Node node;
+		node.push_back(rhs.x);
+		node.push_back(rhs.y);
+		node.push_back(rhs.z);
+		node.push_back(rhs.w);
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, glm::vec<4, float>& rhs) {
+		if (!node.IsSequence() || node.size() != 4)
+			return false;
+		rhs.x = node[0].as<float>();
+		rhs.y = node[1].as<float>();
+		rhs.z = node[2].as<float>();
+		rhs.w = node[3].as<float>();
+		return true;
+	}
+};
+
+template<>
+struct YAML::convert<glm::mat3>
+{
+	static YAML::Node encode(const glm::mat3& rhs) {
+		YAML::Node node;
+		for (int col = 0; col < 3; ++col) {
+			YAML::Node colNode;
+			for (int row = 0; row < 3; ++row) {
+				colNode.push_back(rhs[col][row]);
+			}
+			node.push_back(colNode);
+		}
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, glm::mat3& rhs)
+	{
+		if (!node.IsSequence() || node.size() != 3)
+			return false;
+		for (int col = 0; col < 3; ++col) {
+			const YAML::Node& colNode = node[col];
+			if (!colNode.IsSequence() || colNode.size() != 3)
+				return false;
+			for (int row = 0; row < 3; ++row) {
+				rhs[col][row] = colNode[row].as<float>();
+			}
+		}
+		return true;
+	}
+};
+
+template<>
+struct YAML::convert<glm::mat4>
+{
+	static YAML::Node encode(const glm::mat4& rhs)
+	{
+		YAML::Node node;
+		for (int col = 0; col < 4; ++col)
+		{
+			YAML::Node colNode;
+			for (int row = 0; row < 4; ++row)
+			{
+				colNode.push_back(rhs[col][row]);
+			}
+			node.push_back(colNode);
+		}
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, glm::mat4& rhs)
+	{
+		if (!node.IsSequence() || node.size() != 4)
+			return false;
+		for (int col = 0; col < 4; ++col)
+		{
+			const YAML::Node& colNode = node[col];
+			if (!colNode.IsSequence() || colNode.size() != 4)
+				return false;
+			for (int row = 0; row < 4; ++row)
+			{
+				rhs[col][row] = colNode[row].as<float>();
+			}
+		}
+		return true;
+	}
+};

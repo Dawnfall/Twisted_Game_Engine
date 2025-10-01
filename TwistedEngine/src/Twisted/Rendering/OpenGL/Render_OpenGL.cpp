@@ -4,7 +4,8 @@
 #include <iostream>
 #include <format>
 #include "Logger.h"
-namespace Twisted::Render
+
+namespace Twisted
 {
 	void openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
 		const GLchar* message, const void* userParam)
@@ -68,5 +69,6 @@ namespace Twisted::Render
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 
 		TWISTED_INFO("OpenGL init success");
+		return true;
 	}
 }

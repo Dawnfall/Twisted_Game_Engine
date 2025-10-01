@@ -5,31 +5,28 @@
 #include "Twisted/Gameing/Components/CName.h"
 #include "Twisted/Gameing/Systems/RenderSystem.h"
 
+#include "ComponentRegistry.h"
+
+#include "Twisted/AssetsLayer/AssetsLayer.h"
+
 namespace Twisted
 {
-	World::World(Application* app) :
-		m_app(app)
+	World::World(ObjectID id) :
+		BaseObject(id)
 	{
 	}
 
+	void World::Clear()
+	{
+		m_registry.clear();
+		m_systems.clear();
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	void World::DestroyEntity(EntityID entity)
+	{
+		if (m_registry.valid(entity))
+			m_registry.destroy(entity);
+	}
 
 	void World::UpdateFrame()
 	{
@@ -37,29 +34,76 @@ namespace Twisted
 			system->Update();
 	}
 
-	void World::Serialize(BinSerializer& buffer)const
+	BinSerializer World::Serialize(AssetsLayer* assetsLayer)const
 	{
-		buffer.Write<std::string>(GetUUID());
+		Twisted::BinSerializer buffer;
 
-		std::vector<EntityID> allEntityIDs = GetAllEntityIDs();
-		buffer.Write<std::vector<EntityID>>(allEntityIDs);
+		buffer.Write<std::vector<EntityID>>(GetRootEntities());
+		for_each_type(AllComponents{}, [&buffer, this, assetsLayer]<typename T>() {
+			auto view = m_registry.view<T>();
 
-		buffer.Write<std::vector<EntityID>>(m_rootEntities);
+			// Count the elements manually
+			size_t count = 0;
+			for (auto entity : view) ++count;
+			buffer.Write<size_t>(count);
 
-		serializeComponents<CTransform>(buffer);
-		serializeComponents<CName>(buffer);
+			for (auto entity : view)
+			{
+				buffer.Write<EntityID>(entity);
+				view.get<T>(entity).Serialize(buffer, assetsLayer);
+			}
+		});
+
+		return buffer;
 	}
 
-	void World::Deserialize(BinSerializer& buffer)
+	void World::Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)
 	{
-		m_uuid = buffer.Read<std::string>();
-
-		std::vector<EntityID> allEntityIDs = buffer.Read<std::vector<EntityID>>();
-		m_registry.create(allEntityIDs.begin(), allEntityIDs.end());
-
 		m_rootEntities = buffer.Read<std::vector<EntityID>>();
 
-		deSerializeComponents<CTransform>(buffer);
-		deSerializeComponents<CName>(buffer);
+		for_each_type(AllComponents{}, [&buffer, this, assetsLayer]<typename T>() {
+
+			size_t compCount = buffer.Read<size_t>();
+			for (int i = 0; i < compCount; i++)
+			{
+				EntityID entID = buffer.Read<EntityID>();
+				if (!m_registry.valid(entID))
+					m_registry.create(entID);
+
+				T& newComponent = m_registry.emplace<T>(entID, entID, this);
+				newComponent.Deserialize(buffer, assetsLayer);
+			}
+		});
 	}
+
+	/*void World::PostSerialize(BinSerializer& buffer)const
+	{
+		forEachType<AllComponents>([&]<typename T>() {
+
+			auto view = m_registry.view<T>();
+
+			size_t count = 0;
+			for (auto entity : view) ++count;
+			buffer.Write<size_t>(count);
+
+			for (auto entity : view)
+			{
+				buffer.Write<EntityID>(entity);
+				view.get<T>(entity).PostSerialize(buffer);
+			}
+		});
+	}
+
+	void World::PostDeserialize(BinSerializer& buffer)
+	{
+		forEachType<AllComponents>([&]<typename T>() {
+
+			size_t compCount = buffer.Read<size_t>();
+			for (int i = 0; i < compCount; i++)
+			{
+				EntityID entID = buffer.Read<EntityID>();
+				m_registry.get<T>(entID).PostDeserialize(buffer);
+			}
+		});
+	}*/
 }

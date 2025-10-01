@@ -1,33 +1,46 @@
 #pragma once
 
 #include "AppCore.h"
+#include "Twisted/RegisterLayer/BaseObject.h"
 #include "Twisted/Gameing/SystemBase.h"
-#include "Entity.h"
-#include "Twisted/Application/Application.h"
-#include "Twisted/Data/Serializer.h"
+#include "Twisted/Gameing/ComponentRegistry.h"
+#include <unordered_map>
 
-#include "Twisted/UUIDObject.h"
+#include <EnTT/entt.hpp>
+
 #include "Components/CTransform.h"
 #include "Components/CName.h"
 
 namespace Twisted
 {
-	class TWISTED_API World :public UUIDObject
+	class TWISTED_API World :public BaseObject
 	{
 	public:
-		World(Application* app);
+		World(ObjectID id);
+		//template<typename Func>
+		//void ForEachEntity(Func&& func) const
+		//{
+		//	m_registry.each([&func](EntityID entity) {
+		//		func(entity);
+		//		});
+		//}
 
-		Application& GetApplication() { return *m_app; }
+		auto GetAllEntities() const { return m_registry.storage<entt::entity>(); }
+
+		std::vector<EntityID> GetAllEntitiesAsVector()const
+		{
+			std::vector<EntityID> allEntities;
+			auto allEnts = GetAllEntities();
+			//std::copy(allEnts->begin(), allEnts->end(), allEntities);
+			return allEntities;
+		}
+
 		const std::vector<EntityID>& GetRootEntities()const { return m_rootEntities; }
+		std::vector<EntityID>& GetRootEntities() { return m_rootEntities; }
 
 		void UpdateFrame();
 
-		void Clear()
-		{
-			m_registry.clear();
-			m_systems.clear();
-			m_rootEntities.clear();
-		}
+		void Clear();
 
 		template<typename... ComponentTypes>
 		EntityID CreateEntity()
@@ -36,90 +49,87 @@ namespace Twisted
 			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
 			static_assert((!std::is_same<CName, ComponentTypes>::value && ...), "Component types must not be CName");
 
-			EntityID entityID = m_registry.create();
-			m_registry.emplace<CTransform>(entityID, entityID, this);
-			m_registry.emplace<CName>(entityID, entityID, this);
-			(m_registry.emplace<ComponentTypes>(entityID, entityID, this), ...);
+			EntityID newEntity = m_registry.create();
 
-			return entityID;
+			AddComponent<CTransform>(newEntity);
+			AddComponent<CName>(newEntity);
+			(AddComponent<ComponentTypes>(newEntity), ...);
+
+			return newEntity;
 		}
 
-		void DestroyEntity(EntityID entityID)
+		template<typename T, typename ... Args>
+		T& AddComponent(EntityID entity, Args&&... arguments)
 		{
-			m_registry.destroy(entityID);
+			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
+			T& newComponent = m_registry.emplace<T>(entity, entity, this, std::forward<Args>(arguments)...);
+			newComponent.Init();
 		}
 
-		std::vector<EntityID> GetAllEntityIDs() const
+		template<typename T>
+		T& AddComponent(EntityID entity)
 		{
-			std::vector<EntityID> entityIDs;
-			entityIDs.reserve(m_registry.storage<entt::entity>()->size()); // Pre-allocate memory for performance
-			
-			auto view = m_registry.view<CName>(); // we can keep track ourselves
-			for (auto entity : view)
-			{
-				entityIDs.push_back(entity);
-			}
-			return entityIDs;
+			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
+			//static_assert(!std::is_same<CTransform, T>::value, "Component type must not be CTransform");
+			//static_assert(!std::is_same<CName, T>::value, "Component type must not be CName");
+			T& newComponent = m_registry.emplace<T>(entity, entity, this);
+			newComponent.Init();
+			return newComponent;
 		}
 
-		template<typename FirstComponent, typename... OtherComponents>
-		FirstComponent* AddComponents(EntityID entityID)
+		template<typename... Components>
+		void AddComponents(EntityID entity)
 		{
-			static_assert(std::is_base_of<AComponent, FirstComponent>::value, "FirstComponent must derive from AComponent");
-			static_assert((std::is_base_of<AComponent, OtherComponents>::value && ...), "All types must derive from AComponent");
-			static_assert(!std::is_same<CTransform, FirstComponent>::value, "Component types must not be CTransform");
-			static_assert((!std::is_same<CTransform, OtherComponents>::value && ...), "Component types must not be CTransform");
-			static_assert(!std::is_same<CName, FirstComponent>::value, "Component types must not be CName");
-			static_assert((!std::is_same<CName, OtherComponents>::value && ...), "Component types must not be CName");
+			static_assert((std::is_base_of<AComponent, Components>::value && ...), "All types must derive from AComponent");
 
-			FirstComponent& firstComponent = m_registry.emplace<FirstComponent>(entityID, entityID, this);
-			(m_registry.emplace<OtherComponents>(entityID, entityID, this), ...);
-			return &firstComponent;
+			(AddComponent<Components>(entity), ...);
 		}
 
 		template<typename... ComponentTypes>
-		void RemoveComponents(EntityID entityID)
+		void RemoveComponents(EntityID entity)
 		{
 			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
 			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
 
-			(m_registry.remove<ComponentTypes>(entityID), ...);
+			(m_registry.remove<ComponentTypes>(entity), ...);
 		}
 
 		template <typename T>
-		T& GetComponent(EntityID entityID)
+		T& GetComponent(EntityID entity)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return m_registry.get<T>(entityID);
+			return m_registry.get<T>(entity);
 		}
 
 		template <typename T>
-		const T& GetComponent(EntityID entityID)const
+		const T& GetComponent(EntityID entity)const
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return m_registry.get<T>(entityID);
+			return m_registry.get<T>(entity);
 		}
 
 		template <typename T>
-		T* TryGetComponent(EntityID entityID)
+		T* TryGetComponent(EntityID entity)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return m_registry.try_get<T>(entityID);
+			return m_registry.try_get<T>(entity);
 		}
 
 		template<typename T>
-		bool HasComponent(EntityID entityID)
+		bool HasComponent(EntityID entity)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return m_registry.any_of<T>(entityID);
+			return m_registry.any_of<T>(entity);
 		}
 
 		template<typename... ComponentTypes>
-		bool HasComponents(EntityID entityID)
+		bool HasComponents(EntityID entity)
 		{
 			static_assert(std::is_base_of<AComponent, ComponentTypes>::value, "T must derive from AComponent");
-			return m_registry.all_of<ComponentTypes...>(entityID);
+			return m_registry.all_of<ComponentTypes...>(entity);
 		}
+
+		void DestroyEntity(EntityID entity);
 
 		template<typename... ComponentTypes>
 		auto GetComponents()
@@ -150,44 +160,23 @@ namespace Twisted
 			m_systems.emplace_back(std::make_unique<T>(this));
 		}
 
-		//Serialization
-		void Serialize(BinSerializer& buffer)const;
-		void Deserialize(BinSerializer& buffer);
+		bool IsValid(EntityID entity)const { return m_registry.valid(entity); }
 
-		template<typename T>
-		void serializeComponents(BinSerializer& buffer)const
-		{
-			auto componentsView = GetComponents<T>();
-			buffer.Write<size_t>(componentsView.size());
-			for (auto entId : componentsView)
-			{
-				const T component = componentsView.get<0>(entId);
-				buffer.Write<EntityID>(component.GetEntityID());
-				component.Serialize(buffer);
-			}
-			buffer.Write<std::vector<EntityID>>(m_rootEntities);
-		}
-
-		template<typename T>
-		void deSerializeComponents(BinSerializer& buffer)
-		{
-			size_t compCount = buffer.Read<size_t>();
-			for (size_t i = 0; i < compCount; i++)
-			{
-				EntityID entityID = buffer.Read<EntityID>();
-				T& component = m_registry.emplace<T>(entityID, entityID, this);
-				component.Deserialize(buffer);
-			}
-			m_rootEntities = buffer.Read<std::vector<EntityID>>();
-		}
+		BinSerializer Serialize(AssetsLayer* assetsLayer)const;
+		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer);
+		//void PostSerialize(BinSerializer& buffer)const;
+		//void PostDeserialize(BinSerializer& buffer);
 
 	private:
-
-		Application* m_app;
 		entt::registry m_registry;
+
 		std::vector<std::unique_ptr<SystemBase>> m_systems;
 		std::vector<EntityID> m_rootEntities;
 
+		friend class WorldImporter;
+		friend class ComponentRegistry;
 		friend class CTransform;
 	};
+
 }
+

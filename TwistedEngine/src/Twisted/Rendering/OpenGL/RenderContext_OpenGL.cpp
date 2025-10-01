@@ -1,7 +1,7 @@
 #include "Twisted/Rendering/RenderContext.h"
 #include "glad/glad.h"
 
-namespace Twisted::Render
+namespace Twisted
 {
 	RenderContext::RenderContext(int w, int h) :
 		frameBuffer(std::make_unique<FrameBuffer>(w, h))

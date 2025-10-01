@@ -4,11 +4,11 @@
 #include <vector>
 #include <string>
 
-struct Resource 
-{
-    std::string fileName;
-    std::string content;
-};
+//struct Resource 
+//{
+//    std::string fileName;
+//    std::string content;
+//};
 
 namespace Twisted::Utils
 {
@@ -19,24 +19,32 @@ namespace Twisted::Utils
 	}
 
 	template<typename T>
-	void MoveItemInVector(std::vector<T>& vec, size_t from, size_t to)
+	bool RemoveElement(std::vector<T>& vec,const T& el)
 	{
-		if (from == to || from >= vec.size() || to > vec.size())
-			return;
-
-		auto item = vec[from];
-		vec.erase(vec.begin() + from);
-		// If moving forward, the erase shifts indices down, so adjust 'to'
-		if (to > from) --to;
-		vec.insert(vec.begin() + to, item);
+		auto it = std::find(vec.begin(), vec.end(), el);
+		if (it != vec.end())
+		{
+			vec.erase(it);
+			return true;
+		}
+		return false;
 	}
 
-	std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
+	template<typename T>
+	void MoveItemInVector(std::vector<T>& vec, size_t from, size_t to)
+	{
+		if (from == to || from >= vec.size() || to >= vec.size())
+			return;
 
-	std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
+		T item = std::move(vec[from]);
+		vec.erase(vec.begin() + from);
 
-	std::string GenerateGUID();
+		vec.insert(vec.begin() + to, std::move(item));
+	}
 
-	void StringToArray(const std::string& str, char* buffer, size_t bufferSize);
+	TWISTED_API std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
 
+	TWISTED_API std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
+
+	TWISTED_API void StringToArray(const std::string& str, char* buffer, size_t bufferSize);
 }

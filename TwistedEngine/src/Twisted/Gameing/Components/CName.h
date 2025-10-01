@@ -1,28 +1,22 @@
 #pragma once
 
 #include "Twisted/Gameing/AComponent.h"
-#include "Twisted/Data/Serializer.h"
+#include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
 
 namespace Twisted
 {
-	class CName :public AComponent
+	class TWISTED_API CName :public AComponent
 	{
 	public:
-		CName(EntityID id, World* world) :AComponent(id, world),
-			m_name(std::to_string(static_cast<int>(id)))
+		CName(EntityID entity, World* world) :AComponent(entity,world),
+			m_name(std::to_string(static_cast<int>(entity)))
 		{}
 
 		const std::string& GetName()const { return m_name; }
 		void SetName(const std::string& newName) { m_name = newName; }
 
-		void Serialize(BinSerializer& buffer)const
-		{
-			buffer.Write<std::string>(m_name);
-		}
-		void Deserialize(BinSerializer& buffer)
-		{
-			m_name = buffer.Read<std::string>();
-		}
+		void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const override;
+		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)override;
 
 	private:
 		std::string m_name;

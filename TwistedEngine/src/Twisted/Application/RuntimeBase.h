@@ -7,7 +7,6 @@ namespace Twisted
 	{
 	public:
 		virtual void OnCreate() {}
-		virtual void OnInit() {}
 		virtual void OnBeforeRun() {}
 		virtual void OnFrame() {}
 		virtual void OnTerminate() {}

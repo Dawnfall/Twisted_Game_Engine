@@ -55,7 +55,7 @@ namespace Utils
     glm::ivec2 fromStringVec2i(const std::string& str)
     {
         glm::ivec2 vec;
-        if (sscanf(str.c_str(), "vec2(%f, %f)", &vec.x, &vec.y) != 2) {
+        if (sscanf(str.c_str(), "vec2(%d, %d)", &vec.x, &vec.y) != 2) {
             throw std::invalid_argument("Invalid format for vec2");
         }
         return vec;

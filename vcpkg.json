@@ -1,10 +1,14 @@
 {
+  "name": "twisted-engine",
+  "builtin-baseline": "640e297f1b67c4eb5a71d202a6a19355645676b5",
   "dependencies": [
     "entt",
     "glad",
     "glfw3",
     "glm",
     "spdlog",
-    "stb"
+    "stb",
+    "yaml-cpp",
+    "rapidobj"
   ]
 }

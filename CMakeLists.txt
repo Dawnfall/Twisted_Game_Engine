@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.16)
 project (TwistedEngine LANGUAGES CXX)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -9,6 +9,8 @@ endif()
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
 endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FS")
 
 set(OUTPUT_DIR "${CMAKE_BUILD_TYPE}-${CMAKE_SYSTEM_NAME}-x64")
 
@@ -26,15 +28,18 @@ set(IncludeDirs_imgui
     "${CMAKE_SOURCE_DIR}/3rd/imgui/backends"
 )
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(entt CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
+find_package(RapidObj CONFIG REQUIRED)
 
 #third party
 add_subdirectory(3rd/imgui)
-#add_subdirectory(3rd/pugixml)
 
 #submodules
 add_subdirectory(TwistedEngine)

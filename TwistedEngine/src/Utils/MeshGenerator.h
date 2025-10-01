@@ -1,8 +1,7 @@
 #pragma once
+#include "Twisted/Rendering/Mesh.h"
 
 namespace Twisted
 {
-	void CreateIcosahedron();
-
-
+	[[nodiscard]] MeshData CreateIcosahedron(size_t iterCount);
 }

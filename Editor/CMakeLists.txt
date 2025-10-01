@@ -4,6 +4,7 @@ file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
 )
 
 add_executable(Editor ${EDITOR_SOURCES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_SOURCES})
 
 set_target_properties(Editor PROPERTIES
     CXX_STANDARD 20
@@ -12,6 +13,7 @@ set_target_properties(Editor PROPERTIES
 
     OUTPUT_NAME "Editor$<$<CONFIG:Debug>:_d>"
 )
+
 
 set_property(TARGET Editor PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
@@ -26,17 +28,8 @@ target_link_libraries(Editor PRIVATE
     glfw
     glm::glm
     imgui
+    yaml-cpp::yaml-cpp
 )
-
-# add_custom_command(TARGET Editor POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#         "$<TARGET_FILE:TwistedEngine>"  # Full path to built DLL
-#         "$<TARGET_FILE_DIR:TwistedEditor>"
-# )
-
-        # postbuildcommands {
-        #     "{COPY} %{wks.location}/bin/".. outputDir .. "/TwistedEngine/TwistedEngine_d.dll %{cfg.targetdir}",
-        # }
 
 target_compile_definitions(Editor PRIVATE
     GLFW_INCLUDE_NONE

@@ -1,224 +1,167 @@
 #include "EditorRuntime.h"
-#include "imgui.h"
-#include "Twisted/Windowing/NativeUtils.h"
-#include "Utils/FileUtils.h"
-
 #include "EditorConstants.h"
+
+#include "Twisted/Application/Application.h"
+
+#include "EditorRegistry.h"
+#include "EditorLayer.h"
+#include "ProjectLoader.h"
+#include "Twisted/Rendering/RenderLayer.h"
+#include "Twisted/Windowing/WindowLayer.h"
+#include "Twisted/RegisterLayer/ObjectManager.h"
+#include "Twisted/AssetsLayer/AssetsLayer.h"
+
 #include "UI/Panels/DetailsPanel.h"
 #include "UI/Panels/TreeViewPanel.h"
 #include "UI/Panels/WorldViewPanel.h"
+#include "UI/Panels/AssetsPanel.h"
 #include "UI/ImguiExtensions.h"
+
+#include "UI/Details/Components/CTransformPainter.h"
+#include "UI/Details/Components/CNamePainter.h"
+#include "UI/Details/Components/CRendererPainter.h"
+
+#include "Twisted/AssetsLayer/Importers/TextureImporter.h"
+#include "Twisted/AssetsLayer/Importers/ShaderImporter.h"
+#include "Twisted/AssetsLayer/Importers/ModelImporter.h"
+#include "Twisted/AssetsLayer/Importers/WorldImporter.h"
+#include "Twisted/AssetsLayer/Importers/MaterialImporter.h"
+
+#include "Twisted/Rendering/Mesh.h"
+#include "Twisted/Rendering/Shader.h"
+#include "Twisted/BuiltIn/MeshCollections.h"
+
+#include <filesystem>
+#include <string>
+#include <memory>
+#include <imgui.h>
 
 namespace Twisted::Editor
 {
 	void EditorRuntime::OnCreate()
 	{
-		m_windowLayer = App->AddLayer<Twisted::WindowLayer>();
-		m_renderLayer = App->AddLayer<Twisted::Render::RenderLayer>();
-		m_gameLayer = App->AddLayer<Twisted::GameLayer>();
+		RegisterLayers();
 	}
 
-	void EditorRuntime::OnInit()
+	void EditorRuntime::LoadBuiltIn()
 	{
-		//ProjectChangeEvent.AddListener([this]() {
-		//	if (GetActiveProject())
-		//		m_windowLayer->GetWindow()->SetTitle(Constants::windowTitle + " : " + GetActiveProject()->GetName());
-		//	else
-		//		m_windowLayer->GetWindow()->SetTitle(Constants::windowTitle);
-		//	});
-
-		m_window = m_windowLayer->CreateNewWindow("Temp name", Vec2i(1000, 800), Vec2i(400, 400));
-		rend::InitRenderer(m_window->GetContextAdress());
-		Im::Init(m_windowLayer->GetWindow()->GetRawPointer());
-
-		m_window->CloseWindowEvent.AddListener([&]() {
-			this->App->Stop();
-			});
-		m_window->SetTitle(Constants::windowTitle);
-
-		CreateEditorPanel<TreeViewPanel>();
-		CreateEditorPanel<DetailsPanel>();
-		CreateEditorPanel<WorldViewPanel>();
-		//m_configurator.LoadConfig();
+		ObjectManager::GetInstance().CreateObject<Mesh>(Collections::triangleMesh);
+		ObjectManager::GetInstance().CreateObject<Mesh>(Collections::quadMesh);
+		ObjectManager::GetInstance().CreateObject<Mesh>(Collections::cubeMesh);
 	}
 
 	void EditorRuntime::OnBeforeRun()
 	{
-		m_gameWorld = m_gameLayer->CreateNewWorld();
-		m_editorWorld = m_gameLayer->CreateNewWorld();
+		m_editorLayer->EditorConfigData.LoadConfig();
 
-		m_projectLoader = std::make_unique<ProjectLoader>(this);
+		RegisterImporters();
+		RegisterPanels();
+		RegisterPainters();
+
+		Project::GetInstance().ProjectChangeEvent.AddListener([this]() {
+			layoutFilePath = (Project::GetInstance().GetRootPath() / "EditorLayout.ini").string();
+			Im::SetLayoutIniFile(layoutFilePath,true);
+
+			m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + Project::GetInstance().GetName());
+			m_window->SetSize(m_editorLayer->EditorConfigData.GetWindowSize());
+			m_window->SetPosition(m_editorLayer->EditorConfigData.GetWindowPos());
+			LoadResources();
+			});
+
+		StartWindow();
+
+		m_window->SetSize(Vec2i{ 1200,500 });
 	}
 
 	void EditorRuntime::OnFrame()
 	{
 		m_window->PollEvents();
-		//m_window->ClearWindow();
+		m_window->Clear(Constants::WINDOW_CLEAR_COLOR);
 
 		Im::StartFrame();
-
-		if (m_projectLoader)
+		if (Project::GetInstance().GetRootPath() == "")
 		{
-
-			//ImGui::Begin("Project Loader", nullptr, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar);
-
-			m_projectLoader->Render();
-			if (m_projectLoader->SelectedProject)
-			{
-				SetActiveProject(m_projectLoader->SelectedProject);
-				m_projectLoader = nullptr;
-			}
-
-			//ImGui::End();
+			m_projectLoader->Render(m_window);
 		}
 		else
 		{
-			RenderMenuBar();
-			RenderDockSpace();
+			m_editorLayer->Render(m_window);
 		}
-
 		Im::EndFrame();
+
 		m_window->SwapBuffers();
 	}
 
-	void EditorRuntime::SetSelectedEntity(EntityID selectedEntity)
+	void EditorRuntime::OnTerminate()
 	{
-		if (m_selectedEntityID == selectedEntity)
-			return;
-		m_selectedEntityID = selectedEntity;
+		m_editorLayer->EditorConfigData.SetWindowPos(m_window->GetPosition());
+		m_editorLayer->EditorConfigData.SetWindowSize(m_window->GetSize());
+
+		m_editorLayer->EditorConfigData.SaveConfig();
 	}
 
-	void EditorRuntime::RenderMenuBar()
+	void EditorRuntime::StartWindow()
 	{
-		// Push style settings
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 15));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15, 15));
-		// Create the menu bar
-		if (ImGui::BeginMainMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Exit"))
-				{
-					App->Stop();
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Project"))
-			{
-				if (ImGui::MenuItem("New World"))
-				{
-					CreateNewWorld();
-				}
-				if (ImGui::MenuItem("Open World"))
-				{
-					std::filesystem::path path = Native::OpenFileDialog(*m_windowLayer->GetWindow(), { {L"world file (*.world)",L"*.world"} });
-					if (!path.empty())
-					{
-						LoadWorld(path);
-					}
-				}
-				if (ImGui::MenuItem("Save World As"))
-				{
-					if (m_gameWorld)
-					{
-						std::filesystem::path path = Native::SaveFileDialog(*m_windowLayer->GetWindow(), { {L"world file (*.world)",L"*.world"} });
-						if (!path.empty())
-						{
-							SaveWorldAs(path);
-						}
-					}
-				}
-				if (ImGui::MenuItem("Save World"))
-				{
+		m_window = m_windowLayer->CreateNewWindow(Constants::LOADUP_WIN_TITLE,Constants::LOADUP_WIN_SIZE,Constants::LOADUP_WIN_POS);
+		InitRenderer(m_window->GetContextAdress());
+		Im::Init(m_windowLayer->GetWindow()->GetRawPointer());
+		Im::SetLayoutIniFile("");
 
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Panels"))
-			{
-				for (auto& panel : Panels)
-				{
-					if (ImGui::MenuItem(panel->GetName().c_str(), nullptr, panel->IsShowing))
-						panel->IsShowing = !panel->IsShowing;
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Create"))
-			{
-				if (ImGui::MenuItem("New Entity"))
-				{
-					if (m_gameWorld)
-						EntityID newEntt = m_gameWorld->CreateEntity();
-				}
-				ImGui::EndMenu();
-			}
-		}
-		ImGui::EndMainMenuBar();
-
-		ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
+		m_window->CloseWindowEvent.AddListener([&]() {
+			this->App->Stop();
+			});
+		m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE);
 	}
 
-	void EditorRuntime::RenderDockSpace()
+	void EditorRuntime::LoadResources()
 	{
-		std::string mainDockSpaceLabel = "MainDockSpace";
-		float menuBarHeight = ImGui::GetFrameHeight() + 22; // Get the actual height of the menu bar
-		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-
-		ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight));
-		ImGui::SetNextWindowSize(ImVec2(displaySize.x, displaySize.y - menuBarHeight));
-		ImGui::SetNextWindowBgAlpha(1.0f);
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-
-		ImGui::Begin(mainDockSpaceLabel.c_str(), nullptr, window_flags);
-		ImGuiID dockspace_id = ImGui::GetID(mainDockSpaceLabel.c_str());
-		ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_None);
-		ImGui::End();
-
-		for (auto& panel : Panels)
-		{
-			ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_FirstUseEver);
-			ImGui::Begin(panel->GetName().c_str(), &panel->IsShowing);
-
-			// Get the size of the panel
-			ImVec2 size = ImGui::GetContentRegionAvail();
-
-			// Resize the framebuffer if the size has changed
-			if (size.x != panel->Size.x || size.y != panel->Size.y)
-			{
-				panel->Size = Vec2i(size.x, size.y);
-				panel->PanelResizeEvent.Invoke();
-			}
-
-			panel->RenderContent();
-			ImGui::End();
-		}
+		auto assetsFolder = Project::GetInstance().GetAssetsFolder();
+		m_assetsLayer->ImportAssets(assetsFolder);
+		LoadBuiltIn();
 	}
 
-	void EditorRuntime::CreateNewWorld()
+	void EditorRuntime::RegisterLayers()
 	{
-		if (m_gameWorld)
-		{
-			m_gameLayer->DestroyWorld(m_gameWorld);
-			m_gameLayer->DestroyWorld(m_editorWorld);
-		}
-		m_gameWorld = m_gameLayer->CreateNewWorld();
-		m_editorWorld = m_gameLayer->CreateNewWorld();
+		m_projectLoader = App->AddLayer<ProjectLoader>();
 
-		WorldChangeEvent.Invoke();
+		m_windowLayer = App->AddLayer<Twisted::WindowLayer>();
+		m_renderLayer = App->AddLayer<Twisted::RenderLayer>();
+		m_assetsLayer = App->AddLayer<AssetsLayer>();
+		m_editorLayer = App->AddLayer<EditorLayer>();
 	}
 
-	void EditorRuntime::LoadWorld(const std::filesystem::path& path)
+	void EditorRuntime::RegisterPanels()
 	{
-		BinSerializer buffer;
-		buffer.LoadFromFile(path);
-		m_gameWorld->Deserialize(buffer);
+		m_editorLayer->CreateEditorPanel<TreeViewPanel>();
+		m_editorLayer->CreateEditorPanel<DetailsPanel>();
+		m_editorLayer->CreateEditorPanel<WorldViewPanel>();
+		m_editorLayer->CreateEditorPanel<AssetsPanel>();
 	}
 
-	void EditorRuntime::SaveWorldAs(const std::filesystem::path& path)
+	void EditorRuntime::RegisterImporters()
 	{
-		BinSerializer buffer;
-		m_gameWorld->Serialize(buffer);
-		buffer.SaveToFile(path);
+		m_assetsLayer->RegisterImporter<Twisted::TextureImporter>();
+		m_assetsLayer->RegisterImporter<Twisted::ShaderImporter>();
+		m_assetsLayer->RegisterImporter<Twisted::ModelImporter>();
+		m_assetsLayer->RegisterImporter<Twisted::WorldImporter>();
+		m_assetsLayer->RegisterImporter<Twisted::MaterialImporter>();
+	}
+
+	void EditorRuntime::RegisterPainters()
+	{
+		EditorRegistry::GetInstance().RegisterComponentPainter<CNamePainter>();
+		EditorRegistry::GetInstance().RegisterComponentPainter<CTransformPainter>();
+		EditorRegistry::GetInstance().RegisterComponentPainter<CRendererPainter>();
+	}
+
+	void EditorRuntime::CreateObjects()
+	{
+		//for (const auto& pair : m_assetsLayer->GetAssets())
+		//{
+		//	pair.second->LoadCreate(m_registerLayer);
+		//}
+
+		//TODO:... post Load...assign pointers from uuids
+		//TODO.... create temp object that hold pointer to new object and other data and can call postload()
 	}
 }

@@ -137,6 +137,20 @@ namespace Im
 
 		return ret;
 	}
+
+	void CenterCursor(const std::string& text)
+	{
+		ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+		float padding = ImGui::GetStyle().FramePadding.x * 2.0f;
+		float widgetWidth = textSize.x + padding;
+
+		// total available region in current window/column
+		float regionWidth = ImGui::GetContentRegionAvail().x;
+
+		// center by moving cursor before the button
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (regionWidth - widgetWidth) * 0.5f);
+	}
+
 	bool FavoriteButton(const char* label, bool isFavorite)
 	{
 		ImGuiContext& g = *GImGui;
@@ -366,14 +380,84 @@ namespace Im
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
-	bool InputText(const std::string& label, std::string& value, ImGuiInputTextFlags flags)
+	bool InputText(InputTextToken& token)
 	{
-		char buf[256];
-		strncpy(buf, value.c_str(), sizeof(buf));
-		buf[sizeof(buf) - 1] = 0;
-		bool changed = ImGui::InputText(label.c_str(), buf, sizeof(buf), flags);
+		if (token.PreLabel != "")
+		{
+			ImGui::TextUnformatted(token.PreLabel.c_str());
+			ImGui::SameLine();
+		}
+
+		static std::vector<char> buffer;
+		buffer.assign(token.Text.begin(), token.Text.end());
+		if (buffer.size() < MAX_INPUT_SIZE)
+			buffer.resize(MAX_INPUT_SIZE, '\0');
+		else
+			buffer[MAX_INPUT_SIZE - 1] = '\0'; // Ensure null-termination
+
+		if (token.JustCreated && token.DoAutoFocus)
+		{
+			ImGui::SetKeyboardFocusHere();
+		}
+
+		bool changed = ImGui::InputText("##1", buffer.data(), MAX_INPUT_SIZE, token.Flags);
 		if (changed)
-			value = buf;
+			token.Text = buffer.data();
+
+		if (token.JustCreated)
+		{
+			token.PrevIsActive = ImGui::IsItemActive();
+		}
+		else
+		{
+			bool isActive = ImGui::IsItemActive();
+			token.IsLostFocus = token.PrevIsActive && !isActive;
+			token.PrevIsActive = isActive;
+		}
+
+		ImGui::SameLine();
+
+		if (token.PostLabel != "")
+		{
+			ImGui::TextUnformatted(token.PostLabel.c_str());
+			ImGui::SameLine();
+		}
+
+		token.JustCreated = false;
 		return changed;
+	}
+
+	bool AssetEntry(AssetEntryToken& token)
+	{
+		bool justSelected = false;
+
+		std::string filename = token.Path.filename().string();
+		std::string fullPath = token.Path.string();
+
+		// === 2. Selection Highlight ===
+		ImGui::PushID(fullPath.c_str()); // Unique ID for each asset
+		if (token.IsSelected)
+			ImGui::PushStyleColor(ImGuiCol_Button, token.HighLightColor);
+
+		// === 3. Icon Button ===
+		ImGui::Button("##icon", token.CellSize); // Placeholder image slot
+
+		if (ImGui::IsItemClicked())
+			bool justSelected = true;
+
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+			//TODO: maybe?!?
+		}
+
+		if (token.IsSelected) // Reset style
+			ImGui::PopStyleColor();
+
+		// === 5. Filename ===
+		ImGui::TextWrapped("%s", filename.c_str());
+
+		ImGui::PopID();
+		ImGui::NextColumn();
+
+		return justSelected;
 	}
 }

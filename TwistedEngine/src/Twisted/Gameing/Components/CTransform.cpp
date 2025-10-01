@@ -1,155 +1,185 @@
 
 #include "CTransform.h"
-
 #include "Twisted/Gameing/World.h"
 #include "Logger.h"
 
+#include <algorithm>
+
 namespace Twisted
 {
-	CTransform::CTransform(EntityID entityID, World* world) :
-		AComponent(entityID, world),
-		m_position(0.0f, 0.0f, 0.0f),
-		m_rotation(1, 0, 0, 0),
-		m_scale(1.0f, 1.0f, 1.0f),
-		m_parentID(NullEntity)
+
+	void CTransform::Init() 
 	{
-		m_world->m_rootEntities.emplace_back(entityID);
+		m_world->GetRootEntities().emplace_back(m_entityID);
 	}
 
-	void CTransform::SetParent(EntityID newParentID)
+	CTransform::~CTransform()
 	{
-		if (newParentID == m_parentID)
-			return;
+		for (EntityID child : GetChildrenIDs())
+			m_world->DestroyEntity(child);
 
-		if (IsDescendant(newParentID))
-		{
-			TWISTED_WARN("Reparent prevented! Circular parenting!");
-			return;
-		}
-
-		if (m_parentID == NullEntity)
-		{
-			auto& vec = m_world->m_rootEntities;
-			vec.erase(std::remove(vec.begin(), vec.end(), m_entityID), vec.end());
-		}
-		else
-		{
-			CTransform& currentParentTransform = m_world->GetComponent<CTransform>(m_parentID);
-			auto& vec = currentParentTransform.m_childrenIDs;
-			vec.erase(std::remove(vec.begin(), vec.end(), m_entityID), vec.end());
-		}
-		m_parentID = newParentID;
-		if (m_parentID == NullEntity)
-		{
-			m_world->m_rootEntities.emplace_back(m_entityID);
-		}
-		else
-		{
-			CTransform& newParentTransform = m_world->GetComponent<CTransform>(newParentID);
-			newParentTransform.m_childrenIDs.emplace_back(m_entityID);
-		}
+		Unparent();
 	}
 
-	bool CTransform::IsDescendant(EntityID potentialChildID)const
+	//up to user to prevent cycles
+	//assumes valid transform(or nullptr) of the same world
+	void CTransform::SetParent(CTransform* newParent)
 	{
-		if (m_entityID == potentialChildID)
-			return true;
+		if (!newParent && m_parent == NullEntity)
+			return;
+		if (newParent && newParent->GetEntityID() == m_parent)
+			return;
 
-		for (const EntityID childID : m_childrenIDs)
+		//if (IsDescendant(newParent))
+		//{
+		//	TWISTED_WARN("Reparent prevented! Circular parenting!");
+		//	return;
+		//}
+
+		Unparent();
+
+		m_parent = (newParent) ? newParent->GetEntityID() : NullEntity;
+		if (!newParent)
+			m_world->GetRootEntities().emplace_back(m_entityID);
+		else
+			newParent->m_children.emplace_back(m_entityID);
+	}
+
+	void CTransform::SetParent(CTransform* newParent, size_t index)
+	{
+		//TODO...
+	}
+
+
+	CTransform* CTransform::GetParent() { return  m_world->TryGetComponent<CTransform>(m_parent); }
+
+	const CTransform* CTransform::GetParent()const { return m_world->TryGetComponent<CTransform>(m_parent); }
+
+	//assumes index in range
+	CTransform& CTransform::GetChild(size_t index)
+	{
+		return m_world->GetComponent<CTransform>(m_children[index]);
+	}
+
+	//assumes index in range
+	const CTransform& CTransform::GetChild(size_t index)const
+	{
+		return m_world->GetComponent<CTransform>(m_children[index]);
+	}
+
+	bool CTransform::IsDescendant(const CTransform* potentialChild)const
+	{
+		while (potentialChild)
 		{
-			const CTransform& child = m_world->GetComponent<CTransform>(childID);
-			if (child.IsDescendant(potentialChildID))
+			if (potentialChild == this)
 				return true;
+			potentialChild = potentialChild->GetParent();
 		}
 		return false;
 	}
-	const unsigned int CTransform::GetSiblingsIndex()const
+
+	const size_t CTransform::GetSiblingsIndex()const
 	{
-		if (m_parentID == NullEntity)
+		const CTransform* parentTransform = GetParent();
+		if (parentTransform)
 		{
-			for (unsigned int i = 0; i < m_world->m_rootEntities.size(); i++)
-				if (m_world->m_rootEntities[i] == m_entityID)
-					return i;
-			return 0; //never here
+			auto it = std::find(parentTransform->m_children.begin(), parentTransform->m_children.end(), m_entityID);
+			if (it != parentTransform->m_children.end())
+				return std::distance(parentTransform->m_children.begin(), it);
 		}
-		CTransform& parentTransform = m_world->GetComponent<CTransform>(m_parentID);
-		for (unsigned int i = 0; i < parentTransform.m_childrenIDs.size(); i++)
-			if (parentTransform.m_childrenIDs[i] == m_entityID)
-				return i;
+		auto it = std::find(m_world->GetRootEntities().begin(), m_world->GetRootEntities().end(), m_entityID);
+		if (it != m_world->GetRootEntities().end())
+			return std::distance(m_world->GetRootEntities().begin(), it);
+
+		TWISTED_ERROR("Unparented transform should be root entity" + std::to_string((int)m_entityID));
 		return 0;
 	}
 
-	void CTransform::SetSiblingsIndex(unsigned int newIndex)
+	//assumes index is valid [0 , size-1] ; could be optimized
+	void CTransform::SetSiblingsIndex(size_t newIndex)
 	{
-		unsigned int currentIndex = GetSiblingsIndex();
+		size_t index = GetSiblingsIndex();
+		if (newIndex == index)
+			return;
 
-		if (m_parentID == NullEntity)
-		{
-			newIndex = std::min(newIndex, static_cast<unsigned int>(m_world->m_rootEntities.size() - 1));
-			if (newIndex == currentIndex)
-				return;
-			Utils::MoveItemInVector(m_world->m_rootEntities, currentIndex, newIndex);
-		}
+		CTransform* parent = GetParent();
+		if (parent)
+			Utils::MoveItemInVector(parent->m_children, index, newIndex);
 		else
-		{
-			CTransform& parentTransform = m_world->GetComponent<CTransform>(m_parentID);
-			newIndex = std::min(newIndex, static_cast<unsigned int>(parentTransform.GetChildCount() - 1));
-			if (newIndex == currentIndex)
-				return;
-			Utils::MoveItemInVector(parentTransform.m_childrenIDs, currentIndex, newIndex);
-		}
+			Utils::MoveItemInVector(m_world->GetRootEntities(), index, newIndex);
 	}
 
 	const size_t CTransform::GetSiblingsCount()const
 	{
-		if (m_parentID == NullEntity)
-			return m_world->m_rootEntities.size();
+		const CTransform* parentTransform = GetParent();
+		if (parentTransform)
+			return parentTransform->GetChildCount();
 
-		const CTransform& parentTransform = m_world->GetComponent<CTransform>(m_parentID);
-		return parentTransform.GetChildCount();
+		return m_world->GetRootEntities().size();
 	}
-
-
-	//CTransform::CTransform(EntityID entity, const Vec3f& position, const Quat& rotation, const Vec3f& scale) :
-	//	AComponent(entity),
-	//	m_position(position),
-	//	m_rotation(rotation),
-	//	m_scale(scale),
-	//	m_parentID(NullEntity)
-	//	//m_children()
-	//{
-	//}
 
 	const Quat CTransform::GetWorldRotation() const //TODO... not sure is correct
 	{
-		if (m_parentID != NullEntity)
-			return m_world->GetComponent<CTransform>(m_parentID).GetWorldRotation() * GetLocalRotation();
+		const CTransform* parentTransform = GetParent();
+		if (parentTransform)
+			return parentTransform->GetWorldRotation() * GetLocalRotation();
 		return GetLocalRotation();
 	}
+
 	const Vec3f CTransform::GetWorldScale() const
 	{
-		if (m_parentID != NullEntity)
-			return m_world->GetComponent<CTransform>(m_parentID).GetWorldScale() * GetLocalScale(); //not sure correct
+		const CTransform* parentTransform = GetParent();
+		if (parentTransform)
+			return parentTransform->GetWorldScale() * GetLocalScale(); //not sure correct
 		return GetLocalScale();
 	}
 
 	Mat4x4f CTransform::GetWorldModelMatrix()const
 	{
-		if (m_parentID != NullEntity)
-		{
-			const CTransform& parentTransform = m_world->GetComponent<CTransform>(m_parentID);
-			return  parentTransform.GetWorldModelMatrix() * GetLocalModelMatrix();
-		}
+		const CTransform* parentTransform = GetParent();
+		if (parentTransform)
+			return  parentTransform->GetWorldModelMatrix() * GetLocalModelMatrix();
 		return GetLocalModelMatrix();
 	}
 
 	Mat4x4f CTransform::GetWorldInvertModelMatrix()const
 	{
-		if (m_parentID != NullEntity)
-		{
-			const CTransform& parentTransform = m_world->GetComponent<CTransform>(m_parentID);
-			return GetInvertLocalModelMatrix() * parentTransform.GetWorldInvertModelMatrix();
-		}
+		const CTransform* parentTransform = GetParent();
+		if (parentTransform)
+			return GetInvertLocalModelMatrix() * parentTransform->GetWorldInvertModelMatrix();
 		return GetInvertLocalModelMatrix();
+	}
+
+	void CTransform::Unparent()
+	{
+		CTransform* currentParentTransform = GetParent();
+
+		auto& vec = (currentParentTransform) ? currentParentTransform->m_children : m_world->GetRootEntities();
+
+		auto it = std::find(vec.begin(), vec.end(), m_entityID);
+		if (it != vec.end())
+			vec.erase(it);
+		m_parent = NullEntity;
+	}
+
+	//Serialization
+	void CTransform::Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const
+	{
+		buffer.Write<Vec3f>(m_position);
+		buffer.Write<Vec3f>(m_scale);
+		buffer.Write<Quat>(m_rotation);
+
+		buffer.Write<EntityID>(m_parent);
+		buffer.Write<std::vector<EntityID>>(m_children);
+	}
+
+	void CTransform::Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)
+	{
+		m_position = buffer.Read<Vec3f>();
+		m_scale = buffer.Read<Vec3f>();
+		m_rotation = buffer.Read<Quat>();
+
+		m_parent = buffer.Read<EntityID>();
+		m_children = buffer.Read<std::vector<EntityID>>();
 	}
 }

@@ -10,21 +10,19 @@
 
 namespace Twisted
 {
-	namespace rend = Twisted::Render;
-
-	class TWISTED_API RenderSystem :public SystemBase
+	class TWISTED_API RenderSystem //:public SystemBase
 	{
 	public:
-		RenderSystem(World* world) :SystemBase(world) {}
-		void Update() override;
+		//RenderSystem(World* world) :SystemBase(world) {}
+		//void Update() override;
 
-		void AddEntry(rend::RenderContext* renderContext, EntityID camera)
-		{
-			RenderSystemEntry newEntry{ renderContext,camera };
-			m_entries.emplace_back(newEntry);
-		}
-		void RemoveEntry();
+		//void AddEntry(RenderContext* renderContext, CCamera* camera)
+		//{
+		//	RenderSystemEntry newEntry{ renderContext,camera };
+		//	m_entries.emplace_back(newEntry);
+		//}
+		//void RemoveEntry();
 	private:
-		std::vector<RenderSystemEntry> m_entries;
+		//std::vector<RenderSystemEntry> m_entries;
 	};
 }

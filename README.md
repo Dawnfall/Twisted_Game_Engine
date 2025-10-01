@@ -1,9 +1,15 @@
 # Twisted Engine
-Game engine in development
+Game engine with its editor that intends to focus on procedural content and its tools.
 
 # Features
 
 # Dependecies
+ - Imgui for editor UI (submodule)
+ - glfw for window creation and inputs (vcpk)
+ - glad for openGL extensions
+ - glm as math library
+ - spdlog for logging
+ - entt for ECS 
 
 # Usage
 1. Project uses submodules, so make sure to clone it recursively:

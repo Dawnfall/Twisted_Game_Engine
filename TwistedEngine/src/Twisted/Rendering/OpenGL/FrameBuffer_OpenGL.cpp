@@ -5,7 +5,7 @@
 #include <string>
 #include "Logger.h"
 
-namespace Twisted::Render
+namespace Twisted
 {
 	FrameBuffer::FrameBuffer(unsigned int width, unsigned int height) :
 		m_size(width, height)
@@ -47,7 +47,7 @@ namespace Twisted::Render
 		m_size.y = height;
 
 		glBindTexture(GL_TEXTURE_2D, m_tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 	}
@@ -78,7 +78,7 @@ namespace Twisted::Render
 			bufferBits |= GL_COLOR_BUFFER_BIT;
 			glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 		}
-		if (glClearStencil)
+		if (doClearStencil)
 			bufferBits |= GL_STENCIL_BUFFER_BIT;
 		if (doClearDepth)
 			bufferBits |= GL_DEPTH_BUFFER_BIT;
@@ -90,6 +90,7 @@ namespace Twisted::Render
 	void FrameBuffer::Bind()const
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+		glViewport(0, 0, m_size.x, m_size.y);
 	}
 
 	void FrameBuffer::UnBind()const

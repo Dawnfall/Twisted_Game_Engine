@@ -4,6 +4,7 @@ file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
     )
 
 add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_SOURCES})
 
 set_target_properties(TwistedEngine PROPERTIES
     CXX_STANDARD 20
@@ -19,11 +20,16 @@ target_include_directories(TwistedEngine PUBLIC
     "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
 )
 
+# Create the source groups for source tree with root at CMAKE_CURRENT_SOURCE_DIR.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
+
 target_link_libraries(TwistedEngine PRIVATE
     glm::glm
     glfw
     glad::glad
     spdlog::spdlog
+    yaml-cpp::yaml-cpp
+    rapidobj::rapidobj
 )
 
 target_compile_definitions(TwistedEngine PRIVATE
