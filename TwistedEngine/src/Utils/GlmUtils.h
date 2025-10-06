@@ -26,7 +26,17 @@ using Vec2i = glm::vec<2, int>;
 using Vec3i = glm::vec<3, int>;
 using Vec4i = glm::vec<4, int>;
 
+using Mat4x4d = glm::mat<4, 4, double>;
+using Mat3x3d = glm::mat<3, 3, double>;
+using Mat2x2d = glm::mat<2, 2, double>;
+
 using Mat4x4f = glm::mat<4, 4, float>;
+using Mat3x3f = glm::mat<3, 3, float>;
+using Mat2x2f = glm::mat<2, 2, float>;
+
+using Mat4x4i = glm::mat<4, 4, int>;
+using Mat3x3i = glm::mat<3, 3, int>;
+using Mat2x2i = glm::mat<2, 2, int>;
 
 //**************
 // Directions
@@ -34,17 +44,17 @@ using Mat4x4f = glm::mat<4, 4, float>;
 namespace Utils
 {
 	std::string TWISTED_API toString(const glm::vec2& vec);
-    std::string TWISTED_API toString(glm::ivec2& vec);
-    std::string TWISTED_API toString(const glm::vec3& vec);
+	std::string TWISTED_API toString(glm::ivec2& vec);
+	std::string TWISTED_API toString(const glm::vec3& vec);
 	std::string TWISTED_API toString(const glm::vec4& vec);
 	std::string TWISTED_API toString(const glm::mat3& mat);
 
 	glm::vec2 TWISTED_API fromStringVec2f(const std::string& str);
 	glm::ivec2 TWISTED_API fromStringVec2i(const std::string& str);
-    glm::vec3 TWISTED_API fromStringVec3(const std::string& str);
-    glm::vec4 TWISTED_API fromStringVec4(const std::string& str);
-    glm::mat3 TWISTED_API fromStringMat3(const std::string& str);
-    glm::mat4 TWISTED_API fromStringMat4(const std::string& str);
+	glm::vec3 TWISTED_API fromStringVec3(const std::string& str);
+	glm::vec4 TWISTED_API fromStringVec4(const std::string& str);
+	glm::mat3 TWISTED_API fromStringMat3(const std::string& str);
+	glm::mat4 TWISTED_API fromStringMat4(const std::string& str);
 }
 
 template<>

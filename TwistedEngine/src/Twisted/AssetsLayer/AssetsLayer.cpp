@@ -2,11 +2,12 @@
 #include "Twisted/Application/Application.h"
 #include "Utils/FileUtils.h"
 #include "Logger.h"
-#include "Twisted/RegisterLayer/ObjectManager.h"
 #include <yaml-cpp/yaml.h>
 
 //#include "Twisted/Data/Project.h"
 #include "Twisted/Rendering/Mesh.h"
+#include "Utils/WPtr.h"
+#include "ImporterRegistry.h"
 //#include <algorithm>
 
 namespace Twisted
@@ -48,7 +49,7 @@ namespace Twisted
 			if (objIt != m_assetObjects.end())
 			{
 				for (auto obj : objIt->second)
-					ObjectManager::GetInstance().DestroyID(obj);
+					TObject::Destroy(obj);
 				m_assetObjects.erase(objIt);
 			}
 
@@ -72,7 +73,7 @@ namespace Twisted
 	{
 		auto assetInfo = GetInfo(assetPath);
 
-		AssetImporter* importer = GetImporter(assetPath.extension());
+		AssetImporter* importer = ImporterRegistry::GetInstance().GetImporter(assetPath.extension());
 		if (!importer || !importer->ImportOnStart())
 			return;
 
@@ -86,8 +87,8 @@ namespace Twisted
 				m_assetsByUuid[newInfo->GetUuid()] = newInfo;
 				m_assetObjects[newInfo->GetUuid()] = {};
 
-				importer->CreateObjects(m_assetObjects[assetInfo->GetUuid()]);
-				importer->PostCreate(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
+				importer->Import(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
+				importer->PostImport(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
 			}
 		}
 		if (!assetInfo)
@@ -96,10 +97,8 @@ namespace Twisted
 		if (!assetInfo->IsValid())
 		{
 			assetInfo->LoadInfoData();
-			importer->CreateObjects(m_assetObjects[assetInfo->GetUuid()]);
-			importer->PostCreate(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
+			importer->Import(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
+			importer->PostImport(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
 		}
 	}
-
-
 }

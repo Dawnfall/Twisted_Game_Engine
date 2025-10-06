@@ -3,7 +3,6 @@
 #include <filesystem>
 #include "EditorLayer.h"
 #include "Twisted/Data/Project.h"
-#include "Twisted/RegisterLayer/ObjectManager.h"
 #include "UI/ImguiExtensions.h"
 #include <imgui.h>
 #include <optional>

@@ -5,13 +5,5 @@
 
 namespace Twisted
 {
-	Material::Material(ObjectID id):
-	BaseObject(id)
-	{}
 
-	Material::Material(ObjectID id, const MaterialData& materialData) :
-		BaseObject(id),
-		m_data(materialData)
-	{
-	}
 }

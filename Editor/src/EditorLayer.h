@@ -24,10 +24,10 @@ namespace Twisted::Editor
 	inline const std::string mainDockSpaceLabel = "MainDockSpace";
 	inline ImGuiWindowFlags panelFlags =
 		ImGuiWindowFlags_NoCollapse;     // optional: prevent collapsing
-		//| ImGuiWindowFlags_NoDocking;   // prevents undocking
+	//| ImGuiWindowFlags_NoDocking;   // prevents undocking
 
 	inline ImGuiWindowFlags dockFlags =
-		  ImGuiWindowFlags_NoTitleBar
+		ImGuiWindowFlags_NoTitleBar
 		| ImGuiWindowFlags_NoCollapse
 		| ImGuiWindowFlags_NoResize
 		| ImGuiWindowFlags_NoMove
@@ -39,7 +39,9 @@ namespace Twisted::Editor
 	public:
 
 		EditorLayer(Application* app) :
-			Layer(app)
+			Layer(app),
+			m_gameWorld(nullptr),
+			m_editorWorld(nullptr)
 		{
 		}
 
@@ -47,8 +49,8 @@ namespace Twisted::Editor
 		void Render(Window* window);
 
 		void SetWorld(World* world);
-		World* GetGameWorld() { return ObjectManager::GetInstance().GetIdObject<World>(m_gameWorld); }
-		World* GetEditorWorld() { return ObjectManager::GetInstance().GetIdObject<World>(m_editorWorld); }
+		World* GetGameWorld() { return m_gameWorld; }
+		World* GetEditorWorld() { return m_editorWorld; }
 		Event<> WorldChangeEvent;
 
 		//*********
@@ -81,8 +83,15 @@ namespace Twisted::Editor
 		// Active WORLD
 		//*********
 
-		ObjectID m_gameWorld;
-		ObjectID m_editorWorld;
+		World* m_gameWorld = nullptr;
+		World* m_editorWorld = nullptr;
+
+		//**********
+		// Important Objects;
+
+	public:
+		WPtr<FrameBuffer> GameViewBuffer;
+		WPtr<FrameBuffer> EditorViewBuffer;
 	};
 }
 

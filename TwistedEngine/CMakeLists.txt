@@ -1,7 +1,14 @@
 file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
     "src/*.cpp"
     "src/*.h"
+    "src/*.mpp"
     )
+
+file(GLOB_RECURSE TWISTED_ENGINE_MODULES CONFIGURE_DEPENDS "src/*.mpp")
+set_source_files_properties(${TWISTED_ENGINE_MODULES} PROPERTIES LANGUAGE CXX)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${TWISTED_ENGINE_SOURCES})
+source_group("Modules" FILES ${TWISTED_ENGINE_MODULES})
 
 add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_SOURCES})

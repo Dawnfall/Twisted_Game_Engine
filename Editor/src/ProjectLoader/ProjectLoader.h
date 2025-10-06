@@ -8,6 +8,10 @@
 #include "Twisted/Windowing/NativeUtils.h"
 #include "Twisted/Windowing/Window.h"
 
+//#include "Twisted/Rendering/Mesh.h"
+//#include "Twisted/Rendering/Shader.h"
+//#include "Twisted/BuiltIn/MeshCollections.h"
+
 #include <imgui.h>
 #include <string>
 #include <vector>
@@ -92,7 +96,6 @@ namespace Twisted::Editor
 
 	private:
 		LoadupConfig LoadupConfigData;
-
 
 		void SelectProjectPath(const fs::path& projectFolder)
 		{

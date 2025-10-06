@@ -15,7 +15,7 @@ namespace Twisted
 	class TWISTED_API Application
 	{
 	public:
-		Application(RuntimeBase* runtime) :m_runtime(runtime) { if (m_runtime)m_runtime->App = this; }
+		Application() { }
 		Application& operator=(const Application& other) = delete;
 		Application(const Application& other) = delete;
 
@@ -23,6 +23,7 @@ namespace Twisted
 		void Stop() { m_isRunning = false; }
 
 		TimeManager& GetTime() { return m_time; }
+		const TimeManager& GetTime()const { return m_time; }
 
 		template<typename T>
 		T* AddLayer()
@@ -43,9 +44,13 @@ namespace Twisted
 			return nullptr;
 		}
 
-	private:
+	protected:
 
-		RuntimeBase* m_runtime = nullptr;
+		virtual void OnCreate() = 0;
+		virtual void OnBeforeRun() = 0;
+		virtual void OnFrame() = 0;
+		virtual void OnTerminate() = 0;
+
 		TimeManager m_time;
 
 		std::vector<URef<Layer>> m_layers;

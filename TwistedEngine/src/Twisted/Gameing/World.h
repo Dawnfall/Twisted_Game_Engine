@@ -1,7 +1,8 @@
 #pragma once
 
 #include "AppCore.h"
-#include "Twisted/RegisterLayer/BaseObject.h"
+#include "Twisted/Application/Application.h"
+#include "Twisted/RegisterLayer/TObject.h"
 #include "Twisted/Gameing/SystemBase.h"
 #include "Twisted/Gameing/ComponentRegistry.h"
 #include <unordered_map>
@@ -13,17 +14,10 @@
 
 namespace Twisted
 {
-	class TWISTED_API World :public BaseObject
+	class TWISTED_API World :public TObject
 	{
 	public:
-		World(ObjectID id);
-		//template<typename Func>
-		//void ForEachEntity(Func&& func) const
-		//{
-		//	m_registry.each([&func](EntityID entity) {
-		//		func(entity);
-		//		});
-		//}
+		World(Application* app);
 
 		auto GetAllEntities() const { return m_registry.storage<entt::entity>(); }
 
@@ -41,6 +35,8 @@ namespace Twisted
 		void UpdateFrame();
 
 		void Clear();
+
+		Application* GetApplication() { return m_app; }
 
 		template<typename... ComponentTypes>
 		EntityID CreateEntity()
@@ -63,16 +59,6 @@ namespace Twisted
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
 			T& newComponent = m_registry.emplace<T>(entity, entity, this, std::forward<Args>(arguments)...);
-			newComponent.Init();
-		}
-
-		template<typename T>
-		T& AddComponent(EntityID entity)
-		{
-			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			//static_assert(!std::is_same<CTransform, T>::value, "Component type must not be CTransform");
-			//static_assert(!std::is_same<CName, T>::value, "Component type must not be CName");
-			T& newComponent = m_registry.emplace<T>(entity, entity, this);
 			newComponent.Init();
 			return newComponent;
 		}
@@ -106,6 +92,13 @@ namespace Twisted
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
 			return m_registry.get<T>(entity);
+		}
+
+		template <typename T>
+		const T* TryGetComponent(EntityID entity)const
+		{
+			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
+			return m_registry.try_get<T>(entity);
 		}
 
 		template <typename T>
@@ -172,6 +165,8 @@ namespace Twisted
 
 		std::vector<std::unique_ptr<SystemBase>> m_systems;
 		std::vector<EntityID> m_rootEntities;
+		
+		Application* m_app;
 
 		friend class WorldImporter;
 		friend class ComponentRegistry;

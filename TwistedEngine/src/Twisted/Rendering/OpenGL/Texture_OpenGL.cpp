@@ -5,7 +5,7 @@
 
 namespace Twisted
 {
-	static int WrapToGL(TextureWrap wrap)
+	static GLenum WrapToGL(TextureWrap wrap)
 	{
 		switch (wrap)
 		{
@@ -22,20 +22,20 @@ namespace Twisted
 			return GL_REPEAT;
 		}
 	}
-	static int MagFilterToGL(TextureMagFilter magFilter)
+	static GLenum MagFilterToGL(TextureMagFilter magFilter)
 	{
 		switch (magFilter)
 		{
-		case Twisted::TextureMagFilter::NEAREST:
+		case TextureMagFilter::NEAREST:
 			return GL_NEAREST;
-		case Twisted::TextureMagFilter::LINEAR:
+		case TextureMagFilter::LINEAR:
 			return GL_LINEAR;
 		default:
 			TWISTED_ERROR("Unsupported texture magnification filter");
 			return GL_NEAREST;
 		}
 	}
-	static int MinFilterToGL(TextureMinFilter minFilter)
+	static GLenum MinFilterToGL(TextureMinFilter minFilter)
 	{
 		switch (minFilter)
 		{
@@ -57,64 +57,49 @@ namespace Twisted
 		}
 	}
 
-	Texture::Texture(ObjectID id):
-		BaseObject(id)
-	{ }
-
-	Texture::Texture(ObjectID id, const TextureData& texData) :
-		BaseObject(id),
-		m_width(texData.Width),
-		m_height(texData.Height),
-		m_channels(texData.Channels)
+	void Texture::Create(const TextureData& texData, const TextureParams& params)
 	{
-		Init(texData);
-	}
+		m_params = params;
 
-	void Texture::Init(const TextureData& data)
-	{
+		m_width = texData.Width;
+		m_height = texData.Height;
+		m_channels = texData.Channels;
+
+		m_isDirty = true;
 		glGenTextures(1, &m_texID);
 		glBindTexture(GL_TEXTURE_2D, m_texID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapToGL(m_wrap));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapToGL(m_wrap));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_minFilter));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilterToGL(m_magFilter));
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data.Data); //input must always be RGBA;4 channels
-		glGenerateMipmap(GL_TEXTURE_2D); //TODO.... should be optional
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData.Data); //input must always be RGBA;4 channels
+		Update();
 	}
 
-	Texture::~Texture()
+	void Texture::Update()
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapToGL(m_params.Wrap));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapToGL(m_params.Wrap));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_params.MinFilter));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilterToGL(m_params.MagFilter));
+
+		if (m_params.DoMipMaps)
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+		m_isDirty = false;
+	}
+
+	void Texture::Clear()
 	{
 		glDeleteTextures(1, &m_texID);
+		m_texID = 0;
+		m_width = m_height = m_channels = 0;
 	}
 
-
-	void Texture::SetWrapType(TextureWrap wrapType)
+	void Texture::UnBind()const
 	{
-		if (m_wrap == wrapType)
-			return;
-		m_wrap = wrapType;
-
-		glBindTexture(GL_TEXTURE_2D, m_texID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapToGL(m_wrap));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapToGL(m_wrap));
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	void Texture::SetMagFilter(TextureMagFilter magFilter)
-	{
-		if (m_magFilter == magFilter)
-			return;
-		m_magFilter = magFilter;
 
-		glBindTexture(GL_TEXTURE_2D, m_texID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilterToGL(m_magFilter));
-	}
-	void Texture::SetMinFilter(TextureMinFilter minFilter)
+	void Texture::Bind(unsigned int slot)const
 	{
-		if (m_minFilter == minFilter)
-			return;
-		m_minFilter = minFilter;
-
+		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, m_texID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_minFilter));
 	}
 }

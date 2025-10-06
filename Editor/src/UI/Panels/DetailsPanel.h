@@ -15,11 +15,5 @@ namespace Twisted::Editor
 	public:
 		DetailsPanel(EditorLayer* editor) :EditorPanel(editor,"Details Panel") {}
 		virtual void PaintContent()override;
-
-	private:
-		void PaintEntity(EntityID id,World* world);
-		
-		const std::string ADD_COMPONENT_POPUP = "AddComponentPopup";
-		const std::string ADD_COMPONENT_TEXT = "AddComponent";
 	};
 }

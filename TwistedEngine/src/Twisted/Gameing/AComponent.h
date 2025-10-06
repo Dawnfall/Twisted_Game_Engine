@@ -2,7 +2,6 @@
 
 #include "AppCore.h"
 #include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
-#include "Twisted/RegisterLayer/ObjectManager.h"
 
 
 namespace Twisted

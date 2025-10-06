@@ -1,8 +1,9 @@
 #pragma once
 #include "UI/EditorPanel.h"
-#include "Twisted/Rendering/RenderContext.h"
-
 #include <string>
+
+#include "Twisted/Rendering/FrameBuffer.h"
+#include "Utils/WPtr.h"
 
 namespace Twisted::Editor
 {
@@ -13,6 +14,8 @@ namespace Twisted::Editor
 
 		virtual void PaintContent()override;
 
-		RenderContext* m_context = nullptr;
+		void SetFrameBuffer(FrameBuffer* framebuffer) { m_framebuffer = framebuffer; }
+
+		WPtr<FrameBuffer> m_framebuffer;
 	};
 }

@@ -6,7 +6,7 @@ namespace Twisted
 {
 	void Application::Run()
 	{
-		Logger::Init(); //makro for these debug
+		LOGGER_INIT();
 
 		if (m_isRunning)
 		{
@@ -14,25 +14,21 @@ namespace Twisted
 			return;
 		}
 
-		if (m_runtime)
-			m_runtime->OnCreate();
+		OnCreate();
 
 		for (auto& layer : m_layers)
 			layer->Init();
 
 		m_time.Start();
 
-		if (m_runtime)
-			m_runtime->OnBeforeRun();
+		OnBeforeRun();
 
 		m_isRunning = true;
 		while (m_isRunning)
 		{
-			if (m_runtime)
-				m_runtime->OnFrame();
+			OnFrame();
 		}
-
-		if (m_runtime)
-			m_runtime->OnTerminate();
+		
+		OnTerminate();
 	}
 }

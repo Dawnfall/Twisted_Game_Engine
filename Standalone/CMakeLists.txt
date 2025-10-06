@@ -1,7 +1,14 @@
 file(GLOB_RECURSE STANDALONE_SOURCES CONFIGURE_DEPENDS
     "src/*.h"
     "src/*.cpp"
+    "src/*.mpp"
 )
+
+file(GLOB_RECURSE STANDALONE_MODULES CONFIGURE_DEPENDS "src/*.mpp")
+set_source_files_properties(${STANDALONE_MODULES} PROPERTIES LANGUAGE CXX)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${STANDALONE_SOURCES})
+source_group("Modules" FILES ${STANDALONE_MODULES})
 
 add_executable(Standalone ${STANDALONE_SOURCES})
 

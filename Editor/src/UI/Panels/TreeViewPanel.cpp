@@ -6,38 +6,39 @@
 #include "Selection.h"
 
 #include "Twisted/Gameing/Components/CRenderer.h"
+#include "Twisted/Gameing/Entity.h"
 namespace Twisted::Editor
 {
 	void TreeViewPanel::PaintContent()
 	{
-		//if (!m_editor->GetGameWorld())
-		//	return;
+		if (!m_editor->GetGameWorld())
+			return;
 
-		//SetNodeBackgroundColor(); //TODO:... must be done probably somewhere else ??!? not sure
+		SetNodeBackgroundColor(); //TODO:... must be done probably somewhere else ??!? not sure
 
-		//TreeViewToken token;
-		//token.EntireRegion = ImGui::GetContentRegionAvail();
+		TreeViewToken token;
+		token.EntireRegion = ImGui::GetContentRegionAvail();
 
-		//int selected_id = -1;
-		//bool isLeftClick = false;
-		//bool isRightClick = false;
+		int selected_id = -1;
+		bool isLeftClick = false;
+		bool isRightClick = false;
 
-		//auto& rootEntities = m_editor->GetGameWorld()->GetRootEntities();
-		//for (int i = 0; i < rootEntities.size(); i++)
-		//{
-		//	if (i == 0)
-		//		RenderDropZone(rootEntities[i], token, false);
-		//	RenderTreeNode(rootEntities[i], token);
-		//}
+		auto& rootEntities = m_editor->GetGameWorld()->GetRootEntities();
+		for (int i = 0; i < rootEntities.size(); i++)
+		{
+			if (i == 0)
+				RenderDropZone(Entity{ rootEntities[i],m_editor->GetGameWorld() }, token, false);
+			RenderTreeNode(Entity{ rootEntities[i],m_editor->GetGameWorld() }, token);
+		}
 
-		//RightClickEmpty(token);
-		//HandleChanges(token);
+		RightClickEmpty(token);
+		HandleChanges(token);
 	}
 
-	void TreeViewPanel::RenderTreeNode(EntityID entity, TreeViewToken& token)
+	void TreeViewPanel::RenderTreeNode(Entity entity, TreeViewToken& token)
 	{
-		const CTransform& transform = m_editor->GetGameWorld()->GetComponent<CTransform>(entity);
-		const CName& name = m_editor->GetGameWorld()->GetComponent<CName>(entity);
+		CTransform& transform = entity.GetComponent<CTransform>();
+		const CName& name = entity.GetComponent<CName>();
 
 		std::string nodeID = name.GetName() + "###" + std::to_string((int)name.GetEntityID());
 
@@ -62,8 +63,8 @@ namespace Twisted::Editor
 			for (size_t i = 0; i < transform.GetChildrenIDs().size(); i++)
 			{
 				if (i == 0)
-					RenderDropZone(transform.GetChildrenIDs()[i], token, false);
-				RenderTreeNode(transform.GetChildrenIDs()[i], token);
+					RenderDropZone(Entity{ transform.GetChildrenIDs()[i],transform.GetWorld() }, token, false);
+				RenderTreeNode(Entity{ transform.GetChildrenIDs()[i],transform.GetWorld() }, token);
 			}
 			ImGui::TreePop();
 		}
@@ -82,16 +83,16 @@ namespace Twisted::Editor
 			}
 		}
 	}
-	void TreeViewPanel::RenderDropZone(EntityID entity, TreeViewToken& token, bool isAfter)
+	void TreeViewPanel::RenderDropZone(Entity entity, TreeViewToken& token, bool isAfter)
 	{
-		const CTransform& transform = m_editor->GetGameWorld()->GetComponent<CTransform>(entity);
+		CTransform& transform = entity.GetComponent<CTransform>();
 
 		// Insert a dummy drop zone BEFORE the node for unparenting
 		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 		ImVec2 dropZoneSize(ImGui::GetContentRegionAvail().x, 4.0f);
 
 		std::string id = (isAfter) ? "##drop_zone_after_" : "##drop_zone_before_";
-		id += std::to_string(static_cast<int>(entity));
+		id += std::to_string(static_cast<int>(entity.GetID()));
 		ImGui::InvisibleButton(id.c_str(), dropZoneSize);
 
 		if (ImGui::BeginDragDropTarget())
@@ -101,8 +102,8 @@ namespace Twisted::Editor
 				m_newIndex = transform.GetSiblingsIndex();
 				if (isAfter)
 					m_newIndex += 1;
-				m_newParentID = transform.GetParentID();
-				m_draggedID = *static_cast<EntityID*>(payload->Data);
+				newParentEntity = Entity { transform.GetParentID(), transform.GetWorld()};
+				draggedEntity = *static_cast<Entity*>(payload->Data);
 				m_isDroped = true;
 				//std::string output = std::format("On drag finish\n isAfter = {}\n dropEnt = {}\n draggedEnt = {}\n", m_isAfter, (int)m_dropedOnEnt, (int)m_draggedEnt);
 				//TWISTED_INFO(output);
@@ -112,12 +113,12 @@ namespace Twisted::Editor
 	}
 
 
-	void TreeViewPanel::DragDrop(EntityID entID, size_t childCount, const std::string& name)
+	void TreeViewPanel::DragDrop(Entity entity, size_t childCount, const std::string& name)
 	{
 		// Drag source
 		if (ImGui::BeginDragDropSource())
 		{
-			ImGui::SetDragDropPayload(DRAG_TREE_TRANSFORM.c_str(), &entID, sizeof(EntityID));
+			ImGui::SetDragDropPayload(DRAG_TREE_TRANSFORM.c_str(), &entity, sizeof(EntityID));
 			ImGui::Text("Dragging %s", name.c_str());
 			ImGui::EndDragDropSource();
 		}
@@ -126,15 +127,15 @@ namespace Twisted::Editor
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(DRAG_TREE_TRANSFORM.c_str()))
 			{
 				m_newIndex = childCount;
-				m_draggedID = *static_cast<EntityID*>(payload->Data);
-				m_newParentID = entID;
+				draggedEntity = *static_cast<Entity*>(payload->Data);
+				newParentEntity = entity;
 				m_isDroped = true;
 			}
 			ImGui::EndDragDropTarget();
 		}
 	}
 
-	void TreeViewPanel::LeftClickOnNode(EntityID entID, bool isSelected)
+	void TreeViewPanel::LeftClickOnNode(Entity entity, bool isSelected)
 	{
 		if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 		{
@@ -146,9 +147,9 @@ namespace Twisted::Editor
 			if (ctrlHeld)
 			{
 				if (isSelected)
-					Selection::GetInstance().DeSelect(entID);
+					Selection::GetInstance().DeSelect(entity);
 				else
-					Selection::GetInstance().MultiSelect<EntityID>({entID});
+					Selection::GetInstance().MultiSelect<Entity>({ entity });
 			}
 			else if (shiftHeld) //TODO:should select all visible from prev tto current
 			{
@@ -156,12 +157,12 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				Selection::GetInstance().SingleSelect<EntityID>(entID);
+				Selection::GetInstance().SingleSelect<Entity>(entity);
 			}
 		}
 	}
 
-	void TreeViewPanel::RightClickOnNode(EntityID entity, TreeViewToken& token)
+	void TreeViewPanel::RightClickOnNode(Entity entity, TreeViewToken& token)
 	{
 		if (!token.IsClickUsed && ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
@@ -211,17 +212,17 @@ namespace Twisted::Editor
 				if (ImGui::MenuItem("Empty"))
 				{
 					token.doCreateNew = true;
-					token.NewEntityParent = NullEntity;
+					token.NewEntityParent = {};
 				}
 				if (ImGui::MenuItem("Sphere"))
 				{
 					token.doCreateNew = true;
-					token.NewEntityParent = NullEntity;
+					token.NewEntityParent = {};
 				}
 				if (ImGui::MenuItem("Cube"))
 				{
 					token.doCreateNew = true;
-					token.NewEntityParent = NullEntity;
+					token.NewEntityParent = {};
 				}
 				ImGui::EndMenu();
 			}
@@ -235,8 +236,8 @@ namespace Twisted::Editor
 
 		if (m_isDroped)
 		{
-			CTransform* newParentTransform = world->TryGetComponent<CTransform>(m_newParentID);
-			CTransform* draggedTransform = world->TryGetComponent<CTransform>(m_draggedID);
+			CTransform* newParentTransform = newParentEntity.TryGetComponent<CTransform>();
+			CTransform* draggedTransform = draggedEntity.TryGetComponent<CTransform>();
 
 			if (!draggedTransform->IsDescendant(newParentTransform))
 			{
@@ -250,22 +251,22 @@ namespace Twisted::Editor
 				draggedTransform->SetSiblingsIndex(m_newIndex);
 			}
 
-			m_newParentID = NullEntity;
-			m_draggedID = NullEntity;
+			newParentEntity = {};
+			draggedEntity = {};
 			m_newIndex = 0;
 			m_isDroped = false;
 		}
 
-		if (token.EntityToDelete != NullEntity)
-			world->DestroyEntity(token.EntityToDelete);
+		if (token.EntityToDelete)
+			token.EntityToDelete.DestroyEntity();
 
 		if (token.doCreateNew)
 		{
-			EntityID newEntity = world->CreateEntity();
-			world->GetComponent<CName>(newEntity).SetName("New Entity");
+			Entity newEntity = Entity::CreateNew<>(world);
+			newEntity.GetComponent<CName>().SetName("New Entity");
 
-			if (token.NewEntityParent != NullEntity);
-			world->GetComponent<CTransform>(newEntity).SetParent(world->TryGetComponent<CTransform>(token.NewEntityParent));
+			if (token.NewEntityParent);
+				newEntity.GetComponent<CTransform>().SetParent(token.NewEntityParent.TryGetComponent<CTransform>());
 
 		}
 	}

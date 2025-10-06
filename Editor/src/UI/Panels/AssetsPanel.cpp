@@ -1,7 +1,6 @@
 #include "AssetsPanel.h"
 #include "Twisted/Application/Application.h"
 #include "EditorRegistry.h"
-#include "ProjectLoader.h"
 #include "UI/ImguiExtensions.h"
 
 namespace Twisted::Editor

@@ -2,27 +2,20 @@
 
 #include "AppCore.h"
 #include "Twisted/Gameing/SystemBase.h"
-#include "Twisted/Gameing/Systems/RenderSystemEntry.h"
-#include "Twisted/Rendering/RenderContext.h"
-
+#include "Twisted/Rendering/RenderLayer.h"
 #include <vector>
 #include <unordered_map>
-
+#include "Twisted/Gameing/World.h"
 namespace Twisted
 {
-	class TWISTED_API RenderSystem //:public SystemBase
+	class TWISTED_API RenderSystem :public SystemBase
 	{
 	public:
-		//RenderSystem(World* world) :SystemBase(world) {}
-		//void Update() override;
+		RenderSystem(World* world);
 
-		//void AddEntry(RenderContext* renderContext, CCamera* camera)
-		//{
-		//	RenderSystemEntry newEntry{ renderContext,camera };
-		//	m_entries.emplace_back(newEntry);
-		//}
-		//void RemoveEntry();
+		void Update() override;
+
 	private:
-		//std::vector<RenderSystemEntry> m_entries;
+		RenderLayer* m_renderLayer;
 	};
 }

@@ -11,8 +11,9 @@
 
 namespace Twisted
 {
-	World::World(ObjectID id) :
-		BaseObject(id)
+	World::World(Application* app) :
+		TObject(),
+		m_app(app)
 	{
 	}
 
@@ -68,7 +69,7 @@ namespace Twisted
 			{
 				EntityID entID = buffer.Read<EntityID>();
 				if (!m_registry.valid(entID))
-					m_registry.create(entID);
+					entID = m_registry.create(entID);
 
 				T& newComponent = m_registry.emplace<T>(entID, entID, this);
 				newComponent.Deserialize(buffer, assetsLayer);

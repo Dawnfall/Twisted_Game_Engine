@@ -15,8 +15,8 @@ namespace Twisted
 		inline bool ImportOnStart()const { return true; }
 		
 
-		AssetObjects CreateObjects(AssetObjects& currObjects)const override;
-		void PostCreate(const AssetInfo& assetInfo, AssetObjects& objects, AssetsLayer* assetsLayer)const override;
+		std::vector<TObject*>& Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const override;
+		void PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const override;
 
 		void FillDefaultInfo(YAML::Node& node)const override
 		{
@@ -24,3 +24,4 @@ namespace Twisted
 		}
 	};
 }
+

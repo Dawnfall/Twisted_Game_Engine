@@ -25,42 +25,42 @@ namespace Twisted
 
 	Mat4x4f CCamera::GetProjectionMatrix()const
 	{
-		switch (CameraType)
+		switch (GetProjectionType())
 		{
 		case CameraProjectionType::PERSPECTIVE:
-			return glm::perspective(GetFOVinRad(), AspectRatio, NearPlane, FarPlane);
+			return glm::perspective(GetFovInRad(), GetAspectRatio(), GetNearPlane(), GetFarPlane());
 		case CameraProjectionType::ORTOGRAPHIC:
-			return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
+			return glm::ortho(GetLeftEdge(), GetRightEdge(), GetBotEdge(), GetTopEdge(), GetNearPlane(), GetFarPlane());
 		default:
 			TWISTED_ERROR("Unsupported projection type!");
-			return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
+			return glm::ortho(GetLeftEdge(), GetRightEdge(), GetBotEdge(), GetTopEdge(), GetNearPlane(), GetFarPlane());
 		}
 	}
 
 	//Serialization
 	void CCamera::Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const
 	{
-		buffer.Write<CameraProjectionType>(CameraType);
-		buffer.Write<float>(NearPlane);
-		buffer.Write<float>(FarPlane);
-		buffer.Write<float>(FovDeg);
-		buffer.Write<float>(AspectRatio);
-		buffer.Write<float>(LeftEdge);
-		buffer.Write<float>(RightEdge);
-		buffer.Write<float>(BotEdge);
-		buffer.Write<float>(TopEdge);
+		buffer.Write<CameraProjectionType>(GetProjectionType());
+		buffer.Write<float>(GetNearPlane());
+		buffer.Write<float>(GetFarPlane());
+		buffer.Write<float>(GetFovInDeg());
+		buffer.Write<float>(GetAspectRatio());
+		buffer.Write<float>(GetLeftEdge());
+		buffer.Write<float>(GetRightEdge());
+		buffer.Write<float>(GetBotEdge());
+		buffer.Write<float>(GetTopEdge());
 	}
 
 	void CCamera::Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)
 	{
-		CameraType = buffer.Read<CameraProjectionType>();
-		NearPlane = buffer.Read<float>();
-		FarPlane = buffer.Read<float>();
-		FovDeg = buffer.Read<float>();
-		AspectRatio = buffer.Read<float>();
-		LeftEdge = buffer.Read<float>();
-		RightEdge = buffer.Read<float>();
-		BotEdge = buffer.Read<float>();
-		TopEdge = buffer.Read<float>();
+		SetProjectionType(buffer.Read<CameraProjectionType>());
+		SetNearPlane(buffer.Read<float>());
+		SetFarPlane(buffer.Read<float>());
+		SetFovInDeg(buffer.Read<float>());
+		SetAspectRatio(buffer.Read<float>());
+		SetLeftEdge(buffer.Read<float>());
+		SetRightEdge(buffer.Read<float>());
+		SetBotEdge(buffer.Read<float>());
+		SetTopEdge(buffer.Read<float>());
 	}
 }

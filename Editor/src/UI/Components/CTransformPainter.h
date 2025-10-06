@@ -1,18 +1,21 @@
 #pragma once
-#include "UI/Details/ComponentPainter.h"
+#include "EditorMacros.h"
+
+#include "UI/ComponentPainter.h"
 #include "Twisted/Gameing/Components/CTransform.h"
+#include "Twisted/Gameing/World.h"
 
 #include "imgui.h"
-#include "Twisted/Gameing/World.h"
 
 namespace Twisted::Editor
 {
 	class CTransformPainter :public ComponentPainter
 	{
 	public:
-		void AddComponent(EntityID entity, World* world) override {}
+		void AddComponent(Entity entity) override {}
 
-		void* GetComponent(EntityID ent, World* world)const override { return world->TryGetComponent<CTransform>(ent); }
+		void* GetComponent(Entity entity) override { return entity.TryGetComponent<CTransform>(); }
+
 		std::string GetComponentName()const override { return "Transform"; }
 
 		virtual void Paint(void* obj) override
@@ -59,3 +62,4 @@ namespace Twisted::Editor
 		}
 	};
 }
+

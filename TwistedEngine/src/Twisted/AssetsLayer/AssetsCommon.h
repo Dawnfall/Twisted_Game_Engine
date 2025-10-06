@@ -4,8 +4,7 @@
 
 #include <string>
 #include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
-
-using AssetObjects = std::vector<Twisted::ObjectID>;
+#include "Utils/WPtr.h"
 
 namespace Twisted
 {

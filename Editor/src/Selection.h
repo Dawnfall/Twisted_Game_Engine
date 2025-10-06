@@ -4,6 +4,7 @@
 
 #include <unordered_set>
 #include <variant>
+#include "Twisted/Gameing/Entity.h"
 
 // Helper trait to detect std::unordered_set
 template<typename>
@@ -16,7 +17,7 @@ namespace Twisted::Editor
 {
 	using SelectionVar = std::variant<
 		std::monostate,
-		std::unordered_set<EntityID>
+		std::unordered_set<Entity>
 	>;
 
 	class Selection

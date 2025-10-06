@@ -1,7 +1,7 @@
 #pragma once
 
-#include "UI/Details/DetailsPainter.h"
-#include "UI/Details/ComponentPainter.h"
+#include "UI/DetailsPainter.h"
+#include "UI/ComponentPainter.h"
 
 #include <unordered_map>
 #include <vector>
@@ -12,6 +12,9 @@
 
 namespace Twisted::Editor
 {
+	class DetailsPainter;
+	class ComponentPainter;
+
 	class EditorRegistry
 	{
 	public:
@@ -27,7 +30,7 @@ namespace Twisted::Editor
 		}
 
 		template<typename T>
-		void RegisterDetailsRenderer()
+		void RegisterDetailsPainter()
 		{
 			static_assert(std::is_base_of_v<DetailsPainter, T>, "T must derive from DetailsRenderer!");
 			DetailsRenderers[std::type_index(typeid(T))] = std::make_unique<T>();

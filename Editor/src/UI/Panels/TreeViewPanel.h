@@ -2,6 +2,8 @@
 #include "UI/EditorPanel.h"
 #include "Twisted/Gameing/Components/CTransform.h"
 #include "Twisted/Gameing/Components/CName.h"
+#include "Twisted/Gameing/Entity.h"
+
 namespace Twisted::Editor
 {
 	// Custom colors
@@ -16,10 +18,10 @@ namespace Twisted::Editor
 		bool IsClickUsed = false;
 		ImVec2 EntireRegion;
 
-		EntityID EntityToDelete = NullEntity;
+		Entity EntityToDelete;
 
 		bool doCreateNew = false;
-		EntityID NewEntityParent = NullEntity;
+		Entity NewEntityParent;
 		//TODO: meshentity
 	};
 
@@ -55,19 +57,19 @@ namespace Twisted::Editor
 		}
 	private:
 
-		void RenderTreeNode(EntityID entity, TreeViewToken& token);
-		void RenderDropZone(EntityID entity, TreeViewToken& token, bool isAfter);
+		void RenderTreeNode(Entity entity, TreeViewToken& token);
+		void RenderDropZone(Entity entity, TreeViewToken& token, bool isAfter);
 		void HandleChanges(TreeViewToken& token);
 
 		void RightClickEmpty(TreeViewToken& token);
-		void RightClickOnNode(EntityID entity, TreeViewToken& token);
-		void LeftClickOnNode(EntityID entID, bool isSelected);
-		void DragDrop(EntityID entID, size_t childCount, const std::string& name);
+		void RightClickOnNode(Entity entity, TreeViewToken& token);
+		void LeftClickOnNode(Entity entity, bool isSelected);
+		void DragDrop(Entity entity, size_t childCount, const std::string& name);
 	private:
 		bool m_isDroped = false;
 		size_t m_newIndex = 0;
-		EntityID m_newParentID = NullEntity;
-		EntityID m_draggedID = NullEntity;
+		Entity newParentEntity;
+		Entity draggedEntity;
 
 		const std::string DRAG_TREE_TRANSFORM = "drag_tree_transform";
 		const ImU32 SELECTED_COLOR = IM_COL32(80, 120, 200, 80);

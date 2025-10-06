@@ -8,8 +8,8 @@
 #include "Utils/Utils.h"
 
 #include "AssetInfo.h"
-#include "Twisted/RegisterLayer/ObjectID.h"
-#include "Twisted/RegisterLayer/ObjectManager.h"
+#include "Utils/WPtr.h"
+#include "Twisted/RegisterLayer/TObject.h"
 #include "AssetsCommon.h"
 
 #include <string>
@@ -27,8 +27,8 @@ namespace Twisted
 	public:
 		virtual bool ImportOnStart()const = 0;
 		virtual std::vector<fs::path> GetAssetExtensions()const = 0;
-		virtual AssetObjects CreateObjects(AssetObjects& currObjects)const = 0;
-		virtual void PostCreate(const AssetInfo& assetInfo, AssetObjects& objects, AssetsLayer* assetsLayer)const = 0;
+		virtual std::vector<TObject*>& Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const = 0;
+		virtual void PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const = 0;
 		virtual void FillDefaultInfo(YAML::Node& node)const = 0;
 	};
 }

@@ -1,7 +1,13 @@
 file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
     "src/*.h"
     "src/*.cpp"
+    "src/*.mpp"
 )
+
+file(GLOB_RECURSE EDITOR_MODULES CONFIGURE_DEPENDS "src/*.mpp")
+set_source_files_properties(${EDITOR_MODULES} PROPERTIES LANGUAGE CXX)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_MODULES})
 
 add_executable(Editor ${EDITOR_SOURCES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_SOURCES})

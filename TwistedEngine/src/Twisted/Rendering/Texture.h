@@ -1,7 +1,6 @@
 #pragma once
 #include "AppCore.h"
-#include "Twisted/RegisterLayer/BaseObject.h"
-#include "Twisted/RegisterLayer/Serialization/Serializer.h"
+#include "Twisted/RegisterLayer/TObject.h"
 #include <string>
 
 namespace Twisted
@@ -13,7 +12,6 @@ namespace Twisted
 		CLAMP_TO_EDGE,
 		CLAMP_TO_BORDER
 	};
-
 	enum class TextureMinFilter
 	{
 		NEAREST,
@@ -23,11 +21,18 @@ namespace Twisted
 		LINEAR_MIPMAP_NEAREST,
 		LINEAR_MIPMAP_LINEAR
 	};
-
 	enum class TextureMagFilter
 	{
 		NEAREST,
 		LINEAR
+	};
+
+	struct TextureParams
+	{
+		TextureWrap Wrap = TextureWrap::REPEAT;
+		TextureMinFilter MinFilter = TextureMinFilter::NEAREST;
+		TextureMagFilter MagFilter = TextureMagFilter::NEAREST;
+		bool DoMipMaps = false;
 	};
 
 	struct TextureData
@@ -38,48 +43,68 @@ namespace Twisted
 		int Channels;
 	};
 
-	class TWISTED_API Texture :public BaseObject //assumes mipmap, rgba 4 channel input , assumes valid texture
+	class TWISTED_API Texture :public TObject //assumes mipmap, rgba 4 channel input , assumes valid texture
 	{
 	public:
-		Texture(ObjectID id);
-		Texture(ObjectID id, const TextureData& texData);
-		~Texture();
+		Texture() = default;
+		Texture(const TextureData& texData, const TextureParams& params) :TObject()
+		{
+			Create(texData, params);
+		}
+		~Texture()
+		{
+			Clear();
+		}
 
-		void Init(const TextureData& data);
+		void Create(const TextureData& data, const TextureParams& params);
+		void Clear();
 
 		unsigned int GetTexID() const { return m_texID; }
-
+		const TextureParams& GetParams() const { return m_params; }
 		int GetWidth()const { return m_width; }
 		int GetHeight()const { return m_height; }
 		int GetChannelsCount()const { return m_channels; }
 
-		TextureWrap GetWrapType()const { return m_wrap; }
-		TextureMagFilter GetMagFilter()const { return m_magFilter; }
-		TextureMinFilter GetMinFilter()const { return m_minFilter; }
+		void SetParams(const TextureParams& params)
+		{
+			m_params = params;
+			m_isDirty = true;
+		}
+		void SetWrapType(TextureWrap wrapType)
+		{
+			if (m_params.Wrap == wrapType)
+				return;
+			m_params.Wrap = wrapType;
+			m_isDirty = true;
+		}
+		void SetMagFilter(TextureMagFilter magFilter)
+		{
+			if (m_params.MagFilter == magFilter)
+				return;
+			m_params.MagFilter = magFilter;
+			m_isDirty = true;
+		}
+		void SetMinFilter(TextureMinFilter minFilter)
+		{
+			if (m_params.MinFilter == minFilter)
+				return;
+			m_params.MinFilter = minFilter;
+			m_isDirty = true;
+		}
 
-		void SetWrapType(TextureWrap wrapType);
-		void SetMagFilter(TextureMagFilter magFilter);
-		void SetMinFilter(TextureMinFilter minFilter);
+		void Bind(unsigned int slot = 0) const;
+		void UnBind()const;
+
+		void Update();
 
 	private:
 
-		TextureWrap m_wrap = TextureWrap::REPEAT;
-		TextureMinFilter m_minFilter = TextureMinFilter::NEAREST;
-		TextureMagFilter m_magFilter = TextureMagFilter::NEAREST;
+		TextureParams m_params;
+		bool m_isDirty = true;
 
-		int m_width;
-		int m_height;
-		int m_channels;
-		unsigned int m_texID;
+		int m_width = 0;
+		int m_height = 0;
+		int m_channels = 0;
+		unsigned int m_texID = 0;
 	};
-
-	//template<>
-	//void Serialize<Texture>(const Texture& obj, BinSerializer& buffer)
-	//{
-	//	buffer.Write<int>(obj.GetWidth());
-	//	buffer.Write<int>(obj.GetHeight());
-	//	buffer.Write<TextureWrap>(obj.GetWrapType());
-	//	buffer.Write<TextureMinFilter>(obj.GetMinFilter());
-	//	buffer.Write<TextureMagFilter>(obj.GetMagFilter());
-	//}
 }

@@ -1,14 +1,9 @@
-#include "Twisted/Application/Application.h"
-#include "EditorRuntime.h"
-
-#include "Utils/Utils.h"
-#include <iostream>
+#include "EditorApplication.h"
 
 int main()
 {
-	Twisted::Editor::EditorRuntime runtime;
-	Twisted::Application app(&runtime);
-	app.Run();
+	Twisted::Editor::EditorApplication editorApplication;
+	editorApplication.Run();
 
 	return 0;
 }

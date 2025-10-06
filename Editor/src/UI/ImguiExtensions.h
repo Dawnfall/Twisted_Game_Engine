@@ -9,7 +9,7 @@
 
 #include "AppCore.h"
 #include "Twisted/Gameing/AComponent.h"
-#include "Twisted/RegisterLayer/ObjectID.h"
+#include "Twisted/RegisterLayer/TObject.h"
 
 namespace Im
 {
@@ -154,19 +154,19 @@ namespace Im
 	}
 
 	template<typename T>
-	Twisted::ObjectID ObjectDropField(const char* label, Twisted::ObjectID& obj, const char* payloadType)
+	T* ObjectDropField(const char* label, T* obj, const char* payloadType)
 	{
-		static_assert(std::is_base_of_v<Twisted::BaseObject, T>, "T must derive from BaseObject");
+		static_assert(std::is_base_of_v<Twisted::TObject, T>, "T must derive from BaseObject");
 
 		ImGui::Text("%s", label);
 		ImGui::SameLine();
 
-		ImGui::PushID(&obj);  // unique ID based on member address
+		ImGui::PushID(obj);  // unique ID based on member address
 
 		// Display a button or empty slot
 		std::string buttonLabel;
 		if (obj)
-			buttonLabel = "Object " + std::to_string(obj.GetID());
+			buttonLabel = "Object " + obj->GetID().ToString();
 		else
 			buttonLabel = "<None>";
 		ImGui::Button(buttonLabel.c_str(), ImVec2(150, 0));
@@ -174,11 +174,10 @@ namespace Im
 		// --- Drag source (so user can drag it elsewhere) ---
 		if (ImGui::BeginDragDropSource())
 		{
-			ImGui::SetDragDropPayload(payloadType, &obj, sizeof(Twisted::ObjectID));
-			ImGui::Text("Dragging %u", std::to_string(obj.GetID()));
+			ImGui::SetDragDropPayload(payloadType, obj, sizeof(Twisted::ObjectID));
+			ImGui::Text("Dragging %u", obj->GetID().ToString());
 			ImGui::EndDragDropSource();
 		}
-
 
 		ImGui::PopID();
 		return obj;

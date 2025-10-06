@@ -3,9 +3,11 @@
 #include "AppCore.h"
 #include "Twisted/Application/Layer.h"
 #include "Twisted/AssetsLayer/AssetImporter.h"
+#include "ImporterRegistry.h"
 #include "AssetInfo.h"
 
 #include "AssetsCommon.h"
+#include "Utils/WPtr.h"
 
 #include <unordered_map>
 #include <filesystem>
@@ -23,12 +25,8 @@ namespace Twisted
 
 		std::unordered_map<fs::path, SRef<AssetInfo>> m_assetsByPath;
 		std::unordered_map<AssetUuid, SRef<AssetInfo>> m_assetsByUuid; //not sure if needed
-		std::unordered_map<ObjectID, ObjectAssetEntry> m_objToEntry; //not sure if needed
-		std::unordered_map<AssetUuid, AssetObjects> m_assetObjects;
-
-		std::unordered_map<fs::path, SRef<AssetImporter>> m_extToImporter; //TODO: maybe switch to string for ext
-		std::unordered_map<fs::path, SRef<AssetImporter>> m_typeToImporter; //TODO: maybe switch to string for ext
-
+		//std::unordered_map<WPtr<TObject>, ObjectAssetEntry> m_objToEntry; //not sure if needed
+		std::unordered_map<AssetUuid, std::vector<TObject*>> m_assetObjects;
 
 	public:
 
@@ -63,47 +61,32 @@ namespace Twisted
 
 		void ImportAssets(const fs::path& assetsFolder);
 
-		template<typename T>
-		void RegisterImporter()
-		{
-			static_assert(std::is_base_of_v<AssetImporter, T>, "T must derive from AssetImporter");
 
-			auto importer = std::make_shared<T>();
-
-			for (const fs::path& ext : importer->GetAssetExtensions())
-				m_extToImporter[ext] = importer;
-		}
-
-		AssetImporter* GetImporter(const fs::path& extension)
-		{
-			auto it = m_extToImporter.find(extension);
-			if (it != m_extToImporter.end())
-				return it->second.get();
-			return nullptr;
-		}
 
 		template<typename T>
 		T* ImportAssetDirect(const fs::path& assetPath)
 		{
 			auto assetInfo = LoadInfo(assetPath);
-			AssetImporter* importer = GetImporter(assetPath.extension());
+			AssetImporter* importer = ImporterRegistry::GetInstance().GetImporter(assetPath.extension());
 
 			if (!assetInfo || !importer)
 				return nullptr;
 
-			std::vector<ObjectID> objects;
-			importer->CreateObjects(objects);
-			if (objects.size() != 1)
-			{
-				TWISTED_WARN("Direct import should only create 1 object!");
-				return nullptr;
-			}
+			std::vector<TObject*> objects;
+			importer->Import(*assetInfo, objects, this);
+			
+			//TODO: probably remove
+			//if (objects.size() != 1)
+			//{
+			//	TWISTED_WARN("Direct import should only create 1 object!");
+			//	return nullptr;
+			//}
 
-			importer->PostCreate(*assetInfo, objects, this);
-			return ObjectManager::GetInstance().GetIdObject<T>(objects[0]);
+			importer->PostImport(*assetInfo, objects, this);
+			return static_cast<T*>(objects[0]);
 		}
 
-		AssetInfo* GetObjectsOriginalAsset(ObjectID object);
+		AssetInfo* GetObjectsOriginalAsset(TObject* object);
 
 
 	private:
@@ -113,43 +96,15 @@ namespace Twisted
 		void ImportAsset(const fs::path& assetPath);
 
 	public:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		ObjectAssetEntry GetObjectEntry(ObjectID id)
-		{
-			auto it = m_objToEntry.find(id);
-			if (it != m_objToEntry.end())
-				return it->second;
-			return ObjectAssetEntry::Invalid();
-		}
-		ObjectID GetObjectFromEntry(const ObjectAssetEntry& objEntry)
-		{
+		//ObjectAssetEntry GetObjectEntry(ObjectID id)
+		//{
+		//	auto it = m_objToEntry.find(id);
+		//	if (it != m_objToEntry.end())
+		//		return it->second;
+		//	return ObjectAssetEntry::Invalid();
+		//}
+		//ObjectID GetObjectFromEntry(const ObjectAssetEntry& objEntry)
+		//{
 			//auto assetIt = m_assetsByUuid.find(objEntry.Uuid);
 			//if (assetIt != m_assetsByUuid.end())
 			//{
@@ -158,9 +113,7 @@ namespace Twisted
 			//	if (objIt != assetIt->second->Objects.end())
 			//		return objIt->second;
 			//}
-			return ObjectID::Invalid();
-		}
-
-
+		//	return ObjectID::Invalid();
+		//}
 	};
 }

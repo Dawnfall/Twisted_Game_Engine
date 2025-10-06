@@ -7,8 +7,6 @@ namespace Twisted::Editor
 	{
 	public:
 		virtual void Paint(void* obj) = 0;
-
-	private:
 	};
 
 }

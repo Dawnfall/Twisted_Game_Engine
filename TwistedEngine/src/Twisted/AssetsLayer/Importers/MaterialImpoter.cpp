@@ -1,20 +1,10 @@
 #include "MaterialImporter.h"
-
-#include "Twisted/Rendering/Material.h"
+#include "TwistedMacros.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
+#include "Twisted/Rendering/Material.h"
 
 namespace Twisted
 {
-	AssetObjects MaterialImporter::CreateObjects(AssetObjects& currObjects)const
-	{
-		if (currObjects.size()>0)
-			currObjects[0] = ObjectManager::GetInstance().ReloadObject<Material>(currObjects[0])->getID();
-		else
-			currObjects.emplace_back(ObjectManager::GetInstance().CreateObject<Material>()->getID());
-
-		return currObjects;
-	}
-
 	template<typename T>
 	void FillMapFromYaml(YAML::Node& node, const std::string& key, Material* mat)
 	{
@@ -27,14 +17,26 @@ namespace Twisted
 		}
 	}
 
-	void MaterialImporter::PostCreate(const AssetInfo& assetInfo, AssetObjects& objects, AssetsLayer* assetsLayer)const
+	std::vector<Twisted::TObject*>& MaterialImporter::Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	{
+		if (objects.size() > 0)
+		{
+			objects[0]->static_as<Material>()->Clear();
+		}
+		else
+			objects.emplace_back(TObject::Create<Material>());
+
+		return objects;
+	}
+
+	void MaterialImporter::PostImport(const AssetInfo& assetInfo, std::vector<Twisted::TObject*>& objects, AssetsLayer* assetsLayer)const
 	{
 		YAML::Node assetData = YAML::LoadFile(assetInfo.AssetPath.string());
 
 		MaterialData Data;
 		std::unordered_map<std::string, ObjectAssetEntry> TexIDs;
 
-		Material* mat = ObjectManager::GetInstance().GetIdObject<Material>(objects[0]);
+		Material* mat = static_cast<Material*>(objects[0]);
 
 		FillMapFromYaml<bool>(assetData, "Bools", mat);
 		FillMapFromYaml<int>(assetData, "ints", mat);
@@ -46,3 +48,5 @@ namespace Twisted
 		//FillMapFromYaml<ObjectAssetEntry>(assetData,"textures", mat);
 	}
 }
+
+REGISTER_IMPORTER(MaterialImporter)

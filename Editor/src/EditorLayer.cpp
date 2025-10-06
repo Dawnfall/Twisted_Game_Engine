@@ -8,7 +8,6 @@
 
 #include "AppCore.h"
 #include "Twisted/Windowing/Window.h"
-#include "Twisted/RegisterLayer/ObjectManager.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 
 #include "Twisted/Gameing/World.h"
@@ -17,27 +16,42 @@
 #include <imgui.h>
 #include <string>
 
+#include "UI/Panels/DetailsPanel.h"
+#include "UI/Panels/TreeViewPanel.h"
+#include "UI/Panels/WorldViewPanel.h"
+#include "UI/Panels/AssetsPanel.h"
+
+#include "Twisted/Gameing/Entity.h"
+
 namespace Twisted::Editor
 {
+
 	void EditorLayer::Init()
 	{
+		CreateEditorPanel<TreeViewPanel>();
+		CreateEditorPanel<DetailsPanel>();
+		CreateEditorPanel<WorldViewPanel>();
+		CreateEditorPanel<AssetsPanel>();
+
+		GameViewBuffer = TObject::Create<FrameBuffer>();
+		EditorViewBuffer = TObject::Create<FrameBuffer>();
+		
 		SetWorld(nullptr);
 	}
 
 	void EditorLayer::SetWorld(World* world)
 	{
 		Selection::GetInstance().Clear();
-		if (m_gameWorld.IsValid())
+		if (m_gameWorld)
 		{
-			//m_registerLayer->DestroyObject(m_gameWorld.get());
-			//m_registerLayer->DestroyObject(m_editorWorld.get());
+			TObject::Destroy(m_gameWorld);
 		}
 
 		if (!world)
-			world = ObjectManager::GetInstance().CreateObject<World>();
+			world = TObject::Create<World>(m_app);
 
-		m_gameWorld = world->getID();
-		m_editorWorld = ObjectManager::GetInstance().CreateObject<World>()->getID(); //TODO...
+		m_gameWorld = world;
+		//m_editorWorld = TObject::Create<World>(); //TODO...
 		WorldChangeEvent.Invoke();
 	}
 
@@ -118,7 +132,7 @@ namespace Twisted::Editor
 				if (ImGui::MenuItem("New Entity"))
 				{
 					if (GetGameWorld())
-						EntityID newEntt = GetGameWorld()->CreateEntity();
+						Entity newEntity = Entity::CreateNew(GetGameWorld());
 				}
 				ImGui::EndMenu();
 			}

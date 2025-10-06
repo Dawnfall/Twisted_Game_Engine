@@ -1,13 +1,16 @@
 #pragma once
 
-#include "Twisted/Rendering/RenderContext.h"
 #include "Twisted/Gameing/Components/CCamera.h"
-
+#include "Twisted/Rendering/Mesh.h"
+#include "Twisted/Rendering/Shader.h"
 namespace Twisted
 {
 	struct RenderSystemEntry
 	{
-		RenderContext* Context;
-		CCamera* Camera;
+		Mesh* mesh;
+		Material* material;
+		FrameBuffer* framebuffer;
 	};
+
+
 }

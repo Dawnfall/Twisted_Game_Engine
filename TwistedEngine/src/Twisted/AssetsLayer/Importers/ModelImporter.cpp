@@ -1,4 +1,6 @@
+#include "Twisted/AssetsLayer/ImporterRegistry.h"  // <-- declares Twisted::ImporterRegistry
 #include "ModelImporter.h"
+#include "TwistedMacros.h"    // <-- defines REGISTER_IMPORTER
 
 #include "Utils/GlmUtils.h"
 #include "Twisted/Data/Vertex.h"
@@ -79,13 +81,12 @@ namespace Twisted
 		return vertex;
 	}
 	
-	AssetObjects ModelImporter::CreateObjects(AssetObjects& currObjects)const
+	std::vector<TObject*>& ModelImporter::Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
 	{
-		AssetObjects objects;
 		return objects;
 	}
 
-	void ModelImporter::PostCreate(const AssetInfo& assetInfo, AssetObjects& objects, AssetsLayer* assetsLayer)const
+	void ModelImporter::PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
 	{
 		//std::vector<std::string> MaterialUuids;
 		//std::vector<std::string> MeshUuids;
@@ -118,3 +119,6 @@ namespace Twisted
 		//return objects;
 	}
 }
+
+REGISTER_IMPORTER(ModelImporter)
+

@@ -1,18 +1,15 @@
 #pragma once
 
-#include "UI/Details/ComponentPainter.h"
+#include "UI/ComponentPainter.h"
 #include "Twisted/Gameing/Components/CRenderer.h"
 #include "UI/ImguiExtensions.h"
-#include "Twisted/Gameing/World.h"
-
-
 namespace Twisted::Editor
 {
 	class CRendererPainter :public ComponentPainter
 	{
 	public:
-		void AddComponent(EntityID entity, World* world) override { world->AddComponent<CRenderer>(entity); }
-		void* GetComponent(EntityID ent, World* world)const override { return world->TryGetComponent<CRenderer>(ent); }
+		void AddComponent(Entity entity) override { entity.AddComponent<CRenderer>(); }
+		void* GetComponent(Entity entity) override { return entity.TryGetComponent<CRenderer>(); }
 		std::string GetComponentName()const override { return "Renderer"; }
 
 		virtual void Paint(void* obj)override
@@ -23,6 +20,5 @@ namespace Twisted::Editor
 			Im::ObjectDropField<Material>("Material", renderer->GetSharedMaterial(), nullptr);
 			Im::ObjectDropField<Mesh>("Mesh", renderer->GetSharedMesh(), nullptr);
 		}
-
 	};
 }

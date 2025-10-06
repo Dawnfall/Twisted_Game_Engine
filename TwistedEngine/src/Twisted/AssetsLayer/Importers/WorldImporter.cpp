@@ -1,24 +1,30 @@
 #include "WorldImporter.h"
 
 #include "Twisted/Gameing/World.h"
+#include "Utils/WPtr.h"
+#include "Twisted/AssetsLayer/AssetsLayer.h"
+#include "TwistedMacros.h"
 
 namespace Twisted
 {
-	AssetObjects WorldImporter::CreateObjects(AssetObjects& currObjects)const
+	std::vector<TObject*>& WorldImporter::Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
 	{
-		if (currObjects.size()>0)
-			currObjects[0] = ObjectManager::GetInstance().ReloadObject<World>(currObjects[0])->getID();
+		if (objects.size() > 0)
+		{
+			World* world = objects[0]->static_as<World>();
+			world->Clear();
+		}
 		else
-			currObjects.emplace_back(ObjectManager::GetInstance().CreateObject<World>()->getID());
-		return currObjects;
+			objects.emplace_back(TObject::Create<World>(assetsLayer->GetApplication()));
+		return objects;
 	}
 
-	void WorldImporter::PostCreate(const AssetInfo& assetInfo, AssetObjects& objects, AssetsLayer* assetsLayer)const
+	void WorldImporter::PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
 	{
 		BinSerializer buffer;
 		buffer.LoadFromFile(assetInfo.AssetPath);
-
-		World* world = ObjectManager::GetInstance().GetIdObject<World>(objects[0]);
-		world->Deserialize(buffer,assetsLayer);
+		objects[0]->static_as<World>()->Deserialize(buffer, assetsLayer);
 	}
 }
+
+REGISTER_IMPORTER(WorldImporter)

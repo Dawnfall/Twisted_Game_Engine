@@ -7,10 +7,10 @@ namespace Twisted
 {
 	void CRenderer::Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const
 	{
-		ObjectAssetEntry serMesh = assetsLayer->GetObjectEntry(m_mesh);
-		ObjectAssetEntry serMaterial = assetsLayer->GetObjectEntry(m_material);
+		//ObjectAssetEntry serMesh = assetsLayer->GetObjectEntry(m_mesh);
+		//ObjectAssetEntry serMaterial = assetsLayer->GetObjectEntry(m_material);
 
-		buffer.Write<ObjectAssetEntry>(serMesh);
+		//buffer.Write<ObjectAssetEntry>(serMesh);
 		//buffer.Write<ObjectAssetEntry>(serMaterial);
 	}
 
