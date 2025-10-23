@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <format>
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 namespace Twisted
 {

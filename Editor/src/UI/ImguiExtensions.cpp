@@ -1,10 +1,91 @@
 #include "ImguiExtensions.h"
+
+#include "AppCore.h"
+#include "Debug/Logger.h"
+
+#ifdef NATIVE_USE
+
+#include <Windows.h>
+#include <backends/imgui_impl_opengl3.h>
+//#include <backends/imgui_impl_win32.h>
+
+namespace Im
+{
+	void Init(void* windowPointer)
+	{
+		HWND hwnd = static_cast<HWND>(windowPointer);
+
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+
+		//ImGui_ImplWin32_Init(hwnd);
+		ImGui_ImplOpenGL3_Init("#version 460"); // You can use another version string depending on your context
+
+		Im::SetFlags();
+		Im::SetStyle();
+
+		ImGui::GetIO().IniFilename = nullptr;
+	}
+
+	void StartFrame()
+	{
+		ImGui_ImplOpenGL3_NewFrame();
+		//ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
+	}
+
+	void Terminate()
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		//ImGui_ImplWin32_Shutdown();
+		ImGui::DestroyContext();
+	}
+}
+
+#else
+
+#include <GLFW/glfw3.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
 
-#include <GLFW/glfw3.h>
-#include <filesystem>
-#include "Logger.h"
+namespace Im
+{
+	void Init(void* windowPointer)
+	{
+		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
+		{
+			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
+		}
+
+		//Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(windowPointer), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+		ImGui_ImplOpenGL3_Init();
+
+		Im::SetFlags();
+		Im::SetStyle();
+
+		ImGui::GetIO().IniFilename = nullptr;
+	}
+
+	void StartFrame()
+	{
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+	}
+
+	void Terminate()
+	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+	}
+}
+#endif
+
 
 namespace Im
 {
@@ -137,20 +218,6 @@ namespace Im
 
 		return ret;
 	}
-
-	void CenterCursor(const std::string& text)
-	{
-		ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
-		float padding = ImGui::GetStyle().FramePadding.x * 2.0f;
-		float widgetWidth = textSize.x + padding;
-
-		// total available region in current window/column
-		float regionWidth = ImGui::GetContentRegionAvail().x;
-
-		// center by moving cursor before the button
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (regionWidth - widgetWidth) * 0.5f);
-	}
-
 	bool FavoriteButton(const char* label, bool isFavorite)
 	{
 		ImGuiContext& g = *GImGui;
@@ -300,52 +367,26 @@ namespace Im
 		return ret;
 	}
 
-
-	void Init(void* windowPointer)
+	void CenterCursor(const std::string& text)
 	{
-		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
-		{
-			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
-		}
+		ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+		float padding = ImGui::GetStyle().FramePadding.x * 2.0f;
+		float widgetWidth = textSize.x + padding;
 
-		//Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(windowPointer), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-		ImGui_ImplOpenGL3_Init();
+		// total available region in current window/column
+		float regionWidth = ImGui::GetContentRegionAvail().x;
 
-		Im::SetFlags();
-		Im::SetStyle();
-
-		ImGui::GetIO().IniFilename = nullptr;
+		// center by moving cursor before the button
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (regionWidth - widgetWidth) * 0.5f);
 	}
 
 
-	//void Init(GLFWwindow* windowPointer)
-	//{
-		//if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
-		//{
-		//	Twisted::TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
-		//}
-
-		////Setup Dear ImGui context
-		//IMGUI_CHECKVERSION();
-		//ImGui::CreateContext();
-		//ImGui_ImplGlfw_InitForOpenGL(windowPointer, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-		//ImGui_ImplOpenGL3_Init();
-
-		//Im::SetFlags();
-		//Im::SetStyle();
-
-		//ImGui::GetIO().IniFilename = nullptr;
-	//}
 
 	void SetFlags()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
-
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
 	}
 
 	void SetStyle()
@@ -353,12 +394,7 @@ namespace Im
 		ImGui::StyleColorsDark();
 	}
 
-	void Terminate()
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
+
 
 	void Render()
 	{
@@ -366,13 +402,7 @@ namespace Im
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
-	//should be called at start of every frame
-	void StartFrame()
-	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
+
 
 	void EndFrame()
 	{
@@ -425,39 +455,5 @@ namespace Im
 
 		token.JustCreated = false;
 		return changed;
-	}
-
-	bool AssetEntry(AssetEntryToken& token)
-	{
-		bool justSelected = false;
-
-		std::string filename = token.Path.filename().string();
-		std::string fullPath = token.Path.string();
-
-		// === 2. Selection Highlight ===
-		ImGui::PushID(fullPath.c_str()); // Unique ID for each asset
-		if (token.IsSelected)
-			ImGui::PushStyleColor(ImGuiCol_Button, token.HighLightColor);
-
-		// === 3. Icon Button ===
-		ImGui::Button("##icon", token.CellSize); // Placeholder image slot
-
-		if (ImGui::IsItemClicked())
-			bool justSelected = true;
-
-		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-			//TODO: maybe?!?
-		}
-
-		if (token.IsSelected) // Reset style
-			ImGui::PopStyleColor();
-
-		// === 5. Filename ===
-		ImGui::TextWrapped("%s", filename.c_str());
-
-		ImGui::PopID();
-		ImGui::NextColumn();
-
-		return justSelected;
 	}
 }

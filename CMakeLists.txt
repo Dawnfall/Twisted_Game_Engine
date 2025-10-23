@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 4.1.2)
 project (TwistedEngine LANGUAGES CXX)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -19,9 +19,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${OUTPUT_DIR})
 
 # include dirs
-set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/TwistedEngine/src")
-set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/Editor/src")
-set(IncludeDirs_Standalone "${CMAKE_SOURCE_DIR}/Standalone/src")
+# set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/TwistedEngine/src")
+# set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/Editor/src")
+# set(IncludeDirs_Standalone "${CMAKE_SOURCE_DIR}/Standalone/src")
 
 set(IncludeDirs_imgui 
     "${CMAKE_SOURCE_DIR}/3rd/imgui"
@@ -30,21 +30,21 @@ set(IncludeDirs_imgui
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-find_package(glm CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
-find_package(entt CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
-find_package(RapidObj CONFIG REQUIRED)
+# find_package(glm CONFIG REQUIRED)
+# find_package(spdlog CONFIG REQUIRED)
+# find_package(glfw3 CONFIG REQUIRED)
+# find_package(glad CONFIG REQUIRED)
+# find_package(entt CONFIG REQUIRED)
+# find_package(yaml-cpp CONFIG REQUIRED)
+# find_package(RapidObj CONFIG REQUIRED)
 
-#third party
+# third party
 add_subdirectory(3rd/imgui)
 
-#submodules
-add_subdirectory(TwistedEngine)
-add_subdirectory(Editor)
-add_subdirectory(Standalone)
-
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
+# submodules
+# add_subdirectory(TwistedEngine)
+# add_subdirectory(Editor)
+# add_subdirectory(Standalone)
+  
+# set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
 

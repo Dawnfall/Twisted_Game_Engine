@@ -10,7 +10,7 @@ namespace Twisted::Editor
 	class WorldViewPanel :public EditorPanel
 	{
 	public:
-		WorldViewPanel(EditorLayer* editor);
+		WorldViewPanel();
 
 		virtual void PaintContent()override;
 

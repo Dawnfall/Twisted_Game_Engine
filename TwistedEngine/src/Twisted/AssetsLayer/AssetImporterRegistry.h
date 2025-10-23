@@ -1,24 +1,20 @@
 #pragma once
 
 #include "AppCore.h"
+
 #include "AssetImporter.h"
+
 #include <unordered_map>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 namespace Twisted
 {
-	class ImporterRegistry
+	class TWISTED_API AssetImporterRegistry
 	{
 	public:
-		ImporterRegistry(const ImporterRegistry& other) = delete;
-		ImporterRegistry(ImporterRegistry&& other) = delete;
-		ImporterRegistry& operator=(const ImporterRegistry& other) = delete;
-		ImporterRegistry& operator=(ImporterRegistry&& other) = delete;
-
-		static ImporterRegistry& GetInstance()
-		{
-			static ImporterRegistry instance;
-			return instance;
-		}
+		static AssetImporterRegistry& GetInstance();
 
 		template<typename T>
 		void RegisterImporter()
@@ -31,16 +27,24 @@ namespace Twisted
 				m_extToImporter[ext] = importer;
 		}
 
-		AssetImporter* GetImporter(const fs::path& extension)
+		AssetImporter* GetImporter(const fs::path& extension)const
 		{
 			auto it = m_extToImporter.find(extension);
 			if (it != m_extToImporter.end())
 				return it->second.get();
 			return nullptr;
 		}
+	private:
+		std::unordered_map<fs::path, SRef<AssetImporter>> m_extToImporter; //TODO: maybe switch to string for ext
 
 	private:
-		ImporterRegistry() = default;
-		std::unordered_map<fs::path, SRef<AssetImporter>> m_extToImporter; //TODO: maybe switch to string for ext
+		AssetImporterRegistry() = default;
+
+	public:
+		AssetImporterRegistry(const AssetImporterRegistry& other) = delete;
+		AssetImporterRegistry(AssetImporterRegistry&& other) = delete;
+		AssetImporterRegistry& operator=(const AssetImporterRegistry& other) = delete;
+		AssetImporterRegistry& operator=(AssetImporterRegistry&& other) = delete;
+
 	};
 }

@@ -27,5 +27,19 @@ namespace Twisted::Editor                  \
     static type##Register s_##type##Register; \
 }
 
+#define REGISTER_EDITOR_PANEL(type)     \
+namespace Twisted::Editor                  \
+{                                          \
+    struct type##Register                  \
+    {                                      \
+        type##Register()                   \
+        {                                  \
+            EditorRegistry::GetInstance().RegisterPanel<type>(); \
+        }                                  \
+    };                                     \
+    static type##Register s_##type##Register; \
+}
+
+
 
 

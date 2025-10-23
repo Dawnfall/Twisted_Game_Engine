@@ -1,8 +1,7 @@
 #pragma once
-#include "Logger.h"
-#include "Twisted/Data/Project.h"
+#include "Debug/Logger.h"
+#include "Twisted/AssetsLayer/Project.h"
 #include "Twisted/Application/Layer.h"
-#include "Constants.h"
 
 #include "LoadupConfig.h"
 #include "Twisted/Windowing/NativeUtils.h"
@@ -18,19 +17,21 @@
 
 namespace Twisted::Editor
 {
+	inline static const fs::path loadupConfigPath = "F:/Programiranje/Test/TwistedEditor/loadupConfig.editor";
+
 	class ProjectLoader :public Layer
 	{
 
 	public:
 		ProjectLoader(Application* app) :
-			Layer(app)
+			Layer(app), LoadupConfigData(loadupConfigPath.string())
 		{
 		}
 
 
 		void Init()override
 		{
-			LoadupConfigData.File.Load();
+
 		}
 
 		void Render(Window* window)
@@ -113,8 +114,8 @@ namespace Twisted::Editor
 			}
 
 			LoadupConfigData.AddLatest(projectFolder.string());
-			LoadupConfigData.AddLatest(projectFolder.string());
-			LoadupConfigData.File.Save();
+			//LoadupConfigData.AddLatest(projectFolder.string());
+			LoadupConfigData.Save();
 
 			Project::GetInstance().SetProject(projectFolder);
 		}

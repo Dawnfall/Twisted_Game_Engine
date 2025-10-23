@@ -1,21 +1,21 @@
 #pragma once
-#include "Logger.h"
-
-#include <filesystem>
-#include <yaml-cpp/yaml.h>
+#include "Debug/Logger.h"
 
 #include "Utils/FileUtils.h"
 #include "Utils/Utils.h"
 
 #include "AssetInfo.h"
 #include "Utils/WPtr.h"
-#include "Twisted/RegisterLayer/TObject.h"
-#include "AssetsCommon.h"
+#include "Twisted/TObject.h"
+#include "ObjectAssetEntry.h"
 
+#include <filesystem>
+#include <yaml-cpp/yaml.h>
 #include <string>
 #include <unordered_map>
 
 namespace fs = std::filesystem;
+using ObjectsPerAsset = std::unordered_map<std::string, Twisted::WPtrBase>;
 
 namespace Twisted
 {
@@ -25,10 +25,10 @@ namespace Twisted
 	class TWISTED_API AssetImporter
 	{
 	public:
-		virtual bool ImportOnStart()const = 0;
+		virtual bool DoAutoImport()const = 0;
 		virtual std::vector<fs::path> GetAssetExtensions()const = 0;
-		virtual std::vector<TObject*>& Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const = 0;
-		virtual void PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const = 0;
+		virtual ObjectsPerAsset& Import(const AssetInfo& assetinfo, ObjectsPerAsset& objects)const = 0;
+		virtual void PostImport(const AssetInfo& assetinfo, ObjectsPerAsset& objects)const = 0;
 		virtual void FillDefaultInfo(YAML::Node& node)const = 0;
 	};
 }

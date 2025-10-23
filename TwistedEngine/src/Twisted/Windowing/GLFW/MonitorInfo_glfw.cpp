@@ -1,4 +1,7 @@
-#include "MonitorInfo.h"
+#include "AppCore.h"
+#ifndef NATIVE_USE
+
+#include "Twisted/Windowing/MonitorInfo.h"
 #include <GLFW/glfw3.h>
 
 namespace Twisted
@@ -57,3 +60,5 @@ namespace Twisted
 		return MonitorInfo(0);
 	}
 }
+
+#endif

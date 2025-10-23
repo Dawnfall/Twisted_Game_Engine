@@ -1,16 +1,17 @@
 #include "CCamera.h"
+#include "Twisted/TwistedMacros.h"
+
 #include "Utils/GlmUtils.h"
-#include "Constants.h"
 
 #include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Components/CTransform.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 namespace Twisted
 {
 	Mat4x4f CCamera::GetViewMatrix()const
 	{
-		const CTransform& transform = GetWorld()->GetComponent<CTransform>(m_entityID);
+		const CTransform& transform = m_entity.GetWorld()->GetComponent<CTransform>(m_entity.GetID());
 
 		auto position = transform.GetWorldPosition();
 		auto target = position + transform.GetWorldForward();
@@ -38,29 +39,31 @@ namespace Twisted
 	}
 
 	//Serialization
-	void CCamera::Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const
+	void CCamera::Serialize(BinSerializer& buffer)const
 	{
-		buffer.Write<CameraProjectionType>(GetProjectionType());
-		buffer.Write<float>(GetNearPlane());
-		buffer.Write<float>(GetFarPlane());
-		buffer.Write<float>(GetFovInDeg());
-		buffer.Write<float>(GetAspectRatio());
-		buffer.Write<float>(GetLeftEdge());
-		buffer.Write<float>(GetRightEdge());
-		buffer.Write<float>(GetBotEdge());
-		buffer.Write<float>(GetTopEdge());
+		buffer.Write<CameraProjectionType>(m_projectionType, nullptr);
+		buffer.Write<float>(m_nearPlane, nullptr);
+		buffer.Write<float>(m_farPlane, nullptr);
+		buffer.Write<float>(m_fovDeg, nullptr);
+		buffer.Write<float>(m_aspectRatio, nullptr);
+		buffer.Write<float>(m_leftEdge, nullptr);
+		buffer.Write<float>(m_rightEdge, nullptr);
+		buffer.Write<float>(m_botEdge, nullptr);
+		buffer.Write<float>(m_topEdge, nullptr);
 	}
 
-	void CCamera::Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)
+	void CCamera::Deserialize(BinSerializer& buffer)
 	{
-		SetProjectionType(buffer.Read<CameraProjectionType>());
-		SetNearPlane(buffer.Read<float>());
-		SetFarPlane(buffer.Read<float>());
-		SetFovInDeg(buffer.Read<float>());
-		SetAspectRatio(buffer.Read<float>());
-		SetLeftEdge(buffer.Read<float>());
-		SetRightEdge(buffer.Read<float>());
-		SetBotEdge(buffer.Read<float>());
-		SetTopEdge(buffer.Read<float>());
+		m_projectionType = buffer.Read<CameraProjectionType>(nullptr);
+		m_nearPlane = buffer.Read<float>(nullptr);
+		m_farPlane = buffer.Read<float>(nullptr);
+		m_fovDeg = buffer.Read<float>(nullptr);
+		m_aspectRatio = buffer.Read<float>(nullptr);
+		m_leftEdge = buffer.Read<float>(nullptr);
+		m_rightEdge = buffer.Read<float>(nullptr);
+		m_botEdge = buffer.Read<float>(nullptr);
+		m_topEdge = buffer.Read<float>(nullptr);
 	}
 }
+
+REGISTER_COMPONENT(CCamera, "CCamera");

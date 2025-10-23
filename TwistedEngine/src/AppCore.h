@@ -1,6 +1,13 @@
 #pragma once
 #include <memory>
+#include <filesystem>
 #include <entt/entt.hpp>
+
+
+//***************
+//TEST
+
+#define NATIVE_USE
 
 //************
 // DLLimport / DLLexport
@@ -63,20 +70,3 @@ namespace Twisted
 	using EntityID = entt::entity;
 	constexpr entt::entity NullEntity = entt::null;
 }
-
-//template<typename T>
-//struct PtrHash {
-//	using is_transparent = void; // Enables heterogeneous lookup
-//
-//	size_t operator()(const std::unique_ptr<T>& ptr) const { return std::hash<T*>()(ptr.get()); }
-//	size_t operator()(const T* ptr) const { return std::hash<T*>()(ptr); }
-//};
-//
-//template<typename T>
-//struct PtrEqual {
-//	using is_transparent = void;
-//
-//	bool operator()(const std::unique_ptr<T>& lhs, const std::unique_ptr<T>& rhs) const { return lhs.get() == rhs.get(); }
-//	bool operator()(const std::unique_ptr<T>& lhs, const T* rhs) const { return lhs.get() == rhs; }
-//	bool operator()(const T* lhs, const std::unique_ptr<T>& rhs) const { return lhs == rhs.get(); }
-//};

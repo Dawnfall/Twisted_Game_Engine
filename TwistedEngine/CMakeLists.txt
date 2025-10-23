@@ -31,6 +31,7 @@ target_include_directories(TwistedEngine PUBLIC
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
 
 target_link_libraries(TwistedEngine PRIVATE
+    opengl32
     glm::glm
     glfw
     glad::glad

@@ -1,6 +1,6 @@
 #include "Application.h"
 #include "Twisted.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 namespace Twisted
 {

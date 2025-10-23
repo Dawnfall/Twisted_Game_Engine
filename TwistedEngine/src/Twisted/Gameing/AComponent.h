@@ -1,39 +1,34 @@
 #pragma once
 
 #include "AppCore.h"
-#include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
+#include "Serialization/BinSerializer.h"
 
+#include "Twisted/Gameing/Entity.h"
 
 namespace Twisted
 {
 	class World;
-	class AssetsLayer;
-
 	class TWISTED_API AComponent
 	{
 	public:
-		AComponent(EntityID entity,World* world) :
-			m_entityID(entity),
-			m_world(world)
+		AComponent(Entity entity) :
+			m_entity(entity)
 		{
 		}
 
-		const EntityID GetEntityID()const { return m_entityID; }
-		World* GetWorld() { return m_world; }
-		const World* GetWorld()const { return m_world; }
+		const Entity& GetEntity()const { return m_entity; }
 
-		virtual void Init(){}
+		virtual void Init() {}
 
-		virtual void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer) const {};
-		virtual void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) {};
+		virtual void Serialize(BinSerializer& buffer) const {};
+		virtual void Deserialize(BinSerializer& buffer) {};
 
 		//virtual void PostSerialize(BinSerializer& buffer)const{}
 		//virtual void PostDeserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) {}
 
 	protected:
 
-		EntityID m_entityID;
-		World* m_world = nullptr;
+		Entity m_entity;
 	};
 }
 

@@ -3,27 +3,27 @@
 #include "Twisted/Gameing/World.h"
 #include "Utils/WPtr.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
-#include "TwistedMacros.h"
+#include "Twisted/TwistedMacros.h"
 
 namespace Twisted
 {
-	std::vector<TObject*>& WorldImporter::Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	ObjectsPerAsset& WorldImporter::Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
 	{
 		if (objects.size() > 0)
 		{
-			World* world = objects[0]->static_as<World>();
+			World* world = objects[""].GetObj()->static_as<World>();
 			world->Clear();
 		}
 		else
-			objects.emplace_back(TObject::Create<World>(assetsLayer->GetApplication()));
+			objects[""] = WPtr<World>(TObject::Create<World>());// TODO... assetsLayer->GetApplication()
 		return objects;
 	}
 
-	void WorldImporter::PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	void WorldImporter::PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
 	{
 		BinSerializer buffer;
 		buffer.LoadFromFile(assetInfo.AssetPath);
-		objects[0]->static_as<World>()->Deserialize(buffer, assetsLayer);
+		//objects[0]->static_as<World>()->Deserialize(buffer, assetsLayer);
 	}
 }
 

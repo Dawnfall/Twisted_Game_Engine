@@ -2,7 +2,7 @@
 
 #include "AppCore.h"
 
-#include "Twisted/RegisterLayer/TObject.h"
+#include "Twisted/TObject.h"
 #include "Twisted/Data/Color.h"
 #include "Utils/GlmUtils.h"
 #include "Texture.h"

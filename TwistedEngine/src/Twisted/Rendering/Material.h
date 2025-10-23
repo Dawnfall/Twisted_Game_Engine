@@ -1,12 +1,12 @@
 #pragma once
 #include "AppCore.h"
-#include "Twisted/RegisterLayer/TObject.h"
+#include "Twisted/TObject.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "Utils/GlmUtils.h"
 #include "Twisted/Data/Color.h"
 
-#include "Logger.h"
+#include "Debug/Logger.h"
 #include <unordered_map>
 #include <string>
 #include "Twisted/Rendering/Texture.h"
@@ -85,6 +85,10 @@ namespace Twisted
 		void Set(const std::string& key, T obj)
 		{
 			getMap<T>()[key] = obj;
+		}
+		void SetTexture(const std::string& key, Texture* tex)
+		{
+			getMap<WPtr<Texture>>()[key] = tex;
 		}
 
 		void ApplyUniforms()
@@ -167,6 +171,9 @@ namespace Twisted
 			}
 		}
 
+		YAML::Node Serialize()const;
+
+		void Deserialize(const YAML::Node& node);
 
 	private:
 
@@ -240,5 +247,7 @@ namespace Twisted
 
 		MaterialData m_data;
 		WPtr<Shader> m_shader = nullptr;
+
+
 	};
 }

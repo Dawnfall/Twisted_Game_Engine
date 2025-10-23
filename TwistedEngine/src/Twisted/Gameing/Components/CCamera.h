@@ -3,7 +3,7 @@
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
 #include "Twisted/Gameing/AComponent.h"
-#include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
+#include "Serialization/BinSerializer.h"
 #include "Twisted/Rendering/FrameBuffer.h"
 
 namespace Twisted
@@ -17,7 +17,7 @@ namespace Twisted
 	class TWISTED_API CCamera :public AComponent
 	{
 	public:
-		CCamera(EntityID entity, World* world) : AComponent(entity, world)
+		CCamera(Entity entity) : AComponent(entity)
 		{
 
 		}
@@ -50,8 +50,8 @@ namespace Twisted
 		void SetBotEdge(float botEdge) { m_botEdge = botEdge; }
 		void SetTopEdge(float topEdge) { m_topEdge = topEdge; }
 
-		void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const override;
-		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) override;
+		void Serialize(BinSerializer& buffer)const override;
+		void Deserialize(BinSerializer& buffer) override;
 
 		void SetFrameBuffer(FrameBuffer* buffer) { m_frameBuffer = buffer; }
 		FrameBuffer* GetFrameBuffer() { return m_frameBuffer.get(); }

@@ -14,8 +14,8 @@ namespace Twisted
 	class TWISTED_API CLight :public AComponent
 	{
 	public:
-		CLight(EntityID entity, World* world) :
-			AComponent(entity, world),
+		CLight(Entity entity) :
+			AComponent(entity),
 			m_type(LightType::DIRECTIONAL)
 		{
 		}
@@ -23,8 +23,8 @@ namespace Twisted
 		LightType GetType()const { return m_type; }
 		void SetType(LightType lightType) { m_type = lightType; }
 
-		void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const override;
-		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)override;
+		void Serialize(BinSerializer& buffer)const override;
+		void Deserialize(BinSerializer& buffer)override;
 	private:
 		LightType m_type;
 	};

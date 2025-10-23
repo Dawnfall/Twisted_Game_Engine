@@ -14,7 +14,7 @@ namespace Twisted::Editor
 	public:
 		void AddComponent(Entity entity) override {}
 
-		void* GetComponent(Entity entity) override { return entity.TryGetComponent<CTransform>(); }
+		void* GetComponent(Entity entity) override { return entity.GetWorld()->TryGetComponent<CTransform>(entity.GetID()); }
 
 		std::string GetComponentName()const override { return "Transform"; }
 

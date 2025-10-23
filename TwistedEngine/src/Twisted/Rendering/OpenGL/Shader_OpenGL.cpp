@@ -1,6 +1,5 @@
 #include "Twisted/Rendering/Shader.h"
-#include "Logger.h"
-#include "Constants.h"
+#include "Debug/Logger.h"
 
 #include <glad/glad.h>
 namespace Twisted
@@ -249,8 +248,7 @@ namespace Twisted
 
 	void Shader::Clear()
 	{
-		glDeleteProgram(m_programID);
-
+		//glDeleteProgram(m_programID);
 		m_programID = 0;
 		m_uniforms.clear();
 	}
@@ -288,12 +286,9 @@ namespace Twisted
 			uniformVar.Type = FromGLShaderType(varType);
 			uniformVar.UniformID = uniformID;
 			if (varType == GL_SAMPLER_2D)
-			{
-				glUniform1i(uniformID, textureUnit);
 				uniformVar.TextureUnit = textureUnit++;
-			}
 
-			m_uniforms.emplace_back(uniformVar);
+			//m_uniforms.emplace_back(uniformVar);
 		}
 	}
 

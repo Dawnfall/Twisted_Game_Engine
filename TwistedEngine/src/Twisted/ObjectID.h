@@ -8,7 +8,6 @@
 namespace Twisted
 {
 	static constexpr int INDEX_BITS = 32;
-	static constexpr int SERIAL_BITS = 32;
 
 	class TWISTED_API ObjectID
 	{
@@ -27,8 +26,19 @@ namespace Twisted
 			return index < s_generation.size() && s_generation[index] == Generation();
 		}
 
-		// Allocate a new ID
-		static ObjectID AllocateID()
+		bool operator==(const ObjectID& other) const { return m_id == other.m_id; }
+		bool operator!=(const ObjectID& other) const { return m_id != other.m_id; }
+
+		std::string ToString()const
+		{
+			return std::to_string(m_id);
+		}
+
+	private:
+		uint64_t m_id = 0;
+
+	public:
+		inline static ObjectID AllocateID()
 		{
 			uint32_t index;
 			if (!s_freeIndices.empty())
@@ -40,36 +50,33 @@ namespace Twisted
 			else
 			{
 				index = static_cast<uint32_t>(s_generation.size());
-				s_generation.resize(index + 1);
+				s_generation.emplace_back(1);
 			}
 
-			uint32_t gen = s_generation[index];
-			return ObjectID(index, gen);
+			return ObjectID(index, s_generation[index]);
 		}
-
-		// Invalidate an ID
-		static void DestroyID(const ObjectID& id)
+		inline static void DestroyID(const ObjectID& id)
 		{
 			uint32_t index = id.Index();
-			if (index >= s_generation.size()) 
-				return;
+			if (index >= s_generation.size() || s_generation[index] != id.Generation())
+				throw std::runtime_error("Destroying non existing index");
+
 			s_generation[index]++;
 			s_freeIndices.push_back(index);
 		}
 
-		std::string ToString()const
-		{
-			return std::to_string(m_id);
-		}
-
-		bool operator==(const ObjectID& other) const { return m_id == other.m_id; }
-		bool operator!=(const ObjectID& other) const { return m_id != other.m_id; }
-
 	private:
-		uint64_t m_id = 0;
-
 		inline static std::vector<uint32_t> s_generation;
 		inline static std::vector<uint32_t> s_freeIndices;
 	};
 }
+
+template<>
+struct std::hash<Twisted::ObjectID>
+{
+	size_t operator()(const Twisted::ObjectID& e) const noexcept
+	{
+		return static_cast<size_t>(e.GetID());
+	}
+};
 

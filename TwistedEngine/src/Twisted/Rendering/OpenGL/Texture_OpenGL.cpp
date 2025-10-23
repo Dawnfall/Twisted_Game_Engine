@@ -1,6 +1,6 @@
 #include "Twisted/Rendering/Texture.h"
 
-#include "Logger.h"
+#include "Debug/Logger.h"
 #include <glad/glad.h>
 
 namespace Twisted

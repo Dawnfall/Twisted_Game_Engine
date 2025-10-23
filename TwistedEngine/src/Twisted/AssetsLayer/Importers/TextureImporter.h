@@ -12,11 +12,11 @@ namespace Twisted
 		{
 			return { ".jpg",".jpeg",".png",".bmp",".tga" };
 		}
-		inline bool ImportOnStart()const { return true; }
+		inline bool DoAutoImport()const { return true; }
 		
 
-		std::vector<TObject*>& Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const override;
-		void PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const override;
+		ObjectsPerAsset& Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
+		void PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
 
 		void FillDefaultInfo(YAML::Node& node)const override
 		{

@@ -1,17 +1,27 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 30,
-    "patch": 0
-  },
-  "configurePresets": [
+  "version": 4,
+  "configurePresets": 
+  [
     {
-      "name": "default",
+      "name": "vs2022",
       "hidden": false,
       "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build",
-      "cacheVariables": {
+      "binaryDir": "${sourceDir}/build/vs2022",
+      "cacheVariables": 
+      {
+        "CMAKE_GENERATOR_PLATFORM": "x64",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+      }
+    },
+    {
+      "name": "vs2026",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/vs2026",
+      "cacheVariables": 
+      {
         "CMAKE_GENERATOR_PLATFORM": "x64",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -19,15 +29,27 @@
       }
     }
   ],
-  "buildPresets": [
+
+  "buildPresets": 
+  [
     {
-      "name": "build-debug",
-      "configurePreset": "default",
+      "name": "build-debug-2022",
+      "configurePreset": "vs2022",
       "configuration": "Debug"
     },
     {
-      "name": "build-release",
-      "configurePreset": "default",
+      "name": "build-release-2022",
+      "configurePreset": "vs2022",
+      "configuration": "Release"
+    },
+    {
+      "name": "build-debug-2026",
+      "configurePreset": "vs2026",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-release-2026",
+      "configurePreset": "vs2026",
       "configuration": "Release"
     }
   ]

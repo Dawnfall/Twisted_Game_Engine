@@ -10,7 +10,8 @@
 #include "EditorConstants.h"
 #include "UI/ImguiExtensions.h"
 #include "Twisted/Rendering/RenderingAPI.h"
-#include "BuiltIn/MeshCollections.h"
+#include "Twisted/BuiltIn/MeshCollections.h"
+#include "EditorData/EditorData.h"
 
 std::string layoutFilePath = "";
 
@@ -38,14 +39,14 @@ namespace Twisted::Editor
 
 		void OnBeforeRun() override
 		{
-			m_editorLayer->EditorConfigData.LoadConfig();
+			EditorData::GetInstance().GetConfig().LoadConfig();
 			Project::GetInstance().ProjectChangeEvent.AddListener([this]() {
 				layoutFilePath = (Project::GetInstance().GetRootPath() / "EditorLayout.ini").string();
 				Im::SetLayoutIniFile(layoutFilePath, true);
 
 				m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + Project::GetInstance().GetName());
-				m_window->SetSize(m_editorLayer->EditorConfigData.GetWindowSize());
-				m_window->SetPosition(m_editorLayer->EditorConfigData.GetWindowPos());
+				m_window->SetSize(EditorData::GetInstance().GetConfig().GetWindowSize());
+				m_window->SetPosition(EditorData::GetInstance().GetConfig().GetWindowPos());
 				LoadResources();
 				});
 
@@ -58,9 +59,13 @@ namespace Twisted::Editor
 		void OnFrame() override
 		{
 			m_window->PollEvents();
-			m_window->Clear(Constants::WINDOW_CLEAR_COLOR);
+			m_window->GetContext()->Clear(Constants::WINDOW_CLEAR_COLOR);
 
 			Im::StartFrame();
+			EditorData::GetInstance().GetInput().Update();
+
+			auto& input = Input::GetInstance();
+		
 			if (Project::GetInstance().GetRootPath() == "")
 			{
 				m_projectLoader->Render(m_window);
@@ -71,15 +76,17 @@ namespace Twisted::Editor
 			}
 			Im::EndFrame();
 
-			m_window->SwapBuffers();
+			m_window->GetContext()->SwapBuffers();
 		}
 
 		void OnTerminate()override
 		{
-			m_editorLayer->EditorConfigData.SetWindowPos(m_window->GetPosition());
-			m_editorLayer->EditorConfigData.SetWindowSize(m_window->GetSize());
+			EditorData::GetInstance().GetConfig().SetWindowPos(m_window->GetPosition());
+			EditorData::GetInstance().GetConfig().SetWindowSize(m_window->GetSize());
 
-			m_editorLayer->EditorConfigData.SaveConfig();
+			EditorData::GetInstance().GetConfig().SaveConfig();
+
+			TObject::DestroyAll();
 		}
 
 	private:
@@ -105,8 +112,7 @@ namespace Twisted::Editor
 
 		void LoadResources()
 		{
-			auto assetsFolder = Project::GetInstance().GetAssetsFolder();
-			m_assetsLayer->ImportAssets(assetsFolder);
+			m_assetsLayer->ImportAssets();
 			LoadBuiltIn();
 		}
 

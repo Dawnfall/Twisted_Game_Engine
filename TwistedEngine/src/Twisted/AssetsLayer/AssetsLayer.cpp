@@ -1,14 +1,15 @@
 #include "AssetsLayer.h"
 #include "Twisted/Application/Application.h"
 #include "Utils/FileUtils.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 #include <yaml-cpp/yaml.h>
 
-//#include "Twisted/Data/Project.h"
+#include "Twisted/AssetsLayer/Project.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Utils/WPtr.h"
-#include "ImporterRegistry.h"
-//#include <algorithm>
+#include "AssetsRegistry.h"
+#include "AssetImporterRegistry.h"
+#include "Utils/YamlUtils.h"
 
 namespace Twisted
 {
@@ -32,73 +33,109 @@ namespace Twisted
 	void AssetsLayer::RemoveDanglingAssetObjects(const fs::path& assetsFolder)
 	{
 		std::vector<AssetInfo*> toRemove;
-		for (auto it = m_assetsByPath.begin(); it != m_assetsByPath.end(); )
+		for (auto it = AssetsRegistry::GetInstance().m_assetsByPath.begin(); it != AssetsRegistry::GetInstance().m_assetsByPath.end(); )
 			if (!it->second->Exists())
 				toRemove.emplace_back(it->second.get());
 
 		for (auto& asset : toRemove)
-			RemoveAssetInfo(asset);
+			RemoveAsset(asset);
 	}
 
-	void AssetsLayer::RemoveAssetInfo(AssetInfo* asset)
+	void AssetsLayer::DetectAllAssets(const fs::path& assetsFolder)
 	{
-		auto it = m_assetsByPath.find(asset->AssetPath);
-		if (it != m_assetsByPath.end())
-		{
-			auto objIt = m_assetObjects.find(asset->GetUuid());
-			if (objIt != m_assetObjects.end())
-			{
-				for (auto obj : objIt->second)
-					TObject::Destroy(obj);
-				m_assetObjects.erase(objIt);
-			}
-
-			m_assetsByPath.erase(it);
-			m_assetsByUuid.erase(asset->GetUuid());
-		}
-	}
-
-	void AssetsLayer::ImportAssets(const fs::path& assetsFolder)
-	{
-		DeleteLoneInfos(assetsFolder);
-		RemoveDanglingAssetObjects(assetsFolder);
-
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsFolder))
 		{
-			ImportAsset(entry.path());
+			auto info = AssetsRegistry::GetInstance().GetInfo(entry.path());
+			if (info)
+				continue;
+
+			AssetImporter* importer = AssetImporterRegistry::GetInstance().GetImporter(entry.path().extension());
+			if (!importer)
+				continue;
+
+			info = std::make_shared<AssetInfo>(entry.path());
+			
+			if (!info->InfoExists())
+			{
+				info->Uuid = AssetUuid::generate();
+				info->InfoNode[ASSET_UUID_KEY] = info->Uuid;
+				importer->FillDefaultInfo(info->InfoNode);
+				info->SaveInfo();
+			}
+			else
+				info->LoadInfo();
+
+			AssetsRegistry::GetInstance().SetInfo(info);
 		}
 	}
 
-	void AssetsLayer::ImportAsset(const fs::path& assetPath)
+	void AssetsLayer::RemoveAsset(AssetInfo* asset)
 	{
-		auto assetInfo = GetInfo(assetPath);
+		AssetsRegistry& reg = AssetsRegistry::GetInstance();
 
-		AssetImporter* importer = ImporterRegistry::GetInstance().GetImporter(assetPath.extension());
-		if (!importer || !importer->ImportOnStart())
-			return;
-
-		if (!assetInfo)
+		auto assetObjectsIt = reg.m_assetObjects.find(asset->Uuid);
+		if (assetObjectsIt != reg.m_assetObjects.end())
 		{
-			auto newInfo = AssetInfo::CreateInfo(assetPath);
-			if (newInfo)
+			for (auto& pair : assetObjectsIt->second)
 			{
-				assetInfo = newInfo.get();
-				m_assetsByPath[newInfo->AssetPath] = newInfo;
-				m_assetsByUuid[newInfo->GetUuid()] = newInfo;
-				m_assetObjects[newInfo->GetUuid()] = {};
-
-				importer->Import(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
-				importer->PostImport(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
+				auto objToEntryIt = reg.m_objToEntry.erase(pair.second.GetID());
+				TObject::Destroy(pair.second.GetObj());
 			}
+
+			reg.m_assetObjects.erase(assetObjectsIt);
+			reg.m_assetsByPath.erase(asset->AssetPath);
+			reg.m_assetsByUuid.erase(asset->Uuid);
 		}
-		if (!assetInfo)
+	}
+
+	void AssetsLayer::ImportAssets()
+	{
+		fs::path assetsFolder = Project::GetInstance().GetAssetsFolder();
+
+		DeleteLoneInfos(assetsFolder);
+		RemoveDanglingAssetObjects(assetsFolder);
+		DetectAllAssets(assetsFolder);
+
+		for (auto& [key, info] : AssetsRegistry::GetInstance().m_assetsByPath)
+		{
+			info->LoadInfo(); //TODO... what if info loaded but no auto import?
+			ImportAsset(info.get());
+		}
+
+		for (auto& [key, info] : AssetsRegistry::GetInstance().m_assetsByPath) //TODO... maybe add to vector
+		{
+			PostImportAsset(info.get());
+			info->Validate();
+		}
+	}
+
+	void AssetsLayer::ImportAsset(AssetInfo* info)
+	{
+		if (!info || info->IsValid())
 			return;
 
-		if (!assetInfo->IsValid())
-		{
-			assetInfo->LoadInfoData();
-			importer->Import(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
-			importer->PostImport(*assetInfo, m_assetObjects[assetInfo->GetUuid()], this);
-		}
+		AssetImporterRegistry& reg = AssetImporterRegistry::GetInstance();
+		AssetsRegistry& assetsReg = AssetsRegistry::GetInstance();
+
+		AssetImporter* importer = reg.GetImporter(info->GetExt());
+		if (!importer || !importer->DoAutoImport())
+			return;
+
+		importer->Import(*info, assetsReg.m_assetObjects[info->Uuid]);
+	}
+
+	void AssetsLayer::PostImportAsset(AssetInfo* info)
+	{
+		if (!info || info->IsValid())
+			return;
+
+		AssetImporterRegistry& importerReg = AssetImporterRegistry::GetInstance();
+		AssetsRegistry& assetsReg = AssetsRegistry::GetInstance();
+
+		AssetImporter* importer = importerReg.GetImporter(info->GetExt());
+		if (!importer || !importer->DoAutoImport())
+			return;
+
+		importer->PostImport(*info, assetsReg.m_assetObjects[info->Uuid]);
 	}
 }

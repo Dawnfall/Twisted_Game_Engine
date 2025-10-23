@@ -10,8 +10,13 @@ namespace Twisted::Editor
 	class CNamePainter :public ComponentPainter
 	{
 	public:
-		void AddComponent(Entity entity) override { }
-		void* GetComponent(Entity entity) override { return entity.TryGetComponent<CName>(); }
+		void AddComponent(Entity entity) override {}
+		void* GetComponent(Entity entity) override
+		{
+			if (entity.IsValid())
+				return entity.GetWorld()->TryGetComponent<CName>(entity.GetID());
+			return nullptr;
+		}
 		std::string GetComponentName()const override { return "Name"; }
 
 		virtual void Paint(void* obj)override

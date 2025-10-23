@@ -2,15 +2,23 @@
 #include "UI/EditorPanel.h"
 #include <filesystem>
 #include "EditorLayer.h"
-#include "Twisted/Data/Project.h"
+#include "Twisted/AssetsLayer/Project.h"
 #include "UI/ImguiExtensions.h"
 #include <imgui.h>
 #include <optional>
+#include "EditorMacros.h"
 
 namespace fs = std::filesystem;
-
 namespace Twisted::Editor
 {
+	struct AssetEntryToken
+	{
+		std::filesystem::path Path;
+		bool IsSelected = false;
+		ImVec4 HighLightColor;
+		ImVec2 CellSize;
+	};
+
 	class AssetsPanel :public EditorPanel
 	{
 	public:
@@ -19,7 +27,7 @@ namespace Twisted::Editor
 		const ImVec2 CELL_SIZE{ ICON_SIZE + PADDING,ICON_SIZE + PADDING };
 		const ImVec4 HIGHLIGHT_COLOR{ 0.4f, 0.4f, 1.0f, 1.0f };
 
-		AssetsPanel(EditorLayer* editor);
+		AssetsPanel();
 		void PaintContent()override;
 
 	private:
@@ -27,11 +35,13 @@ namespace Twisted::Editor
 		void NewAssetPopup();
 		void PaintNewAsset();
 
+		bool AssetEntry(const fs::path& assetPath);
 		void PaintTreePart(const fs::path& dirPath);
 
 		fs::path currentDir;
 
 		std::optional<std::filesystem::path> m_selectedPath = std::nullopt;
-		std::optional <Im::InputTextToken> m_newFileName = std::nullopt;
+		std::optional<Im::InputTextToken> m_newFileName = std::nullopt;
 	};
 }
+

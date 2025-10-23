@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 #include <string>
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 namespace Twisted
 {

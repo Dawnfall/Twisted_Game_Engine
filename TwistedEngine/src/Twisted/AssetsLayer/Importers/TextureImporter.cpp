@@ -1,12 +1,12 @@
-#include "Twisted/AssetsLayer/ImporterRegistry.h"  // <-- declares Twisted::ImporterRegistry
+#include "Twisted/AssetsLayer/AssetsRegistry.h"  
 #include "TextureImporter.h"
-#include "TwistedMacros.h"    // <-- defines REGISTER_IMPORTER
+#include "Twisted/TwistedMacros.h"  
 
 #include <stb_image.h>
-#include "Logger.h"
+#include "Debug/Logger.h"
 #include "Twisted/Rendering/Texture.h"
 #include "Utils/WPtr.h"
-#include "Twisted/RegisterLayer/TObject.h"
+#include "Twisted/TObject.h"
 
 namespace Twisted
 {
@@ -22,7 +22,7 @@ namespace Twisted
 		return texData;
 	}
 
-	std::vector<TObject*>& TextureImporter::Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	ObjectsPerAsset& TextureImporter::Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
 	{
 		TextureData texData = LoadTextureData(assetInfo.AssetPath);
 		if (!texData.Data)
@@ -30,13 +30,13 @@ namespace Twisted
 
 		if (objects.size() > 0)
 		{
-			Texture* tex = objects[0]->static_as<Texture>();
+			Texture* tex = objects[""].GetObj()->static_as<Texture>();
 			tex->Clear();
 			tex->Create(texData, TextureParams{});
 		}
 		else
 		{
-			objects.emplace_back(TObject::Create<Texture>(texData, TextureParams{}));
+			objects[""]=WPtr<Texture>(TObject::Create<Texture>(texData, TextureParams{}));
 		}
 
 		stbi_image_free(texData.Data);
@@ -44,7 +44,7 @@ namespace Twisted
 		return objects;
 	}
 
-	void TextureImporter::PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	void TextureImporter::PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
 	{
 
 	}

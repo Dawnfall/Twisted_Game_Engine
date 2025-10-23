@@ -1,15 +1,20 @@
 #pragma once
 #define NOMINMAX
-#include <algorithm>
-#include <filesystem>
 
-//#include <GLFW/glfw3.h>
+//#include "AppCore.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#include "AppCore.h"
-#include "Twisted/Gameing/AComponent.h"
-#include "Twisted/RegisterLayer/TObject.h"
+//#include "Twisted/Gameing/AComponent.h"
+#include "Twisted/TObject.h"
+//#include "Twisted/Gameing/World.h"
+#include "Twisted/Gameing/Entity.h"
+
+#include <filesystem>
+//#include <algorithm>
+#include <string>
+//#include <vector>
+#include <typeindex>
 
 namespace Im
 {
@@ -26,14 +31,6 @@ namespace Im
 		bool IsLostFocus = false;
 	};
 
-	struct AssetEntryToken
-	{
-		std::filesystem::path Path;
-		bool IsSelected = false;
-		ImVec4 HighLightColor;
-		ImVec2 CellSize;
-	};
-
 	const ImU32 GREEN_COLOR = IM_COL32(100, 255, 100, 255);
 	const ImU32 RED_COLOR = IM_COL32(255, 100, 100, 255);
 	const float PI = 3.141592f;
@@ -46,7 +43,6 @@ namespace Im
 	}
 	float ICON_SIZE();
 
-	//void Init(GLFWwindow* windowPointer);
 	void Init(void* windowPointer);
 
 	void SetFlags();
@@ -68,8 +64,6 @@ namespace Im
 	// to use string
 	bool InputText(InputTextToken& token);
 
-	bool AssetEntry(AssetEntryToken& token);
-
 	inline void SetLayoutIniFile(const std::string& filePath, bool force = false)
 	{
 		ImGuiIO& io = ImGui::GetIO();
@@ -78,18 +72,17 @@ namespace Im
 
 		if (force)
 			ImGui::LoadIniSettingsFromDisk(io.IniFilename);
-
 	}
 
 	template<typename T>
-	Twisted::EntityID ComponentDropField(const std::string& label, Twisted::EntityID& entity, Twisted::World* world)
+	bool ComponentDropField(const std::string& label, Twisted::Entity& entity)
 	{
 		static_assert(std::is_base_of_v<Twisted::AComponent, T>, "T must derive from AComponent");
 
-		ImGui::Text("%s", label.c_str());
-		ImGui::SameLine();
+		//ImGui::Text("%s", label.c_str());
+		//ImGui::SameLine();
 
-		// Reserve space
+		//// Reserve space
 		//T* component = world->TryGetComponent<T>(entity);
 
 		//ImVec2 size = ImVec2(150, ImGui::GetTextLineHeightWithSpacing());
@@ -102,14 +95,14 @@ namespace Im
 		//ImGui::GetWindowDrawList()->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border), 3.0f);
 
 		//// Draw the text centered vertically
-		// ImGui::SetCursorScreenPos(ImVec2(min.x + 5, min.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f));
-		// ImGui::TextUnformatted(displayName.c_str());
+		//ImGui::SetCursorScreenPos(ImVec2(min.x + 5, min.y + (size.y - ImGui::GetTextLineHeight()) * 0.5f));
+		//ImGui::TextUnformatted(displayName.c_str());
 
 		//// Create an invisible button over the whole area for hover detection
 		//ImGui::SetCursorScreenPos(min);
 		//ImGui::InvisibleButton("##dropfield", size);
 
-		// Change cursor when hovered
+		//// Change cursor when hovered
 		//if (ImGui::IsItemHovered())
 		//{
 		//	// Default hover cursor when nothing is dragged
@@ -122,7 +115,7 @@ namespace Im
 		//		{
 		//			T* payloadData = static_cast<Twisted::AComponent*>(payload->Data);
 		//			T* dropped = dynamic_cast<T*>(payloadData);
-		//			
+
 		//			if (dropped)
 		//			{
 		//				// valid payload type
@@ -148,48 +141,47 @@ namespace Im
 		//	}
 		//	ImGui::EndDragDropTarget();
 		//}
-		//return component;
-
-		return entity;
+		return false;
 	}
 
+
 	template<typename T>
-	T* ObjectDropField(const char* label, T* obj, const char* payloadType)
+	T* ObjectDropField(const char* label, T* obj, const char* payloadType, std::vector<std::type_index>& acceptableTypes)
 	{
 		static_assert(std::is_base_of_v<Twisted::TObject, T>, "T must derive from BaseObject");
 
-		ImGui::Text("%s", label);
-		ImGui::SameLine();
+		//ImGui::Text("%s", label);
+		//ImGui::SameLine();
 
-		ImGui::PushID(obj);  // unique ID based on member address
+		//ImGui::PushID(obj);  // unique ID based on member address
 
-		// Display a button or empty slot
-		std::string buttonLabel;
-		if (obj)
-			buttonLabel = "Object " + obj->GetID().ToString();
-		else
-			buttonLabel = "<None>";
-		ImGui::Button(buttonLabel.c_str(), ImVec2(150, 0));
+		//// Display a button or empty slot
+		//std::string buttonLabel;
+		//if (obj)
+		//	buttonLabel = "Object " + obj->GetID().ToString();
+		//else
+		//	buttonLabel = "<None>";
+		//ImGui::Button(buttonLabel.c_str(), ImVec2(150, 0));
 
-		// --- Drag source (so user can drag it elsewhere) ---
-		if (ImGui::BeginDragDropSource())
-		{
-			ImGui::SetDragDropPayload(payloadType, obj, sizeof(Twisted::ObjectID));
-			ImGui::Text("Dragging %u", obj->GetID().ToString());
-			ImGui::EndDragDropSource();
-		}
+		//// --- Drag source (so user can drag it elsewhere) ---
+		//if (ImGui::BeginDragDropSource())
+		//{
+		//	ImGui::SetDragDropPayload(payloadType, obj, sizeof(Twisted::ObjectID));
+		//	ImGui::Text("Dragging %u", obj->GetID().ToString());
+		//	ImGui::EndDragDropSource();
+		//}
 
-		ImGui::PopID();
+		//ImGui::PopID();
+
+		//if (ImGui::BeginDragDropTarget())
+		//{
+		//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadType))
+		//	{
+		//		T* dropped = *(T**)payload->Data;
+		//		ptr = dropped;
+		//	}
+		//	ImGui::EndDragDropTarget();
+		//}
 		return obj;
 	}
 }
-
-//	if (ImGui::BeginDragDropTarget())
-//	{
-//		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadType))
-//		{
-//			T* dropped = *(T**)payload->Data;
-//			ptr = dropped;
-//		}
-//		ImGui::EndDragDropTarget();
-//	}

@@ -7,15 +7,10 @@
 
 namespace Twisted
 {
-	class RegistrationLayer;
-}
-
-namespace Twisted
-{
 	class TWISTED_API CRenderer :public AComponent
 	{
 	public:
-		CRenderer(EntityID entity, World* world) :AComponent(entity, world) {}
+		CRenderer(Entity entity) :AComponent(entity) {}
 
 		Mesh* GetSharedMesh() { return m_mesh; }
 		void SetSharedMesh(Mesh* mesh) { m_mesh = mesh; }
@@ -23,8 +18,8 @@ namespace Twisted
 		void SetSharedMaterial(Material* material) { m_material = material; }
 
 		//Serialization
-		void Serialize(BinSerializer& buffer, AssetsLayer* assetsLayer)const override;
-		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) override;
+		void Serialize(BinSerializer& buffer)const override;
+		void Deserialize(BinSerializer& buffer) override;
 
 	private:
 

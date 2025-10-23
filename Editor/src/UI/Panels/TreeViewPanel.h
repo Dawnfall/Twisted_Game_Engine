@@ -3,7 +3,7 @@
 #include "Twisted/Gameing/Components/CTransform.h"
 #include "Twisted/Gameing/Components/CName.h"
 #include "Twisted/Gameing/Entity.h"
-
+#include "EditorData/EditorData.h"
 namespace Twisted::Editor
 {
 	// Custom colors
@@ -18,18 +18,17 @@ namespace Twisted::Editor
 		bool IsClickUsed = false;
 		ImVec2 EntireRegion;
 
-		Entity EntityToDelete;
+		Entity EntityToDelete= Entity::Invalid();
 
 		bool doCreateNew = false;
-		Entity NewEntityParent;
-		//TODO: meshentity
+		Entity NewEntityParent= Entity::Invalid();
 	};
 
 
 	class TreeViewPanel :public EditorPanel
 	{
 	public:
-		TreeViewPanel(EditorLayer* editor) :EditorPanel(editor,"Tree View") {}
+		TreeViewPanel() :EditorPanel("Tree View") {}
 
 		virtual void PaintContent()override;
 
@@ -40,7 +39,7 @@ namespace Twisted::Editor
 			style.Colors[ImGuiCol_HeaderActive] = ImGui::ColorConvertU32ToFloat4(col_selected);
 		}
 
-		ImGuiTreeNodeFlags GetNodeFlags(size_t childCount, bool isSelected)
+		ImGuiTreeNodeFlags GetNodeFlags(size_t childCount,Entity entity)
 		{
 			ImGuiTreeNodeFlags flags =
 				ImGuiTreeNodeFlags_DefaultOpen |
@@ -50,8 +49,10 @@ namespace Twisted::Editor
 			if (childCount == 0)
 				flags |= ImGuiTreeNodeFlags_Leaf;
 
-			if (isSelected)
+			if (EditorData::GetInstance().GetSelection().GetSelectedEntities().contains(entity))
+			{		
 				flags |= ImGuiTreeNodeFlags_Selected;
+			}
 
 			return flags;
 		}
@@ -61,15 +62,15 @@ namespace Twisted::Editor
 		void RenderDropZone(Entity entity, TreeViewToken& token, bool isAfter);
 		void HandleChanges(TreeViewToken& token);
 
-		void RightClickEmpty(TreeViewToken& token);
-		void RightClickOnNode(Entity entity, TreeViewToken& token);
-		void LeftClickOnNode(Entity entity, bool isSelected);
+		void CheckRightClickOnEmpty(TreeViewToken& token);
+		void CheckRightClickOnNode(Entity entity, TreeViewToken& token);
+		void CheckLeftClickOnNode(TreeViewToken& token,Entity entity);
 		void DragDrop(Entity entity, size_t childCount, const std::string& name);
 	private:
 		bool m_isDroped = false;
 		size_t m_newIndex = 0;
-		Entity newParentEntity;
-		Entity draggedEntity;
+		Entity newParentEntity= Entity::Invalid();
+		Entity draggedEntity= Entity::Invalid();
 
 		const std::string DRAG_TREE_TRANSFORM = "drag_tree_transform";
 		const ImU32 SELECTED_COLOR = IM_COL32(80, 120, 200, 80);

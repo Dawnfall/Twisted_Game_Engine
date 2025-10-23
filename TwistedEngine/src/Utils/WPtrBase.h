@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AppCore.h"
-#include "Twisted/RegisterLayer/TObject.h"
+#include "Twisted/TObject.h"
 #include <cstddef>
 namespace Twisted
 {

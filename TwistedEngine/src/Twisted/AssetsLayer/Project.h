@@ -2,7 +2,7 @@
 
 #include "AppCore.h"
 #include "Utils/FileUtils.h"
-#include "Event.h"
+#include "Utils/Event.h"
 
 #include <filesystem>
 #include <string>
@@ -15,7 +15,7 @@ namespace Twisted
 	inline const std::filesystem::path InfoFileExt = ".info";
 	inline const std::filesystem::path InternalAssetExt = ".tasset";
 
-	class Project
+	class TWISTED_API Project
 	{
 	public:
 		Project(const Project& other) = delete;
@@ -23,11 +23,7 @@ namespace Twisted
 		Project& operator=(const Project& other) = delete;
 		Project& operator=(Project&& other) = delete;
 
-		static Project& GetInstance()
-		{
-			static Project project;
-			return project;
-		}
+		static Project& GetInstance();
 
 		void SetProject(const fs::path& projectFolder)
 		{

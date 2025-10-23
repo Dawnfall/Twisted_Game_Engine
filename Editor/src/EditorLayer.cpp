@@ -1,10 +1,9 @@
 #include "EditorLayer.h"
 #include "Twisted/Application/Application.h"
-#include "Twisted/Data/Project.h"
+#include "Twisted/AssetsLayer/Project.h"
 #include "Twisted/Windowing/NativeUtils.h"
 #include "UI/ImguiExtensions.h"
 
-#include "Selection.h"
 
 #include "AppCore.h"
 #include "Twisted/Windowing/Window.h"
@@ -12,6 +11,7 @@
 
 #include "Twisted/Gameing/World.h"
 #include "Twisted/AssetsLayer/Importers/WorldImporter.h"
+#include "Twisted/Gameing/WorldSerializer.h"
 
 #include <imgui.h>
 #include <string>
@@ -22,38 +22,20 @@
 #include "UI/Panels/AssetsPanel.h"
 
 #include "Twisted/Gameing/Entity.h"
+#include "EditorRegistry.h"
+#include "EditorData/EditorData.h"
 
 namespace Twisted::Editor
 {
-
 	void EditorLayer::Init()
 	{
-		CreateEditorPanel<TreeViewPanel>();
-		CreateEditorPanel<DetailsPanel>();
-		CreateEditorPanel<WorldViewPanel>();
-		CreateEditorPanel<AssetsPanel>();
-
-		GameViewBuffer = TObject::Create<FrameBuffer>();
-		EditorViewBuffer = TObject::Create<FrameBuffer>();
+		EditorData::GetInstance().GameViewBuffer = TObject::Create<FrameBuffer>();
+		EditorData::GetInstance().EditorViewBuffer = TObject::Create<FrameBuffer>();
 		
-		SetWorld(nullptr);
+		EditorData::GetInstance().SetWorld(nullptr);
 	}
 
-	void EditorLayer::SetWorld(World* world)
-	{
-		Selection::GetInstance().Clear();
-		if (m_gameWorld)
-		{
-			TObject::Destroy(m_gameWorld);
-		}
 
-		if (!world)
-			world = TObject::Create<World>(m_app);
-
-		m_gameWorld = world;
-		//m_editorWorld = TObject::Create<World>(); //TODO...
-		WorldChangeEvent.Invoke();
-	}
 
 	void EditorLayer::Render(Window* window)
 	{
@@ -79,7 +61,7 @@ namespace Twisted::Editor
 				//}
 				if (ImGui::MenuItem("Exit"))
 				{
-					if (Native::ShowConfirmDialog(window->GetWindowHandle(), L"Are you sure?", L"Exit editor?"))
+					if (Native::ShowConfirmDialog(*window, L"Are you sure?", L"Exit editor?"))
 						GetApplication()->Stop();
 				}
 				ImGui::EndMenu();
@@ -88,7 +70,7 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New World"))
 				{
-					SetWorld(nullptr);
+					EditorData::GetInstance().SetWorld(nullptr);
 				}
 				if (ImGui::MenuItem("Open World"))
 				{
@@ -97,18 +79,18 @@ namespace Twisted::Editor
 					{
 						World* world = assetsLayer->ImportAssetDirect<World>(path);
 						if (world)
-							SetWorld(world);
+							EditorData::GetInstance().SetWorld(world);
 					}
 				}
 				if (ImGui::MenuItem("Save World As"))
 				{
-					World* gameWorld = GetGameWorld();
+					World* gameWorld = EditorData::GetInstance().GetGameWorld();
 					if (gameWorld)
 					{
 						std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} });
 						path = path.replace_extension(".world");
 
-						BinSerializer serBuffer = gameWorld->Serialize(assetsLayer);
+						BinSerializer serBuffer = WorldSerializer::GetInstance().Serialize(*gameWorld);
 						serBuffer.SaveToFile(path);
 					}
 				}
@@ -120,7 +102,7 @@ namespace Twisted::Editor
 			}
 			if (ImGui::BeginMenu("Panels"))
 			{
-				for (auto& panel : m_panels)
+				for (auto& panel : EditorRegistry::GetInstance().m_panels)
 				{
 					if (ImGui::MenuItem(panel->GetName().c_str(), nullptr, panel->IsShowing))
 						panel->IsShowing = !panel->IsShowing;
@@ -131,8 +113,8 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New Entity"))
 				{
-					if (GetGameWorld())
-						Entity newEntity = Entity::CreateNew(GetGameWorld());
+					if (EditorData::GetInstance().GetGameWorld())
+						Entity newEntity = EditorData::GetInstance().GetGameWorld()->CreateNew<>();
 				}
 				ImGui::EndMenu();
 			}
@@ -167,7 +149,7 @@ namespace Twisted::Editor
 
 		ImGui::End();
 
-		for (auto& panel : m_panels)
+		for (auto& panel : EditorRegistry::GetInstance().m_panels)
 		{
 			if (!panel->IsShowing)
 				continue;

@@ -1,6 +1,5 @@
 #pragma once
 #include "UI/EditorPanel.h"
-#include "EditorLayer.h"
 #include "Twisted/Gameing/World.h"
 
 namespace Twisted
@@ -13,7 +12,7 @@ namespace Twisted::Editor
 	class DetailsPanel :public EditorPanel
 	{
 	public:
-		DetailsPanel(EditorLayer* editor) :EditorPanel(editor,"Details Panel") {}
+		DetailsPanel() :EditorPanel("Details Panel") {}
 		virtual void PaintContent()override;
 	};
 }

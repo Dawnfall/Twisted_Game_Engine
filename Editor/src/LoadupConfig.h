@@ -2,7 +2,7 @@
 
 #include "Utils/FileUtils.h"
 #include "Utils/Utils.h"
-#include "Twisted/Data/YamlFile.h"
+#include "Utils/YamlUtils.h"
 
 #include <vector>
 #include <string>
@@ -12,21 +12,20 @@
 
 namespace Twisted::Editor
 {
-	//inline static const fs::path loadupConfigPath = "F:/Programiranje/Test/TwistedEditor/loadupConfig.editor";
 
 	//to load data at project selection phase
 	class LoadupConfig
 	{
 	public:
-		LoadupConfig() :
-			File("F:/Programiranje/Test/TwistedEditor/loadupConfig.editor")
+		LoadupConfig(const fs::path& path) 
 		{
-
+			ConfigPath = path;
+			Node = YAML::LoadFile(path.string());
 		}
 
 		std::vector<std::string> GetRecentProjects()
 		{
-			return File.GetData<std::vector<std::string>>("recent", {});
+			return Node["recent"].as<std::vector<std::string>>();
 		}
 
 		void AddLatest(const std::string& latestProject)
@@ -36,7 +35,7 @@ namespace Twisted::Editor
 			recentProjects.insert(recentProjects.begin(), latestProject);
 			if (recentProjects.size() > 5)
 				recentProjects.erase(recentProjects.begin() + 5, recentProjects.end());
-			File.SetData<std::vector<std::string>>("recent", recentProjects);
+			Node["recent"] = recentProjects;
 		}
 
 		void RemoveEntry(const std::string& entry)
@@ -44,9 +43,15 @@ namespace Twisted::Editor
 			auto recentProjects = GetRecentProjects();
 			Utils::RemoveElement<std::string>(recentProjects, entry);
 			recentProjects.erase(std::find(recentProjects.begin(), recentProjects.end(), entry));
-			File.SetData<std::vector<std::string>>("recent", recentProjects);
+			Node["recent"] = recentProjects;
 		}
 
-		YamlFile File;
+		void Save()
+		{
+			YamlUtils::saveNode(Node,ConfigPath.string());
+		}
+
+		fs::path ConfigPath;
+		YAML::Node Node;
 	};
 }

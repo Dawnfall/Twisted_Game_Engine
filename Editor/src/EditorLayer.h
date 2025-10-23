@@ -3,13 +3,13 @@
 #include "LoadupConfig.h"
 #include "EditorConfig.h"
 #include "Twisted/Gameing/World.h"
-#include "Selection.h"
 #include "UI/PanelManager.h"
 
 #include <vector>
 #include <unordered_set>
 #include <variant>
 
+#include "Twisted/Rendering/FrameBuffer.h"
 namespace Twisted
 {
 	class GameLayer;
@@ -39,59 +39,17 @@ namespace Twisted::Editor
 	public:
 
 		EditorLayer(Application* app) :
-			Layer(app),
-			m_gameWorld(nullptr),
-			m_editorWorld(nullptr)
+			Layer(app)
 		{
 		}
 
 		void Init() override;
 		void Render(Window* window);
 
-		void SetWorld(World* world);
-		World* GetGameWorld() { return m_gameWorld; }
-		World* GetEditorWorld() { return m_editorWorld; }
-		Event<> WorldChangeEvent;
-
-		//*********
-		// CONFIGS
-		//********
-
-		EditorConfig EditorConfigData;
-
-		Selection& GetSelection() { return m_selection; }
-
-		template<typename T>
-		void CreateEditorPanel()
-		{
-			static_assert(std::is_base_of<EditorPanel, T>::value, "T must be derived from EditorPanel");
-			m_panels.emplace_back(std::make_unique<T>(this));
-		}
-
 	private:
 
 		void RenderDockSpace();
 		void RenderMenuBar(Window* window);
-
-		Selection m_selection;
-
-		std::vector<URef<EditorPanel>> m_panels;
-
-	private:
-
-		//*********
-		// Active WORLD
-		//*********
-
-		World* m_gameWorld = nullptr;
-		World* m_editorWorld = nullptr;
-
-		//**********
-		// Important Objects;
-
-	public:
-		WPtr<FrameBuffer> GameViewBuffer;
-		WPtr<FrameBuffer> EditorViewBuffer;
 	};
 }
 

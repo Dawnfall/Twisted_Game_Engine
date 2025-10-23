@@ -1,6 +1,7 @@
 #include "Twisted/Rendering/Mesh.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 #include <glad/glad.h>
+#include <string>
 
 namespace Twisted
 {
@@ -27,6 +28,9 @@ namespace Twisted
 		case MeshPrimitiveType::POINTS: return indexCount;
 		case MeshPrimitiveType::LINES:  return indexCount / 2;
 		case MeshPrimitiveType::TRIANGLES: return indexCount / 3;
+		default:
+			//TWISTED_WARN(std::string("Unsupported mesh type") + std::to_string(primitiveType));
+			return 0;
 		}
 	}
 

@@ -1,16 +1,18 @@
-#include "WindowLayer.h"
-#include "Logger.h"
+#include "AppCore.h"
+#ifndef NATIVE_USE
 
+#include "Twisted/Windowing/WindowLayer.h"
 #include <GLFW/glfw3.h>
+#include "Debug/Logger.h"
 
 namespace Twisted
 {
-	bool WindowLayer::InitGLFW()
-	{
+	WindowLayer::WindowLayer(Application* app) :Layer(app)
+	{ 
 		if (!glfwInit())
 		{
 			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!");
-			return false;
+			return;
 		}
 		glfwSetErrorCallback([](int code, const char* description) {
 			TWISTED_ERROR(description);
@@ -18,11 +20,11 @@ namespace Twisted
 
 		TWISTED_INFO("GLFW init success");
 		TWISTED_INFO("RenderCore Init success!");
-
-		return true;
 	}
-	void WindowLayer::TerminateGLFW()
-	{
+	WindowLayer::~WindowLayer() 
+	{ 
 		glfwTerminate();
 	}
 }
+
+#endif

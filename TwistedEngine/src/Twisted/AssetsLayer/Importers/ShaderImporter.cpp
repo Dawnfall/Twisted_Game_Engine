@@ -1,13 +1,13 @@
-#include "Twisted/AssetsLayer/ImporterRegistry.h"  // <-- declares Twisted::ImporterRegistry
+#include "Twisted/AssetsLayer/AssetsRegistry.h" 
 #include "ShaderImporter.h"
-#include "TwistedMacros.h"    // <-- defines REGISTER_IMPORTER
+#include "Twisted/TwistedMacros.h" 
 
 #include "Twisted/Rendering/Shader.h"
 #include "Utils/FileUtils.h"
 #include "Utils/Utils.h"
 
 #include "Utils/WPtr.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 namespace Twisted
 {
@@ -31,24 +31,24 @@ namespace Twisted
 		return shaderData;
 	}
 
-	std::vector<TObject*>& ShaderImporter::Import(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	ObjectsPerAsset& ShaderImporter::Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
 	{
 		ShaderData shaderData = LoadData(assetInfo.AssetPath);
 
 		if (objects.size() > 0)
 		{
-			Shader* shader = objects[0]->static_as<Shader>();
+			Shader* shader = objects[""].GetObj()->static_as<Shader>();
 
 			shader->Clear();
 			shader->Init(shaderData);
 		}	
 		else
-			objects.emplace_back(TObject::Create<Shader>(shaderData));
+			objects[""]=WPtr<Shader>(TObject::Create<Shader>(shaderData));
 
 		return objects;
 	}
 
-	void ShaderImporter::PostImport(const AssetInfo& assetInfo, std::vector<TObject*>& objects, AssetsLayer* assetsLayer)const
+	void ShaderImporter::PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
 	{
 
 	}

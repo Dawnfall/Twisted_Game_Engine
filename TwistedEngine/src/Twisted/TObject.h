@@ -10,16 +10,18 @@ namespace Twisted
 	class TWISTED_API TObject
 	{
 	public:
-		TObject():m_id(ObjectID::AllocateID()){}
-		virtual ~TObject() = default;
+		virtual ~TObject()
+		{
+			ObjectID::DestroyID(GetID());
+		}
 
 		// No copy
 		TObject(const TObject&) = delete;
 		TObject& operator=(const TObject&) = delete;
 
 		// Allow move
-		TObject(TObject&&) noexcept = default;
-		TObject& operator=(TObject&&) noexcept = default;
+		TObject(TObject&&) noexcept = delete;
+		TObject& operator=(TObject&&) noexcept = delete;
 
 		ObjectID GetID() const { return m_id; }
 
@@ -29,13 +31,15 @@ namespace Twisted
 		template<typename T>
 		T* static_as() { return static_cast<T*>(this); }
 
+	protected:
+		TObject() :m_id(ObjectID::AllocateID()) {}
 	private:
-        ObjectID m_id;
+		ObjectID m_id;
 
 	public:
 		// Create a new TObject of type T
 		template<typename T, typename... Args>
-		static T* Create(Args&&... args)
+		inline static T* Create(Args&&... args)
 		{
 			static_assert(std::is_base_of_v<TObject, T>, "T must derive from TObject");
 
@@ -50,23 +54,31 @@ namespace Twisted
 		}
 
 		// Destroy object by pointer
-		static void Destroy(TObject* obj)
+		inline static void Destroy(TObject* obj)
 		{
 			if (!obj)
 				return;
 
-			s_objects[obj->GetID().Index()].reset();
-			ObjectID::DestroyID(obj->GetID());
+			s_objects[obj->GetID().Index()] = nullptr;			
+		}
+
+		inline static void DestroyAll()
+		{
+			for (auto& obj : s_objects)
+				if (obj)
+					Destroy(obj.get());
+			s_objects.clear();
 		}
 	private:
 
 		inline static std::vector<URef<TObject>> s_objects;
 
 	private:
-		static void EnsureStorageSize(size_t index) //TODO....
+		static void EnsureStorageSize(size_t index)
 		{
-			if (index >= s_objects.size())
-				s_objects.resize(index + 1);
+			auto size = s_objects.size();
+			if (index >= size)
+				s_objects.resize((size == 0) ? 1 : size * 2);
 		}
 	};
 }

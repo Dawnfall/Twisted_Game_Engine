@@ -1,9 +1,9 @@
 #pragma once
 #include "AssetUuid.h"
-#include "Twisted/RegisterLayer/ObjectID.h"
+#include "Twisted/ObjectID.h"
 
 #include <string>
-#include "Twisted/RegisterLayer/Serialization/BinSerializer.h"
+#include "Serialization/BinSerializer.h"
 #include "Utils/WPtr.h"
 
 namespace Twisted
@@ -33,17 +33,18 @@ namespace Twisted
 		}
 	};
 
-	inline void writeToBuffer(const ObjectAssetEntry& obj, BinSerializer& buf)
+	inline void writeToBuffer(const ObjectAssetEntry& obj, BinSerializer& buf, void* data)
 	{
-		buf.Write(obj.Uuid);
-		buf.Write(obj.SubID);
+		buf.Write<AssetUuid>(obj.Uuid, nullptr);
+		buf.Write<std::string>(obj.SubID, nullptr);
 	}
 
-	inline ObjectAssetEntry readFromBuffer(BinSerializer& buf)
+	template<>
+	inline ObjectAssetEntry readFromBuffer(BinSerializer& buf, void* data)
 	{
 		ObjectAssetEntry objAssetEntry;
-		objAssetEntry.Uuid = buf.Read<AssetUuid>();
-		objAssetEntry.SubID = buf.Read<std::string>();
+		objAssetEntry.Uuid = buf.Read<AssetUuid>(nullptr);
+		objAssetEntry.SubID = buf.Read<std::string>(nullptr);
 
 		return objAssetEntry;
 	}

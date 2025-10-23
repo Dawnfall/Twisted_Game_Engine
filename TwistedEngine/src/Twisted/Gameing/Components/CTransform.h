@@ -2,8 +2,7 @@
 
 #include "AppCore.h"
 #include "Utils/Utils.h"
-#include "Constants.h"
-
+#include "Utils/GlmUtils.h"
 #include "Twisted/Gameing/AComponent.h"
 
 namespace Twisted
@@ -17,8 +16,8 @@ namespace Twisted
 	class TWISTED_API CTransform :public AComponent
 	{
 	public:
-		CTransform(EntityID entity, World* world) :
-			AComponent(entity, world),
+		CTransform(Entity entity) :
+			AComponent(entity),
 			m_position(0.0f, 0.0f, 0.0f),
 			m_rotation(1, 0, 0, 0),
 			m_scale(1.0f, 1.0f, 1.0f),
@@ -35,7 +34,7 @@ namespace Twisted
 
 		inline const Vec3f& GetLocalPosition() const { return m_position; }
 		inline const Quat& GetLocalRotation() const { return m_rotation; }
-		inline const glm::vec3& GetLocalScale() const { return m_scale; }
+		inline const Vec3f& GetLocalScale() const { return m_scale; }
 		inline const Vec3f GetLocalRotationEulerRad() const { return glm::eulerAngles(m_rotation); }
 
 		inline void SetLocalPosition(const Vec3f& newPositon) { m_position = newPositon; }
@@ -52,9 +51,11 @@ namespace Twisted
 		// Tree
 
 		inline bool HasParent()const { return m_parent != NullEntity; }
-		inline const EntityID GetParentID()const { return m_parent; }
+
+		Entity GetParentEntity()const { return Entity(m_parent, const_cast<World*>(m_entity.GetWorld())); }
+
 		CTransform* GetParent();
-		const CTransform* GetParent()const;
+		const CTransform* GetParent() const;
 
 		CTransform& GetChild(size_t index);
 		const CTransform& GetChild(size_t index)const;
@@ -136,8 +137,8 @@ namespace Twisted
 		}
 
 		//Serialization
-		void Serialize(BinSerializer& buffer,AssetsLayer* assetsLayer)const override;
-		void Deserialize(BinSerializer& buffer, AssetsLayer* assetsLayer)override;
+		void Serialize(BinSerializer& buffer)const override;
+		void Deserialize(BinSerializer& buffer)override;
 
 	private:
 		void Unparent();
@@ -156,6 +157,6 @@ namespace Twisted
 		//	return true;
 		//	}();
 	};
-
 }
+
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Utils/GlmUtils.h"
 #include "Utils/FileUtils.h"
-#include "Logger.h"
+#include "Debug/Logger.h"
 
 #include "EditorConstants.h"
 
@@ -23,7 +23,7 @@ namespace Twisted::Editor
 		void LoadConfig()
 		{
 			if (Utils::IsExisting(CONFIG_FILE_PATH))
-				m_rootNode = YAML::LoadFile("F:/Programiranje/C++/GameEngine/EditorConfig/editor.config");
+				m_rootNode = YAML::LoadFile(CONFIG_FILE_PATH.string());
 		}
 
 		void SaveConfig()

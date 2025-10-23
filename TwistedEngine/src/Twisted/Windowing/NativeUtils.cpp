@@ -29,7 +29,7 @@ namespace Twisted::Native
                     pFileDialog->SetFileTypeIndex(1);
                 }
 
-                HWND hwnd = window.GetWindowHandle();
+                HWND hwnd = static_cast<HWND>(window.GetNativeHandle());
                 if (SUCCEEDED(pFileDialog->Show(hwnd)))
                 {
                     IShellItem* pItem = nullptr;
@@ -67,7 +67,7 @@ namespace Twisted::Native
                 pFileDialog->GetOptions(&options);
                 pFileDialog->SetOptions(options | FOS_PICKFOLDERS | FOS_PATHMUSTEXIST);
 
-                HWND hwnd = window.GetWindowHandle();
+                HWND hwnd = static_cast<HWND>(window.GetNativeHandle());
                 if (SUCCEEDED(pFileDialog->Show(hwnd)))
                 {
                     IShellItem* pItem = nullptr;
@@ -112,7 +112,7 @@ namespace Twisted::Native
                     pFileDialog->SetFileTypeIndex(1);
                 }
 
-                HWND hwnd = window.GetWindowHandle();
+                HWND hwnd = static_cast<HWND>(window.GetNativeHandle());
                 if (SUCCEEDED(pFileDialog->Show(hwnd)))
                 {
                     IShellItem* pItem = nullptr;
@@ -136,10 +136,10 @@ namespace Twisted::Native
         return result;
     }
 
-    bool ShowConfirmDialog(HWND owner, const std::wstring& message, const std::wstring& title)
+    bool ShowConfirmDialog(Window& window, const std::wstring& message, const std::wstring& title)
     {
         int result = MessageBoxW(
-            owner,
+            static_cast<HWND>(window.GetNativeHandle()),
             message.c_str(),
             title.c_str(),
             MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2

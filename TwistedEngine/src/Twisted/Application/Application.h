@@ -10,12 +10,10 @@
 
 namespace Twisted
 {
-	class AppData;
-
 	class TWISTED_API Application
 	{
 	public:
-		Application() { }
+		Application() {}
 		Application& operator=(const Application& other) = delete;
 		Application(const Application& other) = delete;
 
@@ -56,4 +54,6 @@ namespace Twisted
 		std::vector<URef<Layer>> m_layers;
 		bool m_isRunning = false;
 	};
+
+
 }

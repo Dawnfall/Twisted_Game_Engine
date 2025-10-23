@@ -10,6 +10,8 @@ namespace Twisted::Editor
 	void EntityPainter::Paint(void* obj)
 	{
 		Entity* entity = static_cast<Entity*>(obj);
+		if (!entity->IsValid())
+			return;
 
 		std::string idLabel = "ID: " + std::to_string(static_cast<int>(entity->GetID()));
 		float idWidth = ImGui::CalcTextSize(idLabel.c_str()).x;
