@@ -1,16 +1,11 @@
 file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
-    "src/*.h"
     "src/*.cpp"
-    "src/*.mpp"
+    "src/*.h"
 )
 
-file(GLOB_RECURSE EDITOR_MODULES CONFIGURE_DEPENDS "src/*.mpp")
-set_source_files_properties(${EDITOR_MODULES} PROPERTIES LANGUAGE CXX)
-
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_MODULES})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_SOURCES})
 
 add_executable(Editor ${EDITOR_SOURCES})
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/src" FILES ${EDITOR_SOURCES})
 
 set_target_properties(Editor PROPERTIES
     CXX_STANDARD 20
@@ -18,10 +13,8 @@ set_target_properties(Editor PROPERTIES
     CXX_EXTENSIONS NO
 
     OUTPUT_NAME "Editor$<$<CONFIG:Debug>:_d>"
+    # MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
 )
-
-
-set_property(TARGET Editor PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
 target_include_directories(Editor PRIVATE
     ${IncludeDirs_Editor}
@@ -31,20 +24,21 @@ target_include_directories(Editor PRIVATE
 
 target_link_libraries(Editor PRIVATE
     TwistedEngine
-    glfw
+    #glfw
     glm::glm
     imgui
     yaml-cpp::yaml-cpp
 )
 
 target_compile_definitions(Editor PRIVATE
-    GLFW_INCLUDE_NONE
-    GLFW_EXCLUDE_VULKAN
-
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:Release>:TWISTED_RELEASE>
+    $<$<CONFIG:Deploy>:TWISTED_DEPLOY>
+    #GLFW_INCLUDE_NONE
+    #GLFW_EXCLUDE_VULKAN
 )
 target_compile_options(Editor PRIVATE
-    $<$<CONFIG:Debug>:/Zi>      # Enable debug info (MSVC)
-    $<$<CONFIG:Release>:/O2>    # Optimize for speed (MSVC)
+    $<$<CONFIG:Debug>:/Od /Zi>
+    $<$<CONFIG:Release>:/O2 /Zi>
+    $<$<CONFIG:Deploy>:/Ox>
 )

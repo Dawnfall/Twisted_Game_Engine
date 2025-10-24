@@ -91,7 +91,7 @@ namespace Im
 {
 	float ICON_SIZE()
 	{
-		return ImGui::GetFont()->FontSize + 3.0f;
+		return ImGui::GetFontSize() + 3.0f;
 	}
 
 	bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg) {
