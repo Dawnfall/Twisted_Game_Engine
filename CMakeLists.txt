@@ -24,6 +24,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)
 
+
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
@@ -31,12 +32,15 @@ find_package(entt CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(RapidObj CONFIG REQUIRED)
 
+option(USE_GLFW "Use GLFW" ON)
+if(USE_GLFW)
+    message(STATUS "Building with GLFW")
+    find_package(glfw3 CONFIG REQUIRED)
+endif()
+
 set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/TwistedEngine/src")
 set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/Editor/src")
-
-set(IncludeDirs_imgui 
-    "${CMAKE_SOURCE_DIR}/3rd/imgui"
-)
+set(IncludeDirs_imgui  "${CMAKE_SOURCE_DIR}/3rd/imgui")
 
 # Add ImGui as a static library (subproject)
 add_subdirectory(3rd/imgui)
@@ -69,7 +73,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT E
 ## include dirs
 ## set(IncludeDirs_Standalone "${CMAKE_SOURCE_DIR}/Standalone/src")
 
-## find_package(glfw3 CONFIG REQUIRED)
+## 
 #
 
 ## add_subdirectory(Standalone)

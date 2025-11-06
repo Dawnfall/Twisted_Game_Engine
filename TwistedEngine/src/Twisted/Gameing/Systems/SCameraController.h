@@ -12,5 +12,8 @@ namespace Twisted
 
 		void Update() override;
 		//WindowLayer* m_windowLayer;
+
+		std::string GetTypeName()const override{ return "SCameraController"; }
+
 	};
 }

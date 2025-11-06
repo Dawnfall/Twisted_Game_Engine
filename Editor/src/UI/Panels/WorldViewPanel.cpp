@@ -1,11 +1,11 @@
 #include "WorldViewPanel.h"
 
-#include "EditorMacros.h"
-
 #include "Twisted/Application/Application.h"
 #include "Twisted/Rendering/RenderLayer.h"
 #include "EditorRegistry.h"
 #include "EditorData/EditorData.h"
+#include "EditorRegistry.h"
+
 namespace Twisted::Editor
 {
 	WorldViewPanel::WorldViewPanel() :EditorPanel("World View")

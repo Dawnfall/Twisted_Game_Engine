@@ -4,6 +4,7 @@
 #include "Twisted/Gameing/AComponent.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/Material.h"
+#include "Twisted/Gameing/WorldRegistry.h"
 
 namespace Twisted
 {
@@ -20,6 +21,9 @@ namespace Twisted
 		//Serialization
 		void Serialize(BinSerializer& buffer)const override;
 		void Deserialize(BinSerializer& buffer) override;
+
+		YAML::Node YamlSerialize() const override;
+		void YamlDeserialize(const YAML::Node& node) override;
 
 	private:
 
@@ -39,3 +43,5 @@ namespace Twisted
 
 	//}
 }
+
+REGISTER_COMPONENT(CRenderer, "CRenderer");

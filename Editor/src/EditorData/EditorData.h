@@ -9,6 +9,7 @@
 #include "EditorInput.h"
 #include "EditorConfig.h"
 #include "DragPayload.h"
+#include "Twisted/Gameing/Systems/RenderSystem.h"
 
 namespace Twisted::Editor
 {
@@ -27,18 +28,20 @@ namespace Twisted::Editor
 		Selection& GetSelection() { return m_selection; }
 		EditorInput& GetInput() { return m_input; }
 		EditorConfig& GetConfig() { return m_editorConfig; }
-		DragPayload& GetDragPayload() { return m_dragPayload; }
 		
 		void SetWorld(World* world)
 		{
-			//GetSelection().Clear();
 			if (m_gameWorld)
 			{
 				TObject::Destroy(m_gameWorld);
+				EditorData::GetInstance().GetSelection().ClearEntities();
 			}
 
 			if (!world)
-				world = TObject::Create<World>(); //m_app
+			{
+				world = TObject::Create<World>("New world"); //m_app
+				world->AddSystem<RenderSystem>();
+			}
 
 			m_gameWorld = world;
 			//m_editorWorld = TObject::Create<World>(); //TODO...
@@ -50,15 +53,17 @@ namespace Twisted::Editor
 		WPtr<FrameBuffer> GameViewBuffer;
 		WPtr<FrameBuffer> EditorViewBuffer;
 
-	private:
+		Event<fs::path> MakeNewFileEvent; //extension
 		Event<> WorldChangeEvent;
+
+	private:
+
 
 		World* m_gameWorld = nullptr;
 		World* m_editorWorld = nullptr;
 		Selection m_selection;
 		EditorInput m_input;
 		EditorConfig m_editorConfig;
-		DragPayload m_dragPayload;
 
 	private:
 		EditorData() = default;

@@ -2,6 +2,7 @@
 
 #include "Twisted/Gameing/AComponent.h"
 #include "Serialization/BinSerializer.h"
+#include "Twisted/Gameing/WorldRegistry.h"
 
 namespace Twisted
 {
@@ -18,8 +19,13 @@ namespace Twisted
 		void Serialize(BinSerializer& buffer)const override;
 		void Deserialize(BinSerializer& buffer)override;
 
+		YAML::Node YamlSerialize() const override;
+		void YamlDeserialize(const YAML::Node& node) override;
+
 	private:
 		std::string m_name;
 	};
 
 }
+
+REGISTER_COMPONENT(CName, "CName");

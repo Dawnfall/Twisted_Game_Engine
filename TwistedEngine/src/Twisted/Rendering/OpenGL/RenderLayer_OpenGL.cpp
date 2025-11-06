@@ -21,6 +21,12 @@ namespace Twisted
 		}
 	}
 
+	void RenderLayer::Update()
+	{
+		Render();
+		Clear();
+	}
+
 	void RenderLayer::Render()
 	{
 		for (auto& entry : m_entries)

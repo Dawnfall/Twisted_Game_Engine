@@ -2,11 +2,6 @@
 #include "UI/EditorPanel.h"
 #include "Twisted/Gameing/World.h"
 
-namespace Twisted
-{
-	class AComponent;
-}
-
 namespace Twisted::Editor
 {
 	class DetailsPanel :public EditorPanel

@@ -14,8 +14,8 @@ namespace Twisted
 {
 	struct AssetUuid
 	{
-		AssetUuid() : m_hi(0), m_lo(0) {}
-		AssetUuid(uint64_t high, uint64_t low) : m_hi(high), m_lo(low) {}
+		constexpr AssetUuid() : m_hi(0), m_lo(0) {}
+		constexpr AssetUuid(uint64_t high, uint64_t low) : m_hi(high), m_lo(low) {}
 
 		bool IsValid()const { return m_hi != 0 && m_lo != 0; }
 		std::string ToString() const //this is without dashes, maybe change in future

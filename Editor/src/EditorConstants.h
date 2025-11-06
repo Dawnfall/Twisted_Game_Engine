@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Utils/GlmUtils.h"
-#include "Twisted/Data/Color.h"
+#include "Data/Color.h"
 #include <string>
 #include <filesystem>
+#include "imgui.h"
 
 namespace Twisted::Editor::Constants
 {
@@ -21,5 +22,25 @@ namespace Twisted::Editor::Constants
 
 	const std::filesystem::path ASSETS_SUBFOLDER = "Assets";
 	const Twisted::Color WINDOW_CLEAR_COLOR{ 0.9f, 0.3f, 0.2f, 1.0f };
+
+	//Drag
+
+	const std::string ENTITY_DRAG_TYPE = "Entity_drag";
+	const std::string ASSET_DRAG_TYPE = "Asset_drag";
+	const std::string OBJECT_DRAG_TYPE = "Object_drag";
+
+	inline const std::string mainDockSpaceLabel = "MainDockSpace";
+	inline ImGuiWindowFlags panelFlags =
+		ImGuiWindowFlags_NoCollapse;     // optional: prevent collapsing
+	//| ImGuiWindowFlags_NoDocking;   // prevents undocking
+
+	inline ImGuiWindowFlags dockFlags =
+		ImGuiWindowFlags_NoTitleBar
+		| ImGuiWindowFlags_NoCollapse
+		| ImGuiWindowFlags_NoResize
+		| ImGuiWindowFlags_NoMove
+		| ImGuiWindowFlags_NoBringToFrontOnFocus
+		| ImGuiWindowFlags_NoNavFocus;
+
 
 }

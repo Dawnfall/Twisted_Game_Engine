@@ -47,7 +47,7 @@ namespace Twisted
 	{
 	public:
 		Texture() = default;
-		Texture(const TextureData& texData, const TextureParams& params) :TObject()
+		Texture(const std::string& name,const TextureData& texData, const TextureParams& params) :TObject(name)
 		{
 			Create(texData, params);
 		}

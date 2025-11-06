@@ -1,5 +1,4 @@
 #include "CLight.h"
-#include "Twisted/TwistedMacros.h"
 
 namespace Twisted
 {
@@ -11,6 +10,18 @@ namespace Twisted
 	{
 		m_type = buffer.Read<LightType>(nullptr);
 	}
+
+	YAML::Node CLight::YamlSerialize() const
+	{
+		YAML::Node node;
+
+		node["type"] = m_type;
+
+		return node;
+	}
+	void CLight::YamlDeserialize(const YAML::Node& node)
+	{
+		m_type = node["type"].as<LightType>();
+	}
 }
 
-REGISTER_COMPONENT(CLight, "CLight");

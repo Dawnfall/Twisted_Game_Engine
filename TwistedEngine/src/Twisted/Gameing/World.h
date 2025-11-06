@@ -4,33 +4,58 @@
 #include "Twisted/Application/Application.h"
 #include "Twisted/TObject.h"
 #include "Twisted/Gameing/SystemBase.h"
-#include <unordered_map>
-#include <EnTT/entt.hpp>
-
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "Serialization/BinSerializer.h"
-
 #include "Entity.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/Components/CName.h"
+
+#include <EnTT/entt.hpp>
+
+#include <unordered_map>
 
 namespace Twisted
 {
-	//template <typename F, typename... Ts>
-	//void for_each_type(type_list<Ts...>, F&& f) {
-	//	(f.template operator() < Ts > (), ...);
-	//}
-
 	class TWISTED_API World :public TObject
 	{
 	public:
-		World() = default;
-		//World(Application* app);
+		World(const std::string& name);
 
 		auto GetAllEntities() const { return m_registry.storage<entt::entity>(); }
 
+		template<typename T>
+		const T* GetSystem()const
+		{
+			for (auto& system : m_systems)
+			{
+				T* castSystem = dynamic_cast<T*>(system.get());
+				if (castSystem)
+					return castSystem;
+			}
+			return nullptr;
+		}
+
+		template<typename T>
+		T* GetSystem()
+		{
+			for (auto& system : m_systems)
+			{
+				T* castSystem = dynamic_cast<T*>(system.get());
+				if (castSystem)
+					return castSystem;
+			}
+			return nullptr;
+		}
+
 		entt::registry& GetRegistry() { return m_registry; }
 		const entt::registry& GetRegistry() const { return m_registry; }
+
+		template<typename T>
+		void AddSystem()
+		{
+			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
+			if (HasSystem<T>())
+				return;
+			m_systems.emplace_back(std::make_unique<T>(this));
+		}
 
 		void Clear();
 
@@ -42,12 +67,21 @@ namespace Twisted
 		void UpdateFrame();
 
 		template<typename T>
-		void AddSystem()
+		bool HasSystem()
 		{
 			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
-			m_systems.emplace_back(std::make_unique<T>(this));
+			for (auto& system : m_systems)
+				if (dynamic_cast<T*>(system.get()))
+					return true;
+			return false;
 		}
 
+
+
+
+
+		std::vector<URef<SystemBase>>& GetAllSystems() { return m_systems; }
+		const std::vector<URef<SystemBase>>& GetAllSystems()const { return m_systems; }
 
 		template<typename... ComponentTypes>
 		inline Entity CreateNew(ComponentTypes&&... args)
@@ -56,7 +90,7 @@ namespace Twisted
 			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
 			static_assert((!std::is_same<CName, ComponentTypes>::value && ...), "Component types must not be CName");
 
-			Entity newEntity{ GetRegistry().create(),this };
+			Entity newEntity{ m_registry.create(),this };
 
 			AddComponent<CTransform>(newEntity.GetID());
 			AddComponent<CName>(newEntity.GetID());
@@ -67,15 +101,15 @@ namespace Twisted
 
 		void DestroyEntity(EntityID id)
 		{
-			if (GetRegistry().valid(id))
-				GetRegistry().destroy(id);
+			if (m_registry.valid(id))
+				m_registry.destroy(id);
 		}
 
 		template<typename T, typename ... Args>
-		T& AddComponent(EntityID id,Args&&... args)
+		T& AddComponent(EntityID id, Args&&... args)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			T& newComponent = GetRegistry().emplace<T>(id,Entity{ id,this }, std::forward<Args>(args)...);
+			T& newComponent = m_registry.emplace<T>(id, Entity{ id,this }, std::forward<Args>(args)...);
 			newComponent.Init();
 			return newComponent;
 		}
@@ -93,65 +127,116 @@ namespace Twisted
 			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
 			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
 
-			(GetRegistry().remove<ComponentTypes>(id), ...);
+			(m_registry.remove<ComponentTypes>(id), ...);
 		}
 
 		template<typename T>
-		bool HasComponent(EntityID id)
+		bool HasComponent(EntityID id)const
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return GetRegistry().any_of<T>(id);
+			return m_registry.any_of<T>(id);
 		}
 
 		template<typename... ComponentTypes>
-		bool HasComponents(EntityID id)
+		bool HasComponents(EntityID id)const
 		{
-			static_assert(std::is_base_of<AComponent, ComponentTypes>::value, "T must derive from AComponent");
-			return GetRegistry().all_of<ComponentTypes...>(id);
+			static_assert((std::is_base_of_v<AComponent, ComponentTypes> && ...),
+				"All types must derive from AComponent");
+			return m_registry.all_of<ComponentTypes...>(id);
 		}
 
 		template <typename T>
 		T& GetComponent(EntityID id)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return GetRegistry().get<T>(id);
+			return m_registry.get<T>(id);
 		}
 
 		template <typename T>
 		const T& GetComponent(EntityID id)const
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return GetRegistry().get<T>(id);
+			return m_registry.get<T>(id);
 		}
 
 		template <typename T>
 		T* TryGetComponent(EntityID id)
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return GetRegistry().try_get<T>(id);
+			return m_registry.try_get<T>(id);
 		}
 
 		template <typename T>
 		const T* TryGetComponent(EntityID id)const
 		{
 			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
-			return GetRegistry().try_get<T>(id);
+			return m_registry.try_get<T>(id);
 		}
 
 		template<typename... ComponentTypes>
-		inline auto GetComponents()
-		{
-			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
-			return GetRegistry().view<ComponentTypes...>();
+		auto GetView() {
+			static_assert((std::is_base_of_v<AComponent, ComponentTypes> && ...),
+				"All types must derive from AComponent");
+			return m_registry.view<ComponentTypes...>();
 		}
 
 		template<typename... ComponentTypes>
-		inline void DestroyOfType()
-		{
-			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
-			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
-			(GetRegistry().clear<ComponentTypes>(), ...);
+		auto GetView() const {
+			static_assert((std::is_base_of_v<AComponent, ComponentTypes> && ...),
+				"All types must derive from AComponent");
+			return m_registry.view<ComponentTypes...>();
 		}
+
+		template<typename Owned, typename... GetComponents>
+		auto GetGroup() {
+			static_assert(std::is_base_of_v<AComponent, Owned>, "Owned type must derive from AComponent");
+			static_assert((std::is_base_of_v<AComponent, GetComponents> && ...),
+				"All types must derive from AComponent");
+			return m_registry.group<Owned, GetComponents...>();
+		}
+
+		template<typename Owned, typename... GetComponents>
+		auto GetGroup() const {
+			static_assert(std::is_base_of_v<AComponent, Owned>, "Owned type must derive from AComponent");
+			static_assert((std::is_base_of_v<AComponent, GetComponents> && ...),
+				"All types must derive from AComponent");
+			return m_registry.group<Owned, GetComponents...>();
+		}
+
+		template<typename T>
+		T* FindFirstOfType()
+		{
+			static_assert(std::is_base_of_v<AComponent, T>, "T must derive from AComponent");
+
+			auto view = m_registry.view<T>();
+			for (auto entity : view)
+				return &view.get<T>(entity); // Return pointer to first one
+
+			return nullptr; // None found
+		}
+
+		template<typename T>
+		void RemoveComponent(EntityID id)
+		{
+			static_assert(std::is_base_of_v<AComponent, T>, "T must derive from AComponent");
+			static_assert(!std::is_same_v<CTransform, T>, "Cannot remove CTransform component");
+
+			if (m_registry.any_of<T>(id))
+				m_registry.remove<T>(id);
+		}
+
+		template<typename T>
+		void RemoveAllComponents()
+		{
+			static_assert(std::is_base_of_v<AComponent, T>, "T must derive from AComponent");
+			static_assert(!std::is_same_v<CTransform, T>, "Cannot remove all CTransform components");
+
+			m_registry.clear<T>();
+		}
+
+		YAML::Node YamlSerialize()const;
+
+		void YamlDeserialize(const YAML::Node& node);
 
 	private:
 		entt::registry m_registry;
@@ -176,5 +261,6 @@ namespace Twisted
 		auto id = buffer.Read<uint32_t>(nullptr);
 		return static_cast<EntityID>(id);
 	}
+
 }
 

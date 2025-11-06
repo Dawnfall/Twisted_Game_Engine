@@ -1,5 +1,4 @@
 #include "CName.h"
-#include "Twisted/TwistedMacros.h"
 
 namespace Twisted
 {
@@ -11,7 +10,19 @@ namespace Twisted
 	{
 		m_name = buffer.Read<std::string>(nullptr);
 	}
+
+	YAML::Node CName::YamlSerialize() const
+	{
+		YAML::Node node;
+
+		node["name"] = m_name;
+
+		return node;
+	}
+	void CName::YamlDeserialize(const YAML::Node& node)
+	{
+		m_name = node["name"].as<std::string>();
+	}
 }
 
 
-REGISTER_COMPONENT(CName,"CName");

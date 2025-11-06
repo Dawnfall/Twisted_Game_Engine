@@ -66,7 +66,7 @@ namespace Twisted::Collections
 	}
 
 
-
+	constexpr AssetUuid triangleMeshUUID{ 0x9B3D3E56D2414C2CULL, 0xA583EFB9E6C23F71ULL }; // "34ecc86a943e462baa021b6463a3c4b6"
 	const std::string triangleMeshName = "triangle";
 	const MeshData triangleMesh = {
 		{
@@ -79,6 +79,7 @@ namespace Twisted::Collections
 		}
 	};
 
+	constexpr AssetUuid quadMeshUUID{ 0xE83D8B41FCA64C4CULL, 0xB28CEFA452129D82ULL };  // "45d5c7eb1b11457790d86831a3982298"
 	const std::string quadMeshName = "quad";
 	const MeshData quadMesh = {
 		{
@@ -93,6 +94,7 @@ namespace Twisted::Collections
 		}
 	};
 
+	constexpr AssetUuid cubeMeshUUID{ 0xAAE4B2C9244E4D36ULL, 0xA7320DBB31C7B18FULL }; // "b1ad370d45c144ab88f20165f9059f7e"
 	const std::string cubeMeshName = "cube";
 	const MeshData cubeMesh = {
 		{
@@ -142,15 +144,11 @@ namespace Twisted::Collections
 		}
 	};
 
-	const std::string icoSphereMeshGUID = "{509e9b87-c394-4930-8a13-cccc9389a0c41";
+	constexpr AssetUuid icoSphereMeshUUID{ 0xD134F531D88B4C4DULL, 0xBAE64CEBBA0D92B2ULL }; // "8b71a6de763d4c4ba3ccd87f464edd20"
 	const std::string icoSphereMeshName = "isoSphere";
 
-
-
 	/* TO USE UUIDS
-	34ecc86a943e462baa021b6463a3c4b6
-	45d5c7eb1b11457790d86831a3982298
-	b1ad370d45c144ab88f20165f9059f7e
-	8b71a6de763d4c4ba3ccd87f464edd20
+	{ 0xFBC1E1A05F224861ULL, 0x83D7EF4512F97A55ULL };
+	{ 0xC1E53B529AB045D1ULL, 0xB9E45DE3A13B3E4CULL };
 	*/
 }

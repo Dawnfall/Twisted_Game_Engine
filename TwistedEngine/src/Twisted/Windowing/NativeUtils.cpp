@@ -139,7 +139,7 @@ namespace Twisted::Native
     bool ShowConfirmDialog(Window& window, const std::wstring& message, const std::wstring& title)
     {
         int result = MessageBoxW(
-            static_cast<HWND>(window.GetNativeHandle()),
+            static_cast<HWND>(window.GetRawPointer()),
             message.c_str(),
             title.c_str(),
             MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2

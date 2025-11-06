@@ -6,8 +6,6 @@
 #include <memory>
 #include <vector>
 
-#include "RuntimeBase.h"
-
 namespace Twisted
 {
 	class TWISTED_API Application

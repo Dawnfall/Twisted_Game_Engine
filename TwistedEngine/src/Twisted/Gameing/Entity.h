@@ -2,8 +2,14 @@
 
 #include "AppCore.h"
 #include "Serialization/BinSerializer.h"
+#include <yaml-cpp/yaml.h>
+#include <entt/entt.hpp>
+
 namespace Twisted
 {
+	using EntityID = entt::entity;
+	constexpr entt::entity NullEntity = entt::null;
+
 	class World;
 	class CTransform;
 	class CName;
@@ -14,7 +20,7 @@ namespace Twisted
 	public:
 		Entity(EntityID id, World* world) :m_id(id), m_world(world) {}
 
-		EntityID GetID()const { return m_id; }
+		const EntityID& GetID()const { return m_id; }
 		const World* GetWorld()const { return m_world; }
 		World* GetWorld() { return m_world; }
 
@@ -60,6 +66,29 @@ namespace std
 			size_t h1 = std::hash<Twisted::EntityID>{}(e.GetID());
 			size_t h2 = std::hash<const Twisted::World*>{}(e.GetWorld());
 			return h1 ^ (h2 << 1); // combine hashes
+		}
+	};
+}
+
+namespace YAML
+{
+	template<>
+	struct convert<Twisted::EntityID>
+	{
+		static Node encode(const Twisted::EntityID& rhs)
+		{
+			YAML::Node node;
+			node = static_cast<uint32_t>(rhs);
+			return node;
+		}
+
+		static bool decode(const YAML::Node& node, Twisted::EntityID& rhs)
+		{
+			if (!node || !node.IsScalar())
+				throw std::runtime_error("YAML::convert<entt::entity>::decode: Invalid or missing YAML node");
+
+			rhs = static_cast<Twisted::EntityID>(node.as<uint32_t>());
+			return true;
 		}
 	};
 }

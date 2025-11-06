@@ -51,7 +51,7 @@ namespace Twisted
 	public:
 
 		Shader() = default;
-		Shader(const ShaderData& shaderData) :TObject()
+		Shader(const std::string& name,const ShaderData& shaderData) :TObject(name)
 		{
 			Init(shaderData);
 		}
@@ -60,6 +60,7 @@ namespace Twisted
 			Clear();
 		}
 
+		
 		void Clear();
 		void Init(const ShaderData& shaderData);
 

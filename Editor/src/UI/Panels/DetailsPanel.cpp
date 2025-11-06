@@ -10,38 +10,51 @@
 #include "UI/ComponentPainter.h"
 
 #include "UI/Details/EntityPainter.h"
-
-#include "EditorMacros.h"
 #include "EditorData/EditorData.h"
-
+#include "EditorRegistry.h"
 
 namespace Twisted::Editor
 {
 	void DetailsPanel::PaintContent()
 	{
-		//std::visit([this](auto&& arg)
-		//	{
-		//		using SelectionType = std::decay_t<decltype(arg)>;
-		//		if constexpr (is_unordered_set<SelectionType>::value)
-		//		{
-		//			if (arg.size() == 1)
-		//			{
-		//				Entity entity = *arg.begin();
-		//				EntityPainter* entPainter=EditorRegistry::GetInstance().GetDetailsPainter<EntityPainter>();
-		//				if (entPainter)
-		//					entPainter->Paint(&entity);
-		//			}
-		//		}
-		//		//else if constexpr (std::is_base_of_v<AssetInfo, T>)
-		//		//{
-		//		//	AssetPainter assetPainter;
-		//		//	assetPainter.Paint(arg);
-		//		//}
-		//		//else if constexpr (std::is_same_v<std::monostate, T>)
-		//		//{
+		auto& selection = EditorData::GetInstance().GetSelection();
 
-		//		//}
-		//	}, EditorData::GetInstance().GetSelection().GetSelection());	
+		switch (selection.GetActiveType())
+		{
+		case SelectionType::ENTITY:
+		{
+			const std::unordered_set<Entity>& selectedEntities = selection.GetSelectedEntities();
+			if (selectedEntities.size() >= 1)
+			{
+				Entity entity = *selectedEntities.begin();
+				DetailsPainter* entPainter = EditorRegistry::GetInstance().GetDetailsPainter(std::type_index(typeid(entity)));
+				if (entPainter)
+					entPainter->Paint(&entity);
+			}
+			break;
+		}
+		case SelectionType::ASSET:
+		{
+			auto& selectedPaths = selection.GetSelectedPaths();
+			if (selectedPaths.size() >= 1)
+			{
+				AssetsLayer& assetsLayer = AssetsLayer::GetInstance();
+				auto info = assetsLayer.GetInfo(*selectedPaths.begin());
+				auto& objects = assetsLayer.GetAssetObjects(info->GetUuid());
+
+				if (objects.size() >= 1)
+				{
+					TObject* obj = objects.begin()->GetObj();
+					DetailsPainter* assetPainter = EditorRegistry::GetInstance().GetDetailsPainter(std::type_index(typeid(*obj)));
+					if (assetPainter)
+						assetPainter->Paint(obj);
+				}
+			}
+			break;
+		}
+		default:
+			break;
+		}
 	}
 
 

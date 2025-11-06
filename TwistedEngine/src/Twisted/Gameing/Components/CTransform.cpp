@@ -1,14 +1,10 @@
 
 #include "CTransform.h"
-#include "Twisted/TwistedMacros.h"
 
 #include "Twisted/Gameing/World.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "Debug/Logger.h"
-
 #include <algorithm>
-#include "Twisted/Gameing/World.h"
-
 namespace Twisted
 {
 
@@ -202,6 +198,26 @@ namespace Twisted
 		m_parent = buffer.Read<EntityID>(m_entity.GetWorld());
 		m_children = buffer.Read<std::vector<EntityID>>(m_entity.GetWorld());
 	}
+
+	YAML::Node CTransform::YamlSerialize() const
+	{
+		YAML::Node node;
+
+		node["pos"] = m_position;
+		node["scale"] = m_scale;
+		node["rot"] = m_rotation;
+		node["parent"] = m_parent;
+		node["children"] = m_children;
+
+		return node;
+	}
+	void CTransform::YamlDeserialize(const YAML::Node& node)
+	{
+		m_position = node["pos"].as<Vec3f>();
+		m_scale = node["scale"].as<Vec3f>();
+		m_rotation = node["rot"].as<Quat>();
+		m_parent = node["parent"].as<EntityID>();
+		m_children = node["children"].as<std::vector<EntityID>>();
+	}
 }
 
-REGISTER_COMPONENT(CTransform, "CTransform");

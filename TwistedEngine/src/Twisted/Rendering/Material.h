@@ -4,7 +4,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Utils/GlmUtils.h"
-#include "Twisted/Data/Color.h"
+#include "Data/Color.h"
 
 #include "Debug/Logger.h"
 #include <unordered_map>
@@ -43,19 +43,21 @@ namespace Twisted
 		std::unordered_map<std::string, Mat3x3d> Mat3x3ds;
 		std::unordered_map<std::string, Mat2x2d> Mat2x2ds;
 		std::unordered_map<std::string, WPtr<Texture>> Textures;
+
+		YAML::Node SerializeMaterialData()const;
+		void DeserializeMaterialData(const YAML::Node& node);
 	};
 
 	class TWISTED_API Material :public TObject
 	{
 	public:
-		Material() = default;
-		Material(const MaterialData& materialData) :
-			TObject(),
-			m_data(materialData)
-		{
-		}
+		Material(const std::string& name);
+		Material(const std::string& name, const MaterialData& materialData);
 
-		Shader* GetShader() { return m_shader.get(); }
+		void YAMLDeserialize(const YAML::Node& data);
+		YAML::Node YAMLSerialize()const;
+
+		Shader* GetShader() { return m_shader; }
 
 		void Clear()
 		{
@@ -91,89 +93,8 @@ namespace Twisted
 			getMap<WPtr<Texture>>()[key] = tex;
 		}
 
-		void ApplyUniforms()
-		{
-			if (!m_shader)
-				return;
+		void ApplyUniforms();
 
-			for (const auto& uniform : m_shader->GetUniforms())
-			{
-				switch (uniform.Type)
-				{
-				case ShaderVarType::BOOL:
-					m_shader->SetVar(uniform.UniformID, Get<bool>(uniform.Name));
-					break;
-				case ShaderVarType::UNSIGNED_INT:
-					m_shader->SetVar(uniform.UniformID, Get<unsigned int>(uniform.Name));
-					break;
-				case ShaderVarType::INT:
-					m_shader->SetVar(uniform.UniformID, Get<int>(uniform.Name));
-					break;
-				case ShaderVarType::FLOAT:
-					m_shader->SetVar(uniform.UniformID, Get<float>(uniform.Name));
-					break;
-				case ShaderVarType::VEC2_F:
-					m_shader->SetVar(uniform.UniformID, Get<Vec2f>(uniform.Name));
-					break;
-				case ShaderVarType::VEC3_F:
-					m_shader->SetVar(uniform.UniformID, Get<Vec3f>(uniform.Name));
-					break;
-				case ShaderVarType::VEC4_F:
-					m_shader->SetVar(uniform.UniformID, Get<Vec4f>(uniform.Name));
-					break;
-				case ShaderVarType::VEC2_D:
-					m_shader->SetVar(uniform.UniformID, Get<Vec2d>(uniform.Name));
-					break;
-				case ShaderVarType::VEC3_D:
-					m_shader->SetVar(uniform.UniformID, Get<Vec3d>(uniform.Name));
-					break;
-				case ShaderVarType::VEC4_D:
-					m_shader->SetVar(uniform.UniformID, Get<Vec4d>(uniform.Name));
-					break;
-				case ShaderVarType::VEC2_I:
-					m_shader->SetVar(uniform.UniformID, Get<Vec2i>(uniform.Name));
-					break;
-				case ShaderVarType::VEC3_I:
-					m_shader->SetVar(uniform.UniformID, Get<Vec3i>(uniform.Name));
-					break;
-				case ShaderVarType::VEC4_I:
-					m_shader->SetVar(uniform.UniformID, Get<Vec4i>(uniform.Name));
-					break;
-				case ShaderVarType::MAT4x4_F:
-					m_shader->SetVar(uniform.UniformID, Get<Mat4x4f>(uniform.Name));
-					break;
-				case ShaderVarType::MAT3x3_F:
-					m_shader->SetVar(uniform.UniformID, Get<Mat3x3f>(uniform.Name));
-					break;
-				case ShaderVarType::MAT2x2_F:
-					m_shader->SetVar(uniform.UniformID, Get<Mat2x2f>(uniform.Name));
-					break;
-				case ShaderVarType::MAT4x4_D:
-					m_shader->SetVar(uniform.UniformID, Get<Mat4x4d>(uniform.Name));
-					break;
-				case ShaderVarType::MAT3x3_D:
-					m_shader->SetVar(uniform.UniformID, Get<Mat3x3d>(uniform.Name));
-					break;
-				case ShaderVarType::MAT2x2_D:
-					m_shader->SetVar(uniform.UniformID, Get<Mat2x2d>(uniform.Name));
-					break;
-				case ShaderVarType::SAMPLER2D:
-				{
-					auto tex = Get<WPtr<Texture>>(uniform.Name);
-					unsigned int texID = tex ? tex->GetTexID() : 0;
-					m_shader->SetTex(uniform.UniformID, texID, uniform.TextureUnit);
-					break;
-				}
-				default:
-					TWISTED_WARN("Unsupported shader uniform type");
-					break;
-				}
-			}
-		}
-
-		YAML::Node Serialize()const;
-
-		void Deserialize(const YAML::Node& node);
 
 	private:
 
@@ -246,8 +167,6 @@ namespace Twisted
 		template<>const std::unordered_map<std::string, WPtr<Texture>>& getMap<WPtr<Texture>>() const { return m_data.Textures; }
 
 		MaterialData m_data;
-		WPtr<Shader> m_shader = nullptr;
-
-
+		Shader* m_shader = nullptr;
 	};
 }

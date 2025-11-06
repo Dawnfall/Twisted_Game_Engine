@@ -1,7 +1,7 @@
 #pragma once
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
-#include "Twisted/Data/Color.h"
+#include "Data/Color.h"
 
 #include <string>
 
@@ -23,7 +23,6 @@ namespace Twisted
 
 		void* GetRawPointer() { return m_windowHandle; }
 
-		void* GetContextAddress() { return m_hdc; }
 
 		Vec2i GetSize() const;
 
@@ -37,13 +36,13 @@ namespace Twisted
 
 		void SetPosition(Vec2i newPosition);
 
-		void SetFullscreen();
-
 		void SetWindowed(Vec2i size, Vec2i pos);
 
+		void* GetContextAddress() { return m_hdc; }
+
 	private:
-		void* m_windowHandle;
-		void* m_hdc;
-		void* m_glrc;
+		void* m_windowHandle=nullptr;
+		void* m_hdc = nullptr;
+		void* m_glrc = nullptr;
 	};
 }

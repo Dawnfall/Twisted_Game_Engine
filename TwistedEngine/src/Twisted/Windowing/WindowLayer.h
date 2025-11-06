@@ -15,7 +15,7 @@ namespace Twisted
 		Window* GetWindow() { return (m_window) ? m_window.get() : nullptr; }
 		Window* CreateNewWindow(const std::string& title,const Vec2i& size, const Vec2i& position)
 		{
-			m_window = Window::CreateNewWindow(title, size, position);
+			m_window = std::make_unique<Window>(title, size, position);
 			return m_window.get();
 		}
 

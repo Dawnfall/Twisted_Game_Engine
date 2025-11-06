@@ -1,33 +1,57 @@
 #include "MaterialImporter.h"
-#include "Twisted/TwistedMacros.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "Twisted/Rendering/Material.h"
-#include "Twisted/AssetsLayer/ObjectAssetEntry.h"
+#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 
 namespace Twisted
 {
-	ObjectsPerAsset& MaterialImporter::Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
+	void MaterialImporter::ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
-		if (objects.size() > 0)
-		{
-			objects[""].GetObj()->static_as<Material>()->Clear();
-		}
-		else
-			objects[""] = WPtr<Material>(TObject::Create<Material>());
+		WPtr<Material> mat(TObject::Create<Material>(assetInfo.GetAssetName()));
 
-		return objects;
+		objects.emplace_back(mat);
 	}
 
-	void MaterialImporter::PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
+	void MaterialImporter::PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
-		YAML::Node assetData = YAML::LoadFile(assetInfo.AssetPath.string());
+		if (objects.empty())
+			return;
 
-		MaterialData Data;
-		std::unordered_map<std::string, ObjectAssetEntry> TexIDs;
-
-		Material* mat = static_cast<Material*>(objects[""].GetObj());
+		Material* mat = static_cast<Material*>(objects[0].GetObj());
+		YAML::Node buffer = YAML::LoadFile(assetInfo.GetAssetPath().string());
+		mat->YAMLDeserialize(buffer);
 
 	}
+
+	void MaterialImporter::HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	{
+		//TODO:...
+	}
+
+
+
+	void MaterialImporter::CreateNewAsset(const fs::path& path)const
+	{
+		auto material = std::make_unique<Material>(path.stem().string());
+		YAML::Node data = material->YAMLSerialize();
+		YamlUtils::saveNode(data, path);
+	}
+
+	bool MaterialImporter::SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const
+	{
+		if (objects.empty())
+			return false;
+
+		const Material* mat = static_cast<const Material*>(objects[0].GetObj());
+		if (!mat)
+			return false;
+
+		YAML::Node data = mat->YAMLSerialize();
+		YamlUtils::saveNode(data, assetPath);
+
+		return true;
+	}
+
 }
 
 REGISTER_IMPORTER(MaterialImporter)

@@ -3,19 +3,14 @@
 
 namespace Twisted
 {
-	const std::string ASSET_WORLD_TYPE = "world";
+	const std::string ASSET_WORLD_TYPE = "World";
 
 	class TWISTED_API WorldImporter :public AssetImporter
 	{
 	public:
-		inline std::vector<fs::path> GetAssetExtensions()const
-		{
-			return { ".world" };
-		}
-		inline bool DoAutoImport()const { return false; }
-
-		ObjectsPerAsset& Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
-		void PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
+		void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
 
 		void FillDefaultInfo(YAML::Node& node)const override
 		{
@@ -28,6 +23,14 @@ namespace Twisted
 			//SaveInfo();
 			//buffer.SaveToFile(GetAssetPath());
 		}
+
+		void CreateNewAsset(const fs::path& assetPath) const override;
+		bool SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const override;
+
+		inline bool DoAutoImport()const override { return false; }
+		std::string GetCreatePath() const override { return "World"; }
+		std::string DefaultFileName() const override { return "newWorld.world"; }
+		std::vector<fs::path> GetAssetExtensions()const override { return { ".world" }; }
 
 	private:
 

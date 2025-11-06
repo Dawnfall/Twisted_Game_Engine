@@ -4,14 +4,14 @@
 #include "Twisted/Windowing/NativeUtils.h"
 #include "UI/ImguiExtensions.h"
 
-
+#include "EditorConstants.h"
 #include "AppCore.h"
 #include "Twisted/Windowing/Window.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 
 #include "Twisted/Gameing/World.h"
 #include "Twisted/AssetsLayer/Importers/WorldImporter.h"
-#include "Twisted/Gameing/WorldSerializer.h"
+#include "Twisted/Gameing/WorldRegistry.h"
 
 #include <imgui.h>
 #include <string>
@@ -29,13 +29,11 @@ namespace Twisted::Editor
 {
 	void EditorLayer::Init()
 	{
-		EditorData::GetInstance().GameViewBuffer = TObject::Create<FrameBuffer>();
-		EditorData::GetInstance().EditorViewBuffer = TObject::Create<FrameBuffer>();
-		
+		EditorData::GetInstance().GameViewBuffer = TObject::Create<FrameBuffer>("Main Framebuffer");
+		EditorData::GetInstance().EditorViewBuffer = TObject::Create<FrameBuffer>("Editor Framebuffer");
+
 		EditorData::GetInstance().SetWorld(nullptr);
 	}
-
-
 
 	void EditorLayer::Render(Window* window)
 	{
@@ -90,8 +88,8 @@ namespace Twisted::Editor
 						std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} });
 						path = path.replace_extension(".world");
 
-						BinSerializer serBuffer = WorldSerializer::GetInstance().Serialize(*gameWorld);
-						serBuffer.SaveToFile(path);
+						std::vector<WPtrBase> assetObjects = { WPtrBase(gameWorld) };
+						assetsLayer->SaveAsset(path, { assetObjects });
 					}
 				}
 				if (ImGui::MenuItem("Save World"))
@@ -111,19 +109,24 @@ namespace Twisted::Editor
 			}
 			if (ImGui::BeginMenu("Create"))
 			{
-				if (ImGui::MenuItem("New Entity"))
+				auto& importers = AssetImporterRegistry::GetInstance().GetImporters();
+
+				for (auto imp : importers)
 				{
-					if (EditorData::GetInstance().GetGameWorld())
-						Entity newEntity = EditorData::GetInstance().GetGameWorld()->CreateNew<>();
+					std::string createPath = imp->GetCreatePath();
+					if (createPath != "")
+						if (ImGui::MenuItem(createPath.c_str()))
+						{
+							EditorData::GetInstance().MakeNewFileEvent.Invoke(imp->DefaultFileName());
+						}
 				}
+
 				ImGui::EndMenu();
 			}
 		}
 		ImGui::EndMainMenuBar();
-
 		ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
 	}
-
 
 	void EditorLayer::RenderDockSpace()
 	{
@@ -140,11 +143,11 @@ namespace Twisted::Editor
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-		ImGui::Begin(mainDockSpaceLabel.c_str(), nullptr, dockFlags);
+		ImGui::Begin(Constants::mainDockSpaceLabel.c_str(), nullptr, Constants::dockFlags);
 		ImGui::PopStyleVar(2);
 
 		//// Dockspace
-		ImGuiID dockspace_id = ImGui::GetID(mainDockSpaceLabel.c_str());
+		ImGuiID dockspace_id = ImGui::GetID(Constants::mainDockSpaceLabel.c_str());
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
 
 		ImGui::End();
@@ -160,7 +163,7 @@ namespace Twisted::Editor
 				panel->IsInit = true;
 			}
 
-			ImGui::Begin(panel->GetName().c_str(), &panel->IsShowing, panelFlags);
+			ImGui::Begin(panel->GetName().c_str(), &panel->IsShowing, Constants::panelFlags);
 
 			// Get the size of the panel
 			ImVec2 size = ImGui::GetContentRegionAvail();

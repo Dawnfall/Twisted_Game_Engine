@@ -3,6 +3,8 @@
 //TODO: byte order normalization... little/big endian
 
 #include "AppCore.h"
+#include "SerializedBuffer.h"
+
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -52,7 +54,7 @@ namespace Twisted
 		{ readFromBuffer<T>(buf, data) } -> std::same_as<T>;
 	};
 
-	class TWISTED_API BinSerializer
+	class TWISTED_API BinSerializer:public SerializedBuffer
 	{
 	public:
 		BinSerializer() = default;
@@ -192,8 +194,8 @@ namespace Twisted
 			}
 		}
 
-		bool SaveToFile(const std::filesystem::path& path);
-		bool LoadFromFile(const std::filesystem::path& path);
+		bool SaveToFile(const std::filesystem::path& path)override;
+		bool LoadFromFile(const std::filesystem::path& path)override;
 
 	private:
 

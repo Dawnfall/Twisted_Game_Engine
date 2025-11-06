@@ -1,24 +1,18 @@
 #include "AppCore.h"
-#ifdef NATIVE_USE
+#ifndef GLFW_INCLUDE_NONE
 
+#include "Twisted/Rendering/RenderingAPI.h"
 #include "Twisted/Windowing/GraphicsContext.h"
 #include "Debug/Logger.h"
 
 #include <Windows.h>
+#include <glad/glad.h>       // main GLAD functions
+#include <GL/wglext.h>
 
 namespace Twisted
 {
-	GraphicsContext::GraphicsContext(void* windowHandle) :m_windowHandle(windowHandle)
-	{
-        // 1. Get the device context for the window
-        m_hdc = GetDC(static_cast<HWND>(m_windowHandle));
-        if (!m_hdc)
-        {
-            TWISTED_ERROR("Failed to get device context (HDC) for window!");
-            return;
-        }
-
-        // 2. Choose a pixel format for the device context
+    static bool setPixelFormat(HDC windowHandle)
+    {
         PIXELFORMATDESCRIPTOR pfd = {};
         pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
         pfd.nVersion = 1;
@@ -29,31 +23,162 @@ namespace Twisted
         pfd.cStencilBits = 8;
         pfd.iLayerType = PFD_MAIN_PLANE;
 
-        int pixelFormat = ChoosePixelFormat(static_cast<HDC>(m_hdc), &pfd);
+        int pixelFormat = ChoosePixelFormat(windowHandle, &pfd);
         if (pixelFormat == 0)
         {
             TWISTED_ERROR("ChoosePixelFormat() failed!");
+            return false;
+        }
+
+        PIXELFORMATDESCRIPTOR chosenPFD;
+        if (!DescribePixelFormat(windowHandle, pixelFormat, sizeof(chosenPFD), &chosenPFD))
+        {
+            TWISTED_ERROR("DescribePixelFormat() failed!");
+            return false;
+        }
+
+        if (!SetPixelFormat(windowHandle, pixelFormat, &pfd))
+        {
+            TWISTED_ERROR("SetPixelFormat() failed!");
+            return false;
+        }
+
+        return true;
+    }
+
+    using PFNWGLCREATECONTEXTATTRIBSARBPROC = HGLRC(WINAPI*)(HDC, HGLRC, const int*);
+    static HGLRC createContext(HDC hdc)
+    {
+        if (!hdc)
+            return nullptr;
+
+        // -------------------------
+        // 1) Create temporary legacy context
+        // -------------------------
+        HGLRC tempContext = wglCreateContext(hdc);
+        if (!tempContext)
+        {
+            TWISTED_ERROR("wglCreateContext (temp) failed");
+            return nullptr;
+        }
+
+        if (!wglMakeCurrent(hdc, tempContext))
+        {
+            TWISTED_ERROR("wglMakeCurrent (temp) failed");
+            wglDeleteContext(tempContext);
+            return nullptr;
+        }
+
+
+        // -------------------------
+        // 2) Load wglCreateContextAttribsARB
+        // -------------------------
+        auto wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(
+            wglGetProcAddress("wglCreateContextAttribsARB")
+            );
+
+        HGLRC realContext = nullptr;
+
+        if (wglCreateContextAttribsARB)
+        {
+            // -------------------------
+            // 3) Modern OpenGL 4.6 core context attributes
+            // -------------------------
+            const int attribs[] = {
+                WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+                WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+                WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                0
+            };
+
+            realContext = wglCreateContextAttribsARB(hdc, 0, attribs);
+            if (!realContext)
+            {
+                TWISTED_WARN("wglCreateContextAttribsARB failed; falling back to legacy context");
+                realContext = tempContext;
+            }
+            else
+            {
+                // Delete temporary context
+                wglMakeCurrent(nullptr, nullptr);
+                wglDeleteContext(tempContext);
+            }
+        }
+        else
+        {
+            TWISTED_WARN("wglCreateContextAttribsARB not available; using legacy context");
+            realContext = tempContext;
+        }
+
+        // -------------------------
+        // 4) Make the chosen context current
+        // -------------------------
+        if (!wglMakeCurrent(hdc, realContext))
+        {
+            TWISTED_ERROR("wglMakeCurrent failed for final context");
+            wglDeleteContext(realContext);
+            return nullptr;
+        }
+
+
+        // -------------------------
+        // 2) Load GL functions using GLAD 
+        // -------------------------
+
+        auto loader = [](const char* name) -> void* {
+            void* p = (void*)wglGetProcAddress(name);
+            if (!p) p = (void*)GetProcAddress(GetModuleHandleA("opengl32.dll"), name);
+            return p;
+            };
+
+        if (!gladLoadGLLoader(loader))
+        {
+            TWISTED_ERROR("GLAD initialization failed on temp context");
+
+            wglMakeCurrent(nullptr, nullptr);
+            wglDeleteContext(realContext);
+            return nullptr;
+        }
+
+        // -------------------------
+        // 6) Optional: log OpenGL version
+        // -------------------------
+        //const GLubyte* version = glGetString(GL_VERSION);
+        //if (version)
+        //{
+        //    std::string openglVersion(reinterpret_cast<const char*>(version));
+        //    TWISTED_INFO("OpenGL Version: " + openglVersion);
+        //}
+        //else
+        //{
+        //    TWISTED_WARN("glGetString(GL_VERSION) returned null!");
+        //}
+        return realContext;
+    }
+
+
+	GraphicsContext::GraphicsContext(void* windowHandle) :m_windowHandle(windowHandle)
+	{
+        // 1. Get the device context for the window
+        m_hdc = GetDC(static_cast<HWND>(m_windowHandle));
+        if (!m_hdc)
+        {
+            TWISTED_ERROR("Failed to get device context (HDC) for window! GraphicsContext_win32 failed!");
             return;
         }
 
-        if (!SetPixelFormat(static_cast<HDC>(m_hdc), pixelFormat, &pfd))
+        // 2. Choose a pixel format for the device context
+        if (!setPixelFormat(static_cast<HDC>(m_hdc)))
         {
-            TWISTED_ERROR("SetPixelFormat() failed!");
+            TWISTED_ERROR("GraphicsContext_win32 failed!");
             return;
         }
 
         // 3. Create the OpenGL rendering context
-        m_glrc = wglCreateContext(static_cast<HDC>(m_hdc));
+        m_glrc = createContext(static_cast<HDC>(m_hdc));
         if (!m_glrc)
         {
-            TWISTED_ERROR("wglCreateContext() failed!");
-            return;
-        }
-
-        // 4. Make the context current for this thread
-        if (!wglMakeCurrent(static_cast<HDC>(m_hdc), static_cast<HGLRC>(m_hdc)))
-        {
-            TWISTED_ERROR("wglMakeCurrent() failed!");
+            TWISTED_ERROR("GraphicsContext_win32 failed!");
             return;
         }
 
@@ -75,6 +200,8 @@ namespace Twisted
             ReleaseDC(static_cast<HWND>(m_windowHandle), static_cast<HDC>(m_hdc));
             m_hdc = nullptr;
         }
+
+
     }
 
     void GraphicsContext::SwapBuffers()

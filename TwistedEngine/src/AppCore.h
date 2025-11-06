@@ -1,13 +1,7 @@
 #pragma once
 #include <memory>
 #include <filesystem>
-#include <entt/entt.hpp>
 
-
-//***************
-//TEST
-
-#define NATIVE_USE
 
 //************
 // DLLimport / DLLexport
@@ -65,8 +59,4 @@ using SRef = std::shared_ptr<T>;
 template<typename T>
 using URef = std::unique_ptr<T>;
 
-namespace Twisted
-{
-	using EntityID = entt::entity;
-	constexpr entt::entity NullEntity = entt::null;
-}
+

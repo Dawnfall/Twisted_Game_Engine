@@ -27,11 +27,12 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
 target_link_libraries(TwistedEngine PRIVATE
     opengl32
     glm::glm
-    #glfw
     glad::glad
     spdlog::spdlog
     yaml-cpp::yaml-cpp
     rapidobj::rapidobj
+
+    $<$<BOOL:${USE_GLFW}>:glfw>
 )
 
 target_compile_definitions(TwistedEngine PRIVATE
@@ -39,8 +40,9 @@ target_compile_definitions(TwistedEngine PRIVATE
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:Release>:TWISTED_RELEASE>
     $<$<CONFIG:Deploy>:TWISTED_DEPLOY>
-    #GLFW_INCLUDE_NONE
-    #GLFW_EXCLUDE_VULKAN
+
+    $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
+    $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
 )
 target_compile_options(TwistedEngine PRIVATE
     $<$<CONFIG:Debug>:/Od /Zi>

@@ -6,8 +6,10 @@
 
 namespace Twisted
 {
-	FrameBuffer::FrameBuffer(const FrameBufferParams& params) :
-		TObject()
+	FrameBuffer::FrameBuffer(const std::string& name):TObject(name){}
+
+	FrameBuffer::FrameBuffer(const std::string& name,const FrameBufferParams& params) :
+		TObject(name)
 	{
 		Create(params);
 	}

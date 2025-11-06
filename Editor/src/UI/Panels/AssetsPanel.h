@@ -6,19 +6,10 @@
 #include "UI/ImguiExtensions.h"
 #include <imgui.h>
 #include <optional>
-#include "EditorMacros.h"
 
 namespace fs = std::filesystem;
 namespace Twisted::Editor
 {
-	struct AssetEntryToken
-	{
-		std::filesystem::path Path;
-		bool IsSelected = false;
-		ImVec4 HighLightColor;
-		ImVec2 CellSize;
-	};
-
 	class AssetsPanel :public EditorPanel
 	{
 	public:

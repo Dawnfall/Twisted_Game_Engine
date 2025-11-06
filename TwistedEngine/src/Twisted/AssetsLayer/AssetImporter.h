@@ -7,7 +7,6 @@
 #include "AssetInfo.h"
 #include "Utils/WPtr.h"
 #include "Twisted/TObject.h"
-#include "ObjectAssetEntry.h"
 
 #include <filesystem>
 #include <yaml-cpp/yaml.h>
@@ -15,7 +14,6 @@
 #include <unordered_map>
 
 namespace fs = std::filesystem;
-using ObjectsPerAsset = std::unordered_map<std::string, Twisted::WPtrBase>;
 
 namespace Twisted
 {
@@ -25,10 +23,21 @@ namespace Twisted
 	class TWISTED_API AssetImporter
 	{
 	public:
+		virtual void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
+		virtual void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
+		virtual void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
+
 		virtual bool DoAutoImport()const = 0;
 		virtual std::vector<fs::path> GetAssetExtensions()const = 0;
-		virtual ObjectsPerAsset& Import(const AssetInfo& assetinfo, ObjectsPerAsset& objects)const = 0;
-		virtual void PostImport(const AssetInfo& assetinfo, ObjectsPerAsset& objects)const = 0;
 		virtual void FillDefaultInfo(YAML::Node& node)const = 0;
+
+		virtual std::string GetCreatePath() const { return ""; }
+		virtual std::string DefaultFileName() const { return ""; }
+
+		virtual void CreateNewAsset(const std::filesystem::path& path) const {}
+		virtual bool SaveAsset(const fs::path& assetPath,const std::vector<WPtrBase>& objects)const
+		{ 
+			throw std::exception("saving not implemented for this class"); 
+		}
 	};
 }

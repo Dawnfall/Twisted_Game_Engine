@@ -2,16 +2,101 @@
 #include "Twisted/Application/Application.h"
 #include "EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
-#include "EditorMacros.h"
 #include "EditorData/EditorData.h"
 #include "Twisted/AssetsLayer/AssetInfo.h"
 
+
 namespace Twisted::Editor
 {
+	static ImGuiTreeNodeFlags GetAssetFlags(size_t childCount, const fs::path& assetPath)
+	{
+		ImGuiTreeNodeFlags flags =
+			ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_SpanAvailWidth;
+
+		if (childCount == 0)
+			flags |= ImGuiTreeNodeFlags_Leaf;
+
+		if (EditorData::GetInstance().GetSelection().GetSelectedPaths().contains(assetPath))
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+
+		return flags;
+	}
+
+	static ImGuiTreeNodeFlags GetObjectFlags(TObject* obj)
+	{
+		ImGuiTreeNodeFlags flags =
+			ImGuiTreeNodeFlags_Leaf |
+			ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+		if (EditorData::GetInstance().GetSelection().GetSelectedObjects().contains(obj->GetID()))
+		{
+			flags |= ImGuiTreeNodeFlags_Selected;
+		}
+
+		return flags;
+	}
+
+	static void CheckLeftClickOnAsset(const fs::path& asset)
+	{
+		if (EditorData::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
+			bool shiftHeld = io.KeyShift; // true if Shift is held
+			bool altHeld = io.KeyAlt; // true if Alt is held
+
+			if (ctrlHeld)
+			{
+				EditorData::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
+			}
+			else if (shiftHeld)
+			{
+				//TODO:should select all visible from prev tto current
+			}
+			else
+			{
+				EditorData::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
+			}
+		}
+	}
+
+	static void CheckLeftClickOnObject(TObject* object)
+	{
+		if (EditorData::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
+			bool shiftHeld = io.KeyShift; // true if Shift is held
+			bool altHeld = io.KeyAlt; // true if Alt is held
+
+			if (ctrlHeld)
+			{
+				EditorData::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
+			}
+			else if (shiftHeld)
+			{
+				//TODO:should select all visible from prev tto current
+			}
+			else
+			{
+				EditorData::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
+			}
+		}
+	}
+
 	AssetsPanel::AssetsPanel() :EditorPanel("Assets Panel")
 	{
 		Project::GetInstance().ProjectChangeEvent.AddListener([this]() {
 			currentDir = Project::GetInstance().GetAssetsFolder();
+			});
+		EditorData::GetInstance().MakeNewFileEvent.AddListener([this](fs::path defaultName) {
+			m_newFileName = Im::InputTextToken{};
+			m_newFileName.value().PostLabel = defaultName.extension().string();
+			m_newFileName.value().Text = defaultName.stem().string();
+			m_newFileName.value().DoAutoFocus = true;
 			});
 	}
 
@@ -46,12 +131,12 @@ namespace Twisted::Editor
 
 			}
 		}
+
+		NewAssetPopup();
 		PaintNewAsset();
 
 		ImGui::EndChild();
-
 	}
-
 
 	void AssetsPanel::PaintTreePart(const fs::path& dirPath)
 	{
@@ -81,51 +166,43 @@ namespace Twisted::Editor
 		}
 	}
 
-
 	bool AssetsPanel::AssetEntry(const fs::path& assetPath)
 	{
-		bool isSelected = EditorData::GetInstance().GetSelection().GetSelectedPaths().contains(assetPath);
-
-		DragPayload& dragPayload = EditorData::GetInstance().GetDragPayload();
-
-		AssetEntryToken token;
-		token.Path = assetPath;
-		token.IsSelected = m_selectedPath && m_selectedPath == assetPath;
-		token.HighLightColor = HIGHLIGHT_COLOR;
-		token.CellSize = CELL_SIZE;
-
 		bool justSelected = false;
+		fs::path filename = assetPath.filename();
 
-		std::string filename = assetPath.filename().string();
-		std::string fullPath = token.Path.string();
+		AssetsLayer& assetsLayer = AssetsLayer::GetInstance();
+		AssetInfo* info = assetsLayer.GetInfo(assetPath);
+		auto& objects = assetsLayer.GetAssetObjects(info->GetUuid());
 
-		if (ImGui::TreeNodeEx(filename.c_str()))
+		ImGuiTreeNodeFlags flags = GetAssetFlags(objects.size(), (info) ? assetPath : "");
+
+		// tree node
+		bool isOpened = ImGui::TreeNodeEx(filename.string().c_str(), flags);
+
+		CheckLeftClickOnAsset(assetPath);
+
+		// drag source
+		std::string pathAsString = filename.string();
+		Im::DragSource<AssetInfo*>(Constants::ASSET_DRAG_TYPE, info, filename.string().c_str());
+
+		if (isOpened)
 		{
-			if (ImGui::BeginDragDropSource())
-			{
-				if (!dragPayload.m_data.has_value())
-				{
-					SRef<AssetInfo> assetInfo = AssetsRegistry::GetInstance().GetInfo(filename);
-					dragPayload.m_data = assetInfo;
-				}
-
-				ImGui::Text(filename.c_str());
-				ImGui::EndDragDropSource();
-			}
-
-			auto& objects = AssetsRegistry::GetInstance().GetAssetObjects(assetPath);
 			for (auto& obj : objects)
 			{
+				TObject* objPtr = obj.GetObj();
 				std::string name = assetPath.stem().string();
-				name += "##" + std::to_string(obj.second.GetID().GetID());
-				ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen);
-			}
 
+				name += "##" + std::to_string(objPtr->GetID().GetID());
+				ImGuiTreeNodeFlags objFlags = GetObjectFlags(objPtr);
+				ImGui::TreeNodeEx(name.c_str(), objFlags);
+				CheckLeftClickOnObject(objPtr);
+				Im::DragSource<TObject*>(Constants::OBJECT_DRAG_TYPE, objPtr, "Object");
+			}
 			ImGui::TreePop();
 		}
-
 		return justSelected;
-	} //TODO... use later
+	}
 
 	void AssetsPanel::PaintNewAsset()
 	{
@@ -137,10 +214,9 @@ namespace Twisted::Editor
 				std::filesystem::path path = currentDir / (m_newFileName->Text + m_newFileName->PostLabel);
 				if (!path.empty() && path.has_filename() && !std::filesystem::exists(path))
 				{
-					if (path.extension().empty())
-						std::filesystem::create_directory(path);
-					else
-						std::ofstream ofs(path.string());
+					auto importer = AssetImporterRegistry::GetInstance().GetImporter(path.extension());
+					importer->CreateNewAsset(path);
+					//TODO... import new Asset
 				}
 				m_newFileName = std::nullopt;
 			}
@@ -149,26 +225,22 @@ namespace Twisted::Editor
 
 	void AssetsPanel::NewAssetPopup()
 	{
-		auto paintMenuItem = [this](const std::string& menuItemText, const std::string& extension, const std::string& defaultFileName) {
-			if (ImGui::MenuItem(menuItemText.c_str()))
-			{
-				Im::InputTextToken token;
-				token.Text = defaultFileName;
-				token.PostLabel = extension;
-				m_newFileName = token;
-			}
-			};
-
 		if (ImGui::BeginPopupContextWindow("AssetPopup", ImGuiPopupFlags_MouseButtonRight))
 		{
-			paintMenuItem("New Material", ".material", "New Material");
-			paintMenuItem("New Shader", ".shader", "New Shader");
-			paintMenuItem("New Folder", "", "New Folder");
-
+			for (auto& importer : AssetImporterRegistry::GetInstance().GetImporters())
+			{
+				std::string createPath = importer->GetCreatePath();
+				if (createPath != "")
+				{
+					if (ImGui::MenuItem(createPath.c_str()))
+					{
+						EditorData::GetInstance().MakeNewFileEvent.Invoke(importer->DefaultFileName());
+					}
+				}
+			}
 			ImGui::EndPopup();
 		}
 	}
-
 }
 
 REGISTER_EDITOR_PANEL(AssetsPanel)

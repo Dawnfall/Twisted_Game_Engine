@@ -1,11 +1,10 @@
-#include "Twisted/AssetsLayer/AssetsRegistry.h"  
 #include "ModelImporter.h"
-#include "Twisted/TwistedMacros.h" 
 
 #include "Utils/GlmUtils.h"
-#include "Twisted/Data/Vertex.h"
+#include "Data/Vertex.h"
 
 #include <rapidobj/rapidobj.hpp>
+#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 
 namespace Twisted
 {
@@ -80,13 +79,17 @@ namespace Twisted
 		}
 		return vertex;
 	}
-	
-	ObjectsPerAsset& ModelImporter::Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
+
+	void ModelImporter::ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
-		return objects;
+		//TODO:...
+	}
+	void ModelImporter::HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	{
+		//TODO:...
 	}
 
-	void ModelImporter::PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const
+	void ModelImporter::PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//std::vector<std::string> MaterialUuids;
 		//std::vector<std::string> MeshUuids;

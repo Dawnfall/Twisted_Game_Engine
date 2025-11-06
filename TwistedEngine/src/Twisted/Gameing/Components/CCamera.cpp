@@ -1,17 +1,40 @@
 #include "CCamera.h"
-#include "Twisted/TwistedMacros.h"
 
 #include "Utils/GlmUtils.h"
 
 #include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Components/CTransform.h"
 #include "Debug/Logger.h"
+#include "CMainCamera.h"
 
 namespace Twisted
 {
+	CCamera::~CCamera()
+	{
+		GetWorld()->RemoveComponent<CMainCamera>(GetID());
+	}
+	bool CCamera::IsMainCamera()const
+	{
+		return m_entity.GetWorld()->HasComponent<CMainCamera>(GetID());
+	}
+
+	void CCamera::SetAsMainCamera()
+	{
+		World* world = m_entity.GetWorld();
+
+		CMainCamera* mainCamera = world->FindFirstOfType<CMainCamera>();
+		if (mainCamera)
+		{
+			if (mainCamera->GetEntity() == m_entity)
+				return;
+			mainCamera->GetEntity().GetWorld()->RemoveComponent<CMainCamera>(mainCamera->GetID());
+		}
+		GetWorld()->AddComponent<CMainCamera>(GetID());
+	}
+
 	Mat4x4f CCamera::GetViewMatrix()const
 	{
-		const CTransform& transform = m_entity.GetWorld()->GetComponent<CTransform>(m_entity.GetID());
+		const CTransform& transform = GetWorld()->GetComponent<CTransform>(GetID());
 
 		auto position = transform.GetWorldPosition();
 		auto target = position + transform.GetWorldForward();
@@ -30,7 +53,7 @@ namespace Twisted
 		{
 		case CameraProjectionType::PERSPECTIVE:
 			return glm::perspective(GetFovInRad(), GetAspectRatio(), GetNearPlane(), GetFarPlane());
-		case CameraProjectionType::ORTOGRAPHIC:
+		case CameraProjectionType::ORTHOGRAPHIC:
 			return glm::ortho(GetLeftEdge(), GetRightEdge(), GetBotEdge(), GetTopEdge(), GetNearPlane(), GetFarPlane());
 		default:
 			TWISTED_ERROR("Unsupported projection type!");
@@ -64,6 +87,34 @@ namespace Twisted
 		m_botEdge = buffer.Read<float>(nullptr);
 		m_topEdge = buffer.Read<float>(nullptr);
 	}
+
+	YAML::Node CCamera::YamlSerialize() const
+	{
+		YAML::Node node;
+
+		node["proj"] = m_projectionType;
+		node["near"] = m_nearPlane;
+		node["far"] = m_farPlane;
+		node["fov"] = m_fovDeg;
+		node["apect"] = m_aspectRatio;
+		node["left"] = m_leftEdge;
+		node["right"] = m_rightEdge;
+		node["bot"] = m_botEdge;
+		node["top"] = m_topEdge;
+
+		return node;
+	}
+	void CCamera::YamlDeserialize(const YAML::Node& node)
+	{
+		m_projectionType = node["proj"].as<CameraProjectionType>(CameraProjectionType::PERSPECTIVE);
+		m_nearPlane= node["near"].as<float>(1.0f);
+		m_farPlane= node["far"].as<float>(1.0f);
+		m_fovDeg = node["fov"].as<float>(45.0f);
+		m_aspectRatio = node["apect"].as<float>(1.333f);
+		m_leftEdge = node["left"].as<float>(1.0f);
+		m_rightEdge = node["right"].as<float>(1.0f);
+		m_botEdge = node["bot"].as<float>(1.0f);
+		m_topEdge = node["top"].as<float>(1.0f);
+	}
 }
 
-REGISTER_COMPONENT(CCamera, "CCamera");

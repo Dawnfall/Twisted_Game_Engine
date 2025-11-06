@@ -1,8 +1,8 @@
 #include "AppCore.h"
-#ifndef NATIVE_USE
+#ifdef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/Window.h"
-#include "Twisted/Data/Color.h"
+#include "Data/Color.h"
 #include "Twisted/Windowing/MonitorInfo.h"
 
 #include <GLFW/glfw3.h>
@@ -317,9 +317,78 @@
 
 namespace Twisted
 {
+	static void setCallbacks(Window& window)
+	{
+		glfwSetWindowCloseCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
+			[](GLFWwindow* pointer)
+			{
+				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
+				window->CloseWindowEvent.Invoke();
+			});
+		glfwSetWindowSizeCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
+			[](GLFWwindow* pointer, int newWidth, int newHeight)
+			{
+				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
+				window->WindowResizeEvent.Invoke(Vec2i{ newWidth,newHeight });
+			});
+		glfwSetKeyCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
+			[](GLFWwindow* pointer, int glfwKey, int glfwScancode, int glfwAction, int glfwMods)
+			{
+				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
+
+				Twisted::Key key = glfwToTwistedKey(glfwKey);
+
+				bool isDown;
+				if (glfwAction == GLFW_PRESS)
+					isDown = true;
+				else if (glfwAction == GLFW_RELEASE)
+					isDown = false;
+				else
+					return;
+
+				Input::GetInstance().UpdateKey(key, isDown);
+			});
+		glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
+			[](GLFWwindow* pointer, int glfwButton, int glfwAction, int glfwMods)
+			{
+				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
+
+				Twisted::MouseButton button = glfwToTwistedButton(glfwButton);
+				bool isDown;
+				if (glfwAction == GLFW_PRESS)
+					isDown = true;
+				else if (glfwAction == GLFW_RELEASE)
+					isDown = false;
+				else
+					return;
+				Input::GetInstance().UpdateMouseButton(button, isDown);
+			});
+		glfwSetCursorPosCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
+			[](GLFWwindow* pointer, double xPos, double yPos)
+			{
+				Input::GetInstance().UpdateMousePosition(static_cast<float>(xPos), static_cast<float>(yPos));
+			});
+
+	}
 
 	Window::Window(const std::string& title, Vec2i size, Vec2i position)
 	{
+		GLFWwindow* windowPointer = nullptr;
+		windowPointer = glfwCreateWindow(size.x, size.y, title.c_str(), nullptr, NULL);
+		if (!windowPointer)
+		{
+			TWISTED_ERROR("CreateNewWindow() failure! GLFW window pointer creation failure");
+			return;
+		}
+		m_pointer = windowPointer;
+		glfwMakeContextCurrent(windowPointer);
+		glfwSetWindowUserPointer(windowPointer, this);
+
+		m_context = std::make_unique<GraphicsContext>(windowPointer);
+
+		setCallbacks(*this);
+		glfwSetWindowPos(windowPointer, position.x, position.y);
+		TWISTED_INFO("Window Created");
 	}
 
 	Window::~Window()
@@ -360,16 +429,45 @@ namespace Twisted
 
 	void Window::PollEvents()
 	{
-		Input::GetInstance().ResetInput();
 		glfwPollEvents();
 	}
 
-
-	void Window::SetFullscreen()
+	void Window::SetFullScreen(bool isFullScreen) //TODO... borderless fullscreen
 	{
-		//MonitorInfo monitor = MonitorInfo::GetPrimaryMonitor();
+		if (isFullScreen)
+		{
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-		//glfwSetWindowMonitor(m_impl->Pointer, glfwGetPrimaryMonitor(), 100, 100, 300, 300, monitor.GetRefreshRate());
+			glfwSetWindowMonitor(
+				static_cast<GLFWwindow*>(m_pointer),
+				monitor,           // fullscreen monitor
+				0, 0,              // position (ignored in fullscreen)
+				mode->width,
+				mode->height,
+				mode->refreshRate
+			);
+		}
+		else
+		{
+			// Save before switching
+			int windowedX, windowedY, windowedWidth, windowedHeight;
+			glfwGetWindowPos(static_cast<GLFWwindow*>(m_pointer), &windowedX, &windowedY);
+			glfwGetWindowSize(static_cast<GLFWwindow*>(m_pointer), &windowedWidth, &windowedHeight);
+
+			// ... go fullscreen ...
+
+			// Later, restore
+			glfwSetWindowMonitor(
+				static_cast<GLFWwindow*>(m_pointer),
+				nullptr,              // back to windowed
+				windowedX,
+				windowedY,
+				windowedWidth,
+				windowedHeight,
+				0                     // refreshRate = 0 = default
+			);
+		}
 	}
 
 	void Window::SetWindowed(Vec2i size, Vec2i pos)
@@ -385,93 +483,21 @@ namespace Twisted
 		return true;
 	}
 
-	void* Window::GetNativeHandle()
+	void Window::Maximize()
 	{
-		return glfwGetWin32Window(static_cast<GLFWwindow*>(m_pointer));
+		glfwMaximizeWindow(static_cast<GLFWwindow*>(m_pointer));
 	}
 
-	void* Window::GetContextAdress()
-	{
-		return glfwGetProcAddress;
-	}
 	void* Window::GetRawPointer()
 	{
 		return static_cast<GLFWwindow*>(m_pointer);
 	}
 
-	URef<Window> Window::CreateNewWindow(const std::string& title, Vec2i size, Vec2i position)
+	void* Window::GetNativeHandle()
 	{
-		GLFWwindow* windowPointer = nullptr;
-		windowPointer = glfwCreateWindow(size.x, size.y, title.c_str(), nullptr, NULL);
-		if (!windowPointer)
-		{
-			TWISTED_ERROR("CreateNewWindow() failure! GLFW window pointer creation failure");
-			return nullptr;
-		}
-
-		URef<Window> window = std::make_unique<Window>(title, size, position);
-		window->m_pointer = windowPointer;
-		window->m_context = std::make_unique<GraphicsContext>(windowPointer);
-		glfwMakeContextCurrent(windowPointer);
-		glfwSetWindowUserPointer(windowPointer, window.get());
-		glfwSetWindowPos(windowPointer, position.x, position.y);
-
-		glfwSetWindowCloseCallback(windowPointer,
-			[](GLFWwindow* pointer)
-			{
-				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-				window->CloseWindowEvent.Invoke();
-			});
-		glfwSetWindowSizeCallback(windowPointer,
-			[](GLFWwindow* pointer, int newWidth, int newHeight)
-			{
-				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-				//window->m_frameBuffer->Resize(newWidth, newHeight);
-				window->WindowResizeEvent.Invoke();
-			});
-		glfwSetKeyCallback(windowPointer,
-			[](GLFWwindow* pointer, int glfwKey, int glfwScancode, int glfwAction, int glfwMods)
-			{
-				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-
-				Twisted::Key key = glfwToTwistedKey(glfwKey);
-
-				bool isDown;
-				if (glfwAction == GLFW_PRESS)
-					isDown = true;
-				else if (glfwAction == GLFW_RELEASE)
-					isDown = false;
-				else
-					return;
-
-				Input::GetInstance().UpdateKey(key, isDown);
-			});
-		glfwSetMouseButtonCallback(windowPointer,
-			[](GLFWwindow* pointer, int glfwButton, int glfwAction, int glfwMods)
-			{
-				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-
-				Twisted::MouseButton button = glfwToTwistedButton(glfwButton);
-				bool isDown;
-				if (glfwAction == GLFW_PRESS)
-					isDown = true;
-				else if (glfwAction == GLFW_RELEASE)
-					isDown = false;
-				else
-					return;
-				Input::GetInstance().UpdateMouseButton(button, isDown);
-			});
-		glfwSetCursorPosCallback(windowPointer,
-			[](GLFWwindow* pointer, double xPos, double yPos)
-			{
-				Input& input = Input::GetInstance();
-				input.m_mousePosition[1] = input.m_mousePosition[0];
-				input.m_mousePosition[0] = { static_cast<float>(xPos), static_cast<float>(yPos) };
-			});
-
-		TWISTED_INFO("Window Created");
-		return window;
+		return glfwGetWin32Window(static_cast<GLFWwindow*>(m_pointer));
 	}
+
 }
 
 #endif

@@ -9,19 +9,20 @@ namespace Twisted
 	class TWISTED_API ShaderImporter :public AssetImporter
 	{
 	public:
-		std::vector<fs::path> GetAssetExtensions()const
-		{
-			return { ".shader" };
-		}
-		inline bool DoAutoImport()const { return true; }
 
-		ObjectsPerAsset& Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
-		void PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
-
+		void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
 		void FillDefaultInfo(YAML::Node& node)const override
 		{
 			node[ASSET_TYPE_KEY] = ASSET_SHADER_TYPE;
 		}
+
+		inline bool DoAutoImport()const override { return true; }
+		void CreateNewAsset(const fs::path& path) const override {}
+		std::string GetCreatePath()const override { return "Shader"; }
+		std::string DefaultFileName()const override { return "newShader.shader"; }
+		std::vector<fs::path> GetAssetExtensions()const override {return { ".shader" };}
 	};
 }
 

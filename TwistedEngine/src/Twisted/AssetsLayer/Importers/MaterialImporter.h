@@ -12,20 +12,24 @@ namespace Twisted
 	class TWISTED_API MaterialImporter :public AssetImporter
 	{
 	public:
-		std::vector<fs::path> GetAssetExtensions()const override
-		{
-			return { ".material" };
-		}
-		inline bool DoAutoImport()const { return true; }
 
+		void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
 
-		ObjectsPerAsset& Import(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
-		void PostImport(const AssetInfo& assetInfo, ObjectsPerAsset& objects)const override;
+		bool SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const override;
 
 		void FillDefaultInfo(YAML::Node& node)const override
 		{
 			node[ASSET_TYPE_KEY] = ASSET_MATERIAL_TYPE;
 		}
+
+		inline bool DoAutoImport()const override{ return true; }
+		std::string GetCreatePath()const override { return "Material";}
+		std::string DefaultFileName()const override { return "newMaterial.material"; }
+		std::vector<fs::path> GetAssetExtensions()const override { return { ".material" }; }
+		void CreateNewAsset(const fs::path& path)const override;
+
 	};
 }
 //

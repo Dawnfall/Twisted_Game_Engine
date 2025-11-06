@@ -3,9 +3,16 @@
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
 
+namespace Twisted
+{
+	class TObject;
+}
 namespace YamlUtils
 {
 	bool TWISTED_API saveNode(const YAML::Node& node, const std::filesystem::path& path);
+
+	TWISTED_API YAML::Node encodeTObject(const Twisted::TObject* obj);
+	TWISTED_API Twisted::TObject* decodeTObject(const YAML::Node& node);
 }
 
 

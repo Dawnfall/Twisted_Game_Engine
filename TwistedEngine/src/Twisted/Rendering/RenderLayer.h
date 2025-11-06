@@ -8,19 +8,18 @@
 
 namespace Twisted
 {
-	class RenderLayer :public Layer
+	class TWISTED_API RenderLayer :public Layer
 	{
 	public:
 		RenderLayer(Application* app) :Layer(app)
 		{
 		}
-
+		void Update();
 		void SubmitEntry(const RenderSystemEntry& entry)
 		{
 			m_entries.emplace_back(entry);
 		}
 
-		void Render();
 
 		void Clear()
 		{
@@ -28,6 +27,9 @@ namespace Twisted
 		}
 
 	private:
+		
+		void Render();
+
 		std::vector<RenderSystemEntry> m_entries;
 	};
 }

@@ -5,22 +5,44 @@
 #include "Twisted/Gameing/AComponent.h"
 #include "Serialization/BinSerializer.h"
 #include "Twisted/Rendering/FrameBuffer.h"
+#include "CMainCamera.h"
+#include "Twisted/Gameing/WorldRegistry.h"
 
 namespace Twisted
 {
-	enum TWISTED_API CameraProjectionType
+	enum class TWISTED_API CameraProjectionType :int
 	{
 		PERSPECTIVE,
-		ORTOGRAPHIC
+		ORTHOGRAPHIC,
+		COUNT
 	};
+
+	inline const char* ProjTypeToString(CameraProjectionType type)
+	{
+		switch (type)
+		{
+		case CameraProjectionType::PERSPECTIVE:  return "Perspective";
+		case CameraProjectionType::ORTHOGRAPHIC: return "Orthographic";
+		default:           throw std::exception("unsupported projection type");
+		}
+	}
+
+	inline CameraProjectionType ProjTypeFromString(const std::string& str)
+	{
+		if (str == "Perspective") return CameraProjectionType::PERSPECTIVE;
+		if (str == "Orthographic") return CameraProjectionType::ORTHOGRAPHIC;
+		throw std::exception("unsupported projection type string");
+	}
 
 	class TWISTED_API CCamera :public AComponent
 	{
 	public:
 		CCamera(Entity entity) : AComponent(entity)
 		{
-
 		}
+		~CCamera();
+		bool IsMainCamera()const;
+		void SetAsMainCamera();
 
 		Mat4x4f GetViewMatrix()const;
 		Mat4x4f GetProjectionMatrix()const;
@@ -53,6 +75,9 @@ namespace Twisted
 		void Serialize(BinSerializer& buffer)const override;
 		void Deserialize(BinSerializer& buffer) override;
 
+		YAML::Node YamlSerialize() const override;
+		void YamlDeserialize(const YAML::Node& node) override;
+
 		void SetFrameBuffer(FrameBuffer* buffer) { m_frameBuffer = buffer; }
 		FrameBuffer* GetFrameBuffer() { return m_frameBuffer.get(); }
 
@@ -75,3 +100,27 @@ namespace Twisted
 		WPtr<FrameBuffer> m_frameBuffer = nullptr;
 	};
 }
+
+template<>
+struct YAML::convert<Twisted::CameraProjectionType>
+{
+	static YAML::Node encode(const Twisted::CameraProjectionType& rhs)
+	{
+		YAML::Node node;
+		node = Twisted::ProjTypeToString(rhs);
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, Twisted::CameraProjectionType& rhs)
+	{
+		if (!node.IsScalar())
+			return false;
+
+		const std::string value = node.as<std::string>();
+		rhs = Twisted::ProjTypeFromString(value);
+
+		return true;
+	}
+};
+
+REGISTER_COMPONENT(CCamera, "CCamera");

@@ -9,12 +9,19 @@
 #include "Twisted/TObject.h"
 //#include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Entity.h"
+#include "Twisted/Windowing/Window.h"
+#include "EditorConstants.h"
+
+#include "Twisted/AssetsLayer/AssetInfo.h"
+#include "Twisted/AssetsLayer/AssetsLayer.h"
 
 #include <filesystem>
 //#include <algorithm>
 #include <string>
 //#include <vector>
 #include <typeindex>
+#include <tuple>
+#include <type_traits>
 
 namespace Im
 {
@@ -43,15 +50,59 @@ namespace Im
 	}
 	float ICON_SIZE();
 
-	void Init(void* windowPointer);
-
-	void SetFlags();
-	void SetStyle();
+	void Init(Twisted::Window* window);
 	void Terminate();
-	void Render();
 
 	void StartFrame();
 	void EndFrame();
+
+	void Render();
+
+	// Drag / Drop
+	template<typename T>
+	void DragSource(const std::string& type, T& obj, const std::string& dragText)
+	{
+		if (ImGui::BeginDragDropSource())
+		{
+			ImGui::SetDragDropPayload(type.c_str(), &obj, sizeof(T));
+			ImGui::Text(dragText.c_str());
+			ImGui::EndDragDropSource();
+		}
+	}
+
+	template<typename T>
+	std::pair<bool, T> DragTarget(const std::string& dropType, T defaultValue)
+	{
+		bool result = false;
+		T returnValue = defaultValue;
+
+		bool isDraggedOver = ImGui::BeginDragDropTarget();
+		if (!isDraggedOver)
+			return { false,defaultValue };
+
+		const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(dropType.c_str());
+		if (!payload)
+		{
+			ImGui::EndDragDropTarget();
+			return { false,defaultValue };
+		}
+
+		T obj = *static_cast<const T*>(payload->Data);
+		ImGui::EndDragDropTarget();
+		return { true, obj };
+	}
+
+	template<typename T>
+	std::pair<bool, T> DragTarget(const std::vector<std::string>& allowedDropTypes, T defaultValue)
+	{
+		for (std::string& dropType : allowedDropTypes)
+		{
+			auto result = DragTarget<T>(dropType, defaultValue);
+			if (result.first)
+				return result.second;
+		}
+		return defaultValue;
+	}
 
 	//from filebrowser
 	bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg);
@@ -72,6 +123,39 @@ namespace Im
 
 		if (force)
 			ImGui::LoadIniSettingsFromDisk(io.IniFilename);
+	}
+
+	template<typename T>
+	std::pair<bool, T*> ObjectPicker(const std::string& label, const std::string& uniqueID)
+	{
+		bool isSuccess = false;
+		T* obj = nullptr;
+
+		const std::string buttonID = "ObjPickerPopupButton##" + uniqueID;
+		const std::string popupID = "ObjPickerPopup##" + uniqueID;
+
+		if (ImGui::Button(buttonID.c_str(), ImVec2(25, 0)))
+			ImGui::OpenPopup(popupID.c_str());
+
+		if (ImGui::BeginPopup(popupID.c_str()))
+		{
+			ImGui::Text(label.c_str());
+			ImGui::Separator();
+
+			std::vector<T*> objects = Twisted::AssetsLayer::GetInstance().GetObjectsOfType<T>();
+			for (T* assetObject : objects)
+			{
+				if (ImGui::Selectable(assetObject->GetName().c_str()))
+				{
+					obj = assetObject;
+					isSuccess = true;
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			ImGui::EndPopup();
+		}
+
+		return { isSuccess,obj };
 	}
 
 	template<typename T>
@@ -144,44 +228,41 @@ namespace Im
 		return false;
 	}
 
-
 	template<typename T>
-	T* ObjectDropField(const char* label, T* obj, const char* payloadType, std::vector<std::type_index>& acceptableTypes)
+	T* ObjectDropField(const std::string& label, T* obj)
 	{
-		static_assert(std::is_base_of_v<Twisted::TObject, T>, "T must derive from BaseObject");
+		static_assert(std::is_base_of_v<Twisted::TObject, T>, "T must derive from TObject");
 
-		//ImGui::Text("%s", label);
-		//ImGui::SameLine();
+		ImGui::TextUnformatted(label.c_str());
+		ImGui::SameLine();
 
-		//ImGui::PushID(obj);  // unique ID based on member address
+		//drop area
+		std::string dropFieldText = obj ? std::type_index(typeid(T)).name() : "None";
+		dropFieldText += "##" + label;
+		ImGui::Button(dropFieldText.c_str(), ImVec2(150, 0)); // fixed-width dummy
+		auto objResult = Im::DragTarget<T*>(Twisted::Editor::Constants::OBJECT_DRAG_TYPE, nullptr);
 
-		//// Display a button or empty slot
-		//std::string buttonLabel;
-		//if (obj)
-		//	buttonLabel = "Object " + obj->GetID().ToString();
-		//else
-		//	buttonLabel = "<None>";
-		//ImGui::Button(buttonLabel.c_str(), ImVec2(150, 0));
+		if (objResult.first)
+		{
+			obj = objResult.second;
+		}
+		else
+		{
+			auto [success, assetInfo] = Im::DragTarget<Twisted::AssetInfo*>(Twisted::Editor::Constants::ASSET_DRAG_TYPE, nullptr);
+			if (success && assetInfo)
+			{
+				auto& objects = Twisted::AssetsLayer::GetInstance().GetAssetObjects(assetInfo->GetUuid());
+				if(!objects.empty())
+					obj = dynamic_cast<T*>(objects[0].GetObj());
+			}
+		}
 
-		//// --- Drag source (so user can drag it elsewhere) ---
-		//if (ImGui::BeginDragDropSource())
-		//{
-		//	ImGui::SetDragDropPayload(payloadType, obj, sizeof(Twisted::ObjectID));
-		//	ImGui::Text("Dragging %u", obj->GetID().ToString());
-		//	ImGui::EndDragDropSource();
-		//}
+		ImGui::SameLine();
 
-		//ImGui::PopID();
+		auto [success, selectObj] = ObjectPicker<T>("Select an object", label);
+		if (success)
+			obj = selectObj;
 
-		//if (ImGui::BeginDragDropTarget())
-		//{
-		//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadType))
-		//	{
-		//		T* dropped = *(T**)payload->Data;
-		//		ptr = dropped;
-		//	}
-		//	ImGui::EndDragDropTarget();
-		//}
 		return obj;
 	}
 }

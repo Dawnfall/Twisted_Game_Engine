@@ -1,5 +1,5 @@
 #include "AppCore.h"
-#ifdef NATIVE_USE
+#ifndef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/WindowLayer.h"
 

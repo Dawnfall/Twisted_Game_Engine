@@ -1,30 +1,44 @@
 #include "CRenderer.h"
-#include "Twisted/TwistedMacros.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/Material.h"
 
-#include "Twisted/AssetsLayer/AssetsLayer.h"
+#include "Utils/YamlUtils.h"
 
 namespace Twisted
 {
 	void CRenderer::Serialize(BinSerializer& buffer)const
 	{
-		ObjectAssetEntry serMesh = AssetsRegistry::GetInstance().GetObjectEntry(m_mesh);
-		ObjectAssetEntry serMaterial = AssetsRegistry::GetInstance().GetObjectEntry(m_material);
+		//AssetUuid serMesh = AssetsLayer::GetInstance().GetObjectAsset(m_mesh);
+		//AssetUuid serMaterial = AssetsLayer::GetInstance().GetObjectAsset(m_material);
 
-		buffer.Write<ObjectAssetEntry>(serMesh,nullptr);
-		buffer.Write<ObjectAssetEntry>(serMaterial, nullptr);
+		//buffer.Write<AssetUuid>(serMesh,nullptr);
+		//buffer.Write<AssetUuid>(serMaterial, nullptr);
 	}
-
 	void CRenderer::Deserialize(BinSerializer& buffer)
 	{
-		ObjectAssetEntry serMesh = buffer.Read<ObjectAssetEntry>(nullptr);
-		ObjectAssetEntry serMaterial = buffer.Read<ObjectAssetEntry>(nullptr);
-		
-		m_mesh = AssetsRegistry::GetInstance().GetObjectFromEntry<Mesh>(serMesh);
-		m_material = AssetsRegistry::GetInstance().GetObjectFromEntry<Material>(serMaterial);
+		//AssetUuid serMesh = buffer.Read<AssetUuid>(nullptr);
+		//std::string meshName = "";
+		//AssetUuid serMaterial = buffer.Read<AssetUuid>(nullptr);
+		//std::string materialName = "";
+		//
+		//m_mesh = AssetsLayer::GetInstance().GetAssetObject<Mesh>(serMesh,meshName);
+		//m_material = AssetsLayer::GetInstance().GetAssetObject<Material>(serMaterial, materialName);
+	}
 
+	YAML::Node CRenderer::YamlSerialize() const
+	{
+		YAML::Node node;
+
+		node["mesh"] = YamlUtils::encodeTObject(m_mesh);
+		node["mat"] = YamlUtils::encodeTObject(m_material);
+
+		return node;
+	}
+
+	void CRenderer::YamlDeserialize(const YAML::Node& node)
+	{
+		m_mesh = static_cast<Mesh*>(YamlUtils::decodeTObject(node["mesh"]));
+		m_material = static_cast<Material*>(YamlUtils::decodeTObject(node["mat"]));
 	}
 }
 
-REGISTER_COMPONENT(CRenderer,"CRenderer");

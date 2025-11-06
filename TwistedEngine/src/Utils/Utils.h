@@ -42,6 +42,31 @@ namespace Twisted::Utils
 		vec.insert(vec.begin() + to, std::move(item));
 	}
 
+	template<typename T>
+	std::string GetObjTypeName(T* obj)
+	{
+		if (!obj) return "Null";
+
+		std::string name = typeid(*obj).name();
+
+#if defined(__GNUC__) || defined(__clang__)
+		int status = 0;
+		char* demangled = abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status);
+		if (status == 0 && demangled)
+		{
+			name = demangled;
+			free(demangled);
+		}
+#endif
+
+		// Strip namespaces (take substring after last ::)
+		size_t pos = name.rfind("::");
+		if (pos != std::string::npos)
+			name = name.substr(pos + 2);
+
+		return name;
+	}
+
 	TWISTED_API std::string ExchangeStringContentsWithOther(std::string& str, const std::string& toBeExchanged, const std::string& changed);
 
 	TWISTED_API std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);

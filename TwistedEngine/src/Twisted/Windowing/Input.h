@@ -44,6 +44,9 @@ namespace Twisted
 		const Vec2f& GetMousePosition()const { return m_mousePosition[0]; }
 		const Vec2f GetMouseDelta()const { return m_mousePosition[0] - m_mousePosition[1]; }
 
+		void UpdateKey(Twisted::Key key, bool isDown);
+		void UpdateMouseButton(Twisted::MouseButton button, bool isDown);
+		void UpdateMousePosition(float x, float y);
 	private:
 
 		void ResetInput()
@@ -55,9 +58,7 @@ namespace Twisted
 			m_justReleasedKeys.reset();
 		}
 
-		void UpdateKey(Twisted::Key key, bool isDown);
-		void UpdateMouseButton(Twisted::MouseButton button, bool isDown);
-		void UpdateMousePosition(float x, float y);
+
 
 	private:
 		uint16_t m_pressedButtons = 0;
@@ -78,7 +79,5 @@ namespace Twisted
 		Input(Input&& other) = delete;
 		Input& operator=(const Input& other) = delete;
 		Input& operator=(Input&& other) = delete;
-
-		friend class Window;
 	};
 }

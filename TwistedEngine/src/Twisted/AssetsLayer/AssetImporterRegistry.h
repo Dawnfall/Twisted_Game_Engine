@@ -34,6 +34,17 @@ namespace Twisted
 				return it->second.get();
 			return nullptr;
 		}
+
+		const std::vector<AssetImporter*>& GetImporters()
+		{
+			static std::vector<AssetImporter*> importers;
+
+			if (importers.empty())
+				for (auto& imp : m_extToImporter)
+					importers.emplace_back(imp.second.get());
+
+			return importers;
+		}
 	private:
 		std::unordered_map<fs::path, SRef<AssetImporter>> m_extToImporter; //TODO: maybe switch to string for ext
 
@@ -47,4 +58,17 @@ namespace Twisted
 		AssetImporterRegistry& operator=(AssetImporterRegistry&& other) = delete;
 
 	};
+}
+
+#define REGISTER_IMPORTER(type)        \
+namespace Registry                  \
+{                                          \
+    struct type##Register                  \
+    {                                      \
+        type##Register()                      \
+        {                                     \
+            Twisted::AssetImporterRegistry::GetInstance().RegisterImporter<Twisted::type>(); \
+        }                                     \
+    };                                        \
+    static type##Register s_##type##Register; \
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include "AppCore.h"
 #include "Twisted/TObject.h"
-#include "Twisted/Data/Vertex.h"
+#include "Data/Vertex.h"
 #include <filesystem>
 
 namespace Twisted
@@ -44,7 +44,7 @@ namespace Twisted
 	{
 	public:
 		Mesh() = default;
-		Mesh(const MeshData& meshData, const MeshParams& params) :TObject()
+		Mesh(const std::string& name,const MeshData& meshData, const MeshParams& params) :TObject(name)
 		{
 			Create(meshData, params);
 		}

@@ -24,18 +24,32 @@ target_include_directories(Editor PRIVATE
 
 target_link_libraries(Editor PRIVATE
     TwistedEngine
-    #glfw
     glm::glm
     imgui
     yaml-cpp::yaml-cpp
+
+    $<$<BOOL:${USE_GLFW}>:glfw>
 )
+
+if(USE_GLFW)
+    target_sources(Editor PRIVATE
+        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_glfw.cpp
+        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_opengl3.cpp
+    )
+else()
+    target_sources(Editor PRIVATE
+        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_win32.cpp
+        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_opengl3.cpp
+    )
+endif()
 
 target_compile_definitions(Editor PRIVATE
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:Release>:TWISTED_RELEASE>
     $<$<CONFIG:Deploy>:TWISTED_DEPLOY>
-    #GLFW_INCLUDE_NONE
-    #GLFW_EXCLUDE_VULKAN
+
+    $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
+    $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
 )
 target_compile_options(Editor PRIVATE
     $<$<CONFIG:Debug>:/Od /Zi>

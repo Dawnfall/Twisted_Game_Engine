@@ -1,9 +1,10 @@
 #include "EntityPainter.h"
-#include "EditorMacros.h"
 
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"
 #include "Twisted/Gameing/Entity.h"
+#include "Twisted/Gameing/WorldRegistry.h"
+#include "EditorRegistry.h"
 
 namespace Twisted::Editor
 {
@@ -22,28 +23,27 @@ namespace Twisted::Editor
 
 		ImGui::Separator();
 
-
-		for (auto& compPainter : EditorRegistry::GetInstance().CompPainters)
+		WorldRegistry& reg = WorldRegistry::GetInstance();
+		for (const auto& [name, entry] : reg.GetComponentEntries())
 		{
-			void* component = compPainter->GetComponent(*entity);
-			if (component)
+			AComponent* comp = entry.GetComponentMethod(*entity);
+			if (comp)
 			{
-				std::string compName = compPainter->GetComponentName();
+				auto painter = EditorRegistry::GetInstance().GetComponentPainter(name);
 
 				float windowWidth = ImGui::GetContentRegionAvail().x;
-				float labelWidth = ImGui::CalcTextSize(compName.c_str()).x;
+				float labelWidth = ImGui::CalcTextSize(name.c_str()).x;
 				float labelPosX = (windowWidth - labelWidth) * 0.5f;
 				if (labelPosX > 0.0f)
 					ImGui::SetCursorPosX(labelPosX);
-				ImGui::Text("%s", compName.c_str());
+				ImGui::Text("%s", name.c_str());
 
-				compPainter->Paint(component);
+				painter->Paint(comp);
 
 				ImGui::NewLine();
 				ImGui::Separator();
 			}
 		}
-
 		//// --- AddComponent Button ---
 		Im::CenterCursor(ADD_COMPONENT_TEXT);
 		if (ImGui::Button(ADD_COMPONENT_TEXT.c_str()))
@@ -51,14 +51,15 @@ namespace Twisted::Editor
 
 		if (ImGui::BeginPopup(ADD_COMPONENT_POPUP.c_str()))
 		{
-			for (auto& compPainter : EditorRegistry::GetInstance().CompPainters)
+			WorldRegistry& worldReg = WorldRegistry::GetInstance();
+			auto& entries = worldReg.GetComponentEntries();
+			for (auto& entry : entries)
 			{
-				void* component = compPainter->GetComponent(*entity);
-				if (!component)
+				if (!entry.second.HasComponentMethod(*entity))
 				{
-					if (ImGui::Selectable(compPainter->GetComponentName().c_str()))
+					if (ImGui::Selectable(entry.first.c_str()))
 					{
-						compPainter->AddComponent(*entity);
+						entry.second.AddComponentMethod(*entity);
 						ImGui::CloseCurrentPopup();
 					}
 				}
@@ -68,4 +69,4 @@ namespace Twisted::Editor
 	}
 }
 
-REGISTER_DETAILS_PAINTER(EntityPainter)
+REGISTER_DETAILS_PAINTER(Entity, EntityPainter)

@@ -31,10 +31,14 @@ namespace Twisted
 		template<typename T>
 		T* static_as() { return static_cast<T*>(this); }
 
+		void SetName(const std::string& name) { m_name = name; }
+		const std::string& GetName()const { return m_name; }
+
 	protected:
-		TObject() :m_id(ObjectID::AllocateID()) {}
+		TObject(const std::string& name) :m_id(ObjectID::AllocateID()),m_name(name) {}
 	private:
 		ObjectID m_id;
+		std::string m_name = "";
 
 	public:
 		// Create a new TObject of type T
@@ -69,6 +73,13 @@ namespace Twisted
 					Destroy(obj.get());
 			s_objects.clear();
 		}
+
+		inline static TObject* GetObj(ObjectID id)
+		{
+			if (id.IsValid())
+				return s_objects[id.Index()].get();
+			return nullptr;
+		}
 	private:
 
 		inline static std::vector<URef<TObject>> s_objects;
@@ -82,3 +93,4 @@ namespace Twisted
 		}
 	};
 }
+

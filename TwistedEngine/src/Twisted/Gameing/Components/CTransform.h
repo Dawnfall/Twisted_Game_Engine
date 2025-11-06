@@ -4,6 +4,7 @@
 #include "Utils/Utils.h"
 #include "Utils/GlmUtils.h"
 #include "Twisted/Gameing/AComponent.h"
+#include "Twisted/Gameing/WorldRegistry.h"
 
 namespace Twisted
 {
@@ -140,6 +141,9 @@ namespace Twisted
 		void Serialize(BinSerializer& buffer)const override;
 		void Deserialize(BinSerializer& buffer)override;
 
+		YAML::Node YamlSerialize() const override;
+		void YamlDeserialize(const YAML::Node& node) override;
+
 	private:
 		void Unparent();
 
@@ -159,4 +163,5 @@ namespace Twisted
 	};
 }
 
+REGISTER_COMPONENT(CTransform, "CTransform");
 

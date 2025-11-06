@@ -1,5 +1,5 @@
 #include "AppCore.h"
-#ifndef NATIVE_USE
+#ifdef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/MonitorInfo.h"
 #include <GLFW/glfw3.h>

@@ -3,26 +3,35 @@
 #include "AppCore.h"
 #include "Debug/Logger.h"
 
-#ifdef NATIVE_USE
+#ifndef GLFW_INCLUDE_NONE
 
 #include <Windows.h>
 #include <backends/imgui_impl_opengl3.h>
-//#include <backends/imgui_impl_win32.h>
+#include <backends/imgui_impl_win32.h>
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Im
 {
-	void Init(void* windowPointer)
+	void Init(Twisted::Window* window)
 	{
-		HWND hwnd = static_cast<HWND>(windowPointer);
+		HWND hwnd = static_cast<HWND>(window->GetRawPointer());
 
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 
-		//ImGui_ImplWin32_Init(hwnd);
+		ImGui_ImplWin32_Init(hwnd);
 		ImGui_ImplOpenGL3_Init("#version 460"); // You can use another version string depending on your context
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		Im::SetFlags();
 		Im::SetStyle();
+
+		window->PollMsgEvent.AddListener([](void* rawMsg) {
+			MSG* msg = static_cast<MSG*>(rawMsg);
+			ImGui_ImplWin32_WndProcHandler(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+			});
 
 		ImGui::GetIO().IniFilename = nullptr;
 	}
@@ -30,7 +39,7 @@ namespace Im
 	void StartFrame()
 	{
 		ImGui_ImplOpenGL3_NewFrame();
-		//ImGui_ImplWin32_NewFrame();
+		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
 	}
@@ -38,7 +47,7 @@ namespace Im
 	void Terminate()
 	{
 		ImGui_ImplOpenGL3_Shutdown();
-		//ImGui_ImplWin32_Shutdown();
+		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 	}
 }
@@ -51,7 +60,7 @@ namespace Im
 
 namespace Im
 {
-	void Init(void* windowPointer)
+	void Init(Twisted::Window* window)
 	{
 		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
 		{
@@ -61,13 +70,15 @@ namespace Im
 		//Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(windowPointer), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(window->GetRawPointer()), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 		ImGui_ImplOpenGL3_Init();
 
-		Im::SetFlags();
-		Im::SetStyle();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
+		io.IniFilename = nullptr;
 
-		ImGui::GetIO().IniFilename = nullptr;
+		ImGui::StyleColorsDark();
 	}
 
 	void StartFrame()
@@ -380,29 +391,11 @@ namespace Im
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (regionWidth - widgetWidth) * 0.5f);
 	}
 
-
-
-	void SetFlags()
-	{
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
-	}
-
-	void SetStyle()
-	{
-		ImGui::StyleColorsDark();
-	}
-
-
-
 	void Render()
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
-
-
 
 	void EndFrame()
 	{

@@ -460,3 +460,29 @@ struct YAML::convert<glm::mat<4, 4, double>>
 		return true;
 	}
 };
+
+template<>
+struct YAML::convert<glm::quat>
+{
+	static YAML::Node encode(const glm::quat& rhs)
+	{
+		YAML::Node node;
+		node.push_back(rhs.x);
+		node.push_back(rhs.y);
+		node.push_back(rhs.z);
+		node.push_back(rhs.w);
+		return node;
+	}
+
+	static bool decode(const YAML::Node& node, glm::quat& rhs)
+	{
+		if (!node.IsSequence() || node.size() != 4)
+			return false;
+
+		rhs.x = node[0].as<float>();
+		rhs.y = node[1].as<float>();
+		rhs.z = node[2].as<float>();
+		rhs.w = node[3].as<float>();
+		return true;
+	}
+};

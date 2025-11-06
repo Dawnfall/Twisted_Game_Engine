@@ -1,5 +1,5 @@
 #pragma once
-#include "UI/DetailsPainter.h"
+#include "EditorRegistry.h"
 #include <string>
 
 namespace Twisted::Editor

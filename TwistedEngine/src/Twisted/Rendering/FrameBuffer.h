@@ -3,7 +3,7 @@
 #include "AppCore.h"
 
 #include "Twisted/TObject.h"
-#include "Twisted/Data/Color.h"
+#include "Data/Color.h"
 #include "Utils/GlmUtils.h"
 #include "Texture.h"
 #include "Utils/WPtr.h"
@@ -24,8 +24,8 @@ namespace Twisted
 	class TWISTED_API FrameBuffer :public TObject
 	{
 	public:
-		FrameBuffer() = default;
-		FrameBuffer(const FrameBufferParams& params);
+		FrameBuffer(const std::string& name);
+		FrameBuffer(const std::string& name,const FrameBufferParams& params);
 
 		~FrameBuffer()
 		{
