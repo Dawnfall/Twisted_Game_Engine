@@ -2,6 +2,7 @@
 #include "AppCore.h"
 #include "Twisted/TObject.h"
 #include <string>
+#include "Utils/GlmUtils.h"
 
 namespace Twisted
 {
@@ -46,17 +47,23 @@ namespace Twisted
 	class TWISTED_API Texture :public TObject //assumes mipmap, rgba 4 channel input , assumes valid texture
 	{
 	public:
-		Texture() = default;
-		Texture(const std::string& name,const TextureData& texData, const TextureParams& params) :TObject(name)
-		{
-			Create(texData, params);
-		}
+		Texture(const std::string& name):TObject(name){}
+		Texture(const std::string& name,const TextureParams& params) :
+			TObject(name),
+			m_params(params)
+		{}
+
 		~Texture()
 		{
 			Clear();
 		}
 
-		void Create(const TextureData& data, const TextureParams& params);
+		void OnDestroy() override
+		{
+			Clear();
+		}
+
+		void SetData(TextureData& data);
 		void Clear();
 
 		unsigned int GetTexID() const { return m_texID; }
@@ -65,6 +72,7 @@ namespace Twisted
 		int GetHeight()const { return m_height; }
 		int GetChannelsCount()const { return m_channels; }
 
+		void Resize(const Vec2i& newSize);
 		void SetParams(const TextureParams& params)
 		{
 			m_params = params;
@@ -96,9 +104,7 @@ namespace Twisted
 		void UnBind()const;
 
 		void Update();
-
 	private:
-
 		TextureParams m_params;
 		bool m_isDirty = true;
 

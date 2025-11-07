@@ -1,23 +1,22 @@
 #include "DetailsPanel.h"
 
-#include "EditorLayer.h"
-
 #include "Twisted/Gameing/World.h"
+
+#include "EditorLayer.h"
 #include "EditorRegistry.h"
-#include <variant>
-#include <type_traits>
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"
-
 #include "UI/Details/EntityPainter.h"
-#include "EditorData/EditorData.h"
-#include "EditorRegistry.h"
+
+#include <variant>
+#include <type_traits>
+
 
 namespace Twisted::Editor
 {
 	void DetailsPanel::PaintContent()
 	{
-		auto& selection = EditorData::GetInstance().GetSelection();
+		auto& selection = EditorLayer::GetInstance().GetSelection();
 
 		switch (selection.GetActiveType())
 		{

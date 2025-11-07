@@ -12,6 +12,8 @@
 #include <filesystem>
 
 #include "Twisted/TObject.h"
+#include "Twisted/Constants.h"
+#include "Project.h"
 
 namespace fs = std::filesystem;
 
@@ -93,6 +95,26 @@ namespace Twisted
 
 		void AddBuiltIn(AssetUuid uuid, TObject* obj);
 
+		bool SelectProjectPath(const fs::path& projectFolder)
+		{
+			if (!Utils::IsExisting(projectFolder))
+			{
+				TWISTED_WARN(std::format("projectFolder must exist {}", projectFolder.string()));
+				return false;
+			}
+			if (Utils::IsEmptyDirectory(projectFolder) || !Utils::IsExisting(projectFolder / PROJECT_FILE))
+			{
+				TWISTED_WARN("Project path must be empty directory or have twisted.editor file: " + projectFolder.string());
+				return false;
+			}
+
+			m_project.SetProject(projectFolder);
+			return true;
+		}
+
+		Project& GetProject() { return m_project; }
+		const Project& GetProject()const { return m_project; }
+
 	private:
 
 		void ImportAsset(AssetInfo& info);
@@ -105,6 +127,7 @@ namespace Twisted
 		inline static AssetsLayer* s_instance = nullptr;
 
 	private:
+		Project m_project;
 
 		void DetectAllAssets(const fs::path& assetsFolder);
 		void DeleteLoneInfos(const fs::path& assetsFolder);

@@ -6,6 +6,7 @@
 #include "Utils/WPtr.h"
 #include "Debug/Logger.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+#include "Twisted/ObjectManager.h"
 
 namespace Twisted
 {
@@ -34,8 +35,8 @@ namespace Twisted
 	{
 		ShaderData shaderData = LoadData(assetInfo.GetAssetPath());
 
-
-		WPtr<Shader> shader(TObject::Create<Shader>(assetInfo.GetAssetName(), shaderData));
+		WPtr<Shader> shader(ObjectManager::Create<Shader>(assetInfo.GetAssetName()));
+		shader->SetData(shaderData);
 
 		objects.emplace_back(shader);
 	}

@@ -23,16 +23,17 @@
 
 #include "Twisted/Gameing/Entity.h"
 #include "EditorRegistry.h"
-#include "EditorData/EditorData.h"
 
 namespace Twisted::Editor
 {
 	void EditorLayer::Init()
 	{
-		EditorData::GetInstance().GameViewBuffer = TObject::Create<FrameBuffer>("Main Framebuffer");
-		EditorData::GetInstance().EditorViewBuffer = TObject::Create<FrameBuffer>("Editor Framebuffer");
+		for (auto& panel : EditorRegistry::GetInstance().m_panels)
+			panel->Init();
+		//EditorData::GetInstance().GameViewBuffer = TObject::Create<FrameBuffer>("Main Framebuffer");
+		//EditorData::GetInstance().EditorViewBuffer = TObject::Create<FrameBuffer>("Editor Framebuffer");
 
-		EditorData::GetInstance().SetWorld(nullptr);
+		SetWorld(nullptr);
 	}
 
 	void EditorLayer::Render(Window* window)
@@ -53,10 +54,52 @@ namespace Twisted::Editor
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				//if (ImGui::MenuItem("Reload Assets"))
-				//{
+				if (ImGui::MenuItem("New Project"))
+				{
+					std::filesystem::path selectedPath = Native::OpenFolderDialog(*window);
+					if (selectedPath != "")
+					{
+						//TODO
+						//SelectProjectPath(selectedPath);
+					}
+				}
+				if (ImGui::MenuItem("Load Project"))
+				{
+					std::vector<std::pair<std::wstring, std::wstring>> filter = {
+						{L"project file (twisted.editor)", L"twisted.editor"}
+					};
+					std::filesystem::path selectedPath = Native::OpenFileDialog(*window, filter);
+					if (selectedPath != "")
+					{
+						//TODO
+						//SelectProjectPath(selectedPath);
+					}
+				}
+				if (ImGui::BeginMenu("Recent Projects"))
+				{
+					int count = 0;
+					for (const std::string& recentProjPath : m_loadupConfigData.GetRecentProjects())
+					{
+						if (count++ >= 5) break; // limit to 5 projects
+						if (ImGui::MenuItem(recentProjPath.c_str()))
+						{
+							std::filesystem::path selectedPath = recentProjPath;
+							if (fs::is_regular_file(selectedPath))
+								selectedPath = selectedPath.parent_path();
+
+							if (assetsLayer->SelectProjectPath(selectedPath))
+								m_loadupConfigData.AddLatest(selectedPath.string());
+							else
+								m_loadupConfigData.RemoveEntry(selectedPath.string());
+							m_loadupConfigData.Save();
+						}
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::MenuItem("Reload Assets"))
+				{
 					//assetsLayer->LoadAssets(*GetActiveProject());
-				//}
+				}
 				if (ImGui::MenuItem("Exit"))
 				{
 					if (Native::ShowConfirmDialog(*window, L"Are you sure?", L"Exit editor?"))
@@ -68,7 +111,7 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New World"))
 				{
-					EditorData::GetInstance().SetWorld(nullptr);
+					SetWorld(nullptr);
 				}
 				if (ImGui::MenuItem("Open World"))
 				{
@@ -77,12 +120,12 @@ namespace Twisted::Editor
 					{
 						World* world = assetsLayer->ImportAssetDirect<World>(path);
 						if (world)
-							EditorData::GetInstance().SetWorld(world);
+							SetWorld(world);
 					}
 				}
 				if (ImGui::MenuItem("Save World As"))
 				{
-					World* gameWorld = EditorData::GetInstance().GetGameWorld();
+					World* gameWorld = GetGameWorld();
 					if (gameWorld)
 					{
 						std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} });
@@ -117,7 +160,7 @@ namespace Twisted::Editor
 					if (createPath != "")
 						if (ImGui::MenuItem(createPath.c_str()))
 						{
-							EditorData::GetInstance().MakeNewFileEvent.Invoke(imp->DefaultFileName());
+							MakeNewFileEvent.Invoke(imp->DefaultFileName());
 						}
 				}
 
@@ -130,6 +173,7 @@ namespace Twisted::Editor
 
 	void EditorLayer::RenderDockSpace()
 	{
+
 		// Get viewport
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
 		float menuBarHeight = ImGui::GetFrameHeight() + 22; // Get the actual height of the menu bar
@@ -152,31 +196,34 @@ namespace Twisted::Editor
 
 		ImGui::End();
 
-		for (auto& panel : EditorRegistry::GetInstance().m_panels)
+		if (AssetsLayer::GetInstance().GetProject().GetRootPath() != "")
 		{
-			if (!panel->IsShowing)
-				continue;
-
-			ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_FirstUseEver);
-			if (!panel->IsInit)
+			for (auto& panel : EditorRegistry::GetInstance().m_panels)
 			{
-				panel->IsInit = true;
+				if (!panel->IsShowing)
+					continue;
+
+				ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_FirstUseEver);
+				if (!panel->IsInit)
+				{
+					panel->IsInit = true;
+				}
+
+				ImGui::Begin(panel->GetName().c_str(), &panel->IsShowing, Constants::panelFlags);
+
+				// Get the size of the panel
+				ImVec2 size = ImGui::GetContentRegionAvail();
+
+				// Resize the framebuffer if the size has changed
+				if (size.x != panel->Size.x || size.y != panel->Size.y)
+				{
+					panel->Size = Vec2i(size.x, size.y);
+					panel->PanelResizeEvent.Invoke();
+				}
+
+				panel->PaintContent();
+				ImGui::End();
 			}
-
-			ImGui::Begin(panel->GetName().c_str(), &panel->IsShowing, Constants::panelFlags);
-
-			// Get the size of the panel
-			ImVec2 size = ImGui::GetContentRegionAvail();
-
-			// Resize the framebuffer if the size has changed
-			if (size.x != panel->Size.x || size.y != panel->Size.y)
-			{
-				panel->Size = Vec2i(size.x, size.y);
-				panel->PanelResizeEvent.Invoke();
-			}
-
-			panel->PaintContent();
-			ImGui::End();
 		}
 	}
 }

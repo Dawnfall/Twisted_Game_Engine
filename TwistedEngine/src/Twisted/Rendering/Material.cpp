@@ -5,14 +5,6 @@
 
 namespace Twisted
 {
-	Material::Material(const std::string& name) :TObject(name) {}
-
-	Material::Material(const std::string& name, const MaterialData& materialData) :
-		TObject(name),
-		m_data(materialData)
-	{
-	}
-
 	YAML::Node Material::YAMLSerialize()const
 	{
 		YAML::Node serNode= m_data.SerializeMaterialData();

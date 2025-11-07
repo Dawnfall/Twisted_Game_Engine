@@ -18,9 +18,6 @@ namespace Twisted
 		void Run();
 		void Stop() { m_isRunning = false; }
 
-		TimeManager& GetTime() { return m_time; }
-		const TimeManager& GetTime()const { return m_time; }
-
 		template<typename T>
 		T* AddLayer()
 		{
@@ -46,8 +43,6 @@ namespace Twisted
 		virtual void OnBeforeRun() = 0;
 		virtual void OnFrame() = 0;
 		virtual void OnTerminate() = 0;
-
-		TimeManager m_time;
 
 		std::vector<URef<Layer>> m_layers;
 		bool m_isRunning = false;

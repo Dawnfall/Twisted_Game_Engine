@@ -4,6 +4,7 @@
 #include "Debug/Logger.h"
 #include <yaml-cpp/yaml.h>
 
+#include "Twisted/ObjectManager.h"
 #include "Twisted/AssetsLayer/Project.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Utils/WPtr.h"
@@ -50,7 +51,7 @@ namespace Twisted
 
 	void AssetsLayer::ImportAssets()
 	{
-		fs::path assetsFolder = Project::GetInstance().GetAssetsFolder();
+		fs::path assetsFolder = m_project.GetAssetsFolder();
 
 		DeleteLoneInfos(assetsFolder);
 		RemoveDanglingAssetObjects(assetsFolder);
@@ -145,7 +146,7 @@ namespace Twisted
 	{
 		for (auto& pair : GetAssetObjects(asset->GetUuid()))
 		{
-			TObject::Destroy(pair.GetObj());
+			ObjectManager::Destroy(pair.GetObj());
 		}
 
 		m_assetsByPath.erase(asset->GetAssetPath());

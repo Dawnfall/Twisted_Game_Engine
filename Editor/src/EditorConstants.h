@@ -4,15 +4,20 @@
 #include "Data/Color.h"
 #include <string>
 #include <filesystem>
-#include "imgui.h"
+#include <imgui.h>
 
 namespace Twisted::Editor::Constants
 {
 	// Project Selection
+	const std::filesystem::path LOADUP_CONFIG_PATH = "F:/Programiranje/Test/TwistedEditor/loadupConfig.editor";
+	const std::filesystem::path CONFIG_FILE_PATH = "F:/Programiranje/C++/GameEngine/EditorConfig/editor.config"; //TODO:...
 
 	const std::string LOADUP_WIN_TITLE = "Project Selection";
 	const Vec2i LOADUP_WIN_SIZE = Vec2i(1000, 800);
 	const Vec2i LOADUP_WIN_POS = Vec2i(400, 400);
+
+	const std::string WIN_SIZE_NAME = "window_size";
+	const std::string WIN_POS_NAME = "window_pos";
 
 	// Window
 

@@ -18,8 +18,10 @@ namespace Twisted::Editor
 		const ImVec2 CELL_SIZE{ ICON_SIZE + PADDING,ICON_SIZE + PADDING };
 		const ImVec4 HIGHLIGHT_COLOR{ 0.4f, 0.4f, 1.0f, 1.0f };
 
-		AssetsPanel();
+		AssetsPanel() :EditorPanel("Assets Panel"){}
+
 		void PaintContent()override;
+		void Init()override;
 
 	private:
 

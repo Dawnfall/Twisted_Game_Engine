@@ -43,14 +43,24 @@ namespace Twisted
 	class TWISTED_API Mesh :public TObject // assumes normals are provided  , TODO: type can be smaller for smaller meshes,instancing
 	{
 	public:
-		Mesh() = default;
-		Mesh(const std::string& name,const MeshData& meshData, const MeshParams& params) :TObject(name)
-		{
-			Create(meshData, params);
-		}
-		~Mesh()
+		Mesh(const std::string& name):
+			TObject(name)
+		{ }
+
+		Mesh(const std::string& name,const MeshParams& params) :
+			TObject(name),
+			m_params(params)
+		{ }
+
+		void OnDestroy()override
 		{
 			Clear();
+		}
+
+		void SetParams(const MeshParams& params) { m_params = params; }
+		void SetData(const MeshData& data)
+		{
+			Create(data, m_params);
 		}
 
 		void Create(const MeshData& meshData, const MeshParams& params);

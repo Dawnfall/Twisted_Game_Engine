@@ -2,7 +2,6 @@
 #include "Twisted/Application/Application.h"
 #include "EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
-#include "EditorData/EditorData.h"
 #include "Twisted/AssetsLayer/AssetInfo.h"
 
 
@@ -17,7 +16,7 @@ namespace Twisted::Editor
 		if (childCount == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (EditorData::GetInstance().GetSelection().GetSelectedPaths().contains(assetPath))
+		if (EditorLayer::GetInstance().GetSelection().GetSelectedPaths().contains(assetPath))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -31,7 +30,7 @@ namespace Twisted::Editor
 			ImGuiTreeNodeFlags_Leaf |
 			ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-		if (EditorData::GetInstance().GetSelection().GetSelectedObjects().contains(obj->GetID()))
+		if (EditorLayer::GetInstance().GetSelection().GetSelectedObjects().contains(obj->GetID()))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -41,7 +40,7 @@ namespace Twisted::Editor
 
 	static void CheckLeftClickOnAsset(const fs::path& asset)
 	{
-		if (EditorData::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (EditorLayer::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -50,7 +49,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorData::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
+				EditorLayer::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -58,14 +57,14 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorData::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
+				EditorLayer::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
 
 	static void CheckLeftClickOnObject(TObject* object)
 	{
-		if (EditorData::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (EditorLayer::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -74,7 +73,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorData::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
+				EditorLayer::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -82,17 +81,17 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorData::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
+				EditorLayer::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
 
-	AssetsPanel::AssetsPanel() :EditorPanel("Assets Panel")
+	void AssetsPanel::Init()
 	{
-		Project::GetInstance().ProjectChangeEvent.AddListener([this]() {
-			currentDir = Project::GetInstance().GetAssetsFolder();
+		AssetsLayer::GetInstance().GetProject().ProjectChangeEvent.AddListener([this]() {
+			currentDir = AssetsLayer::GetInstance().GetProject().GetAssetsFolder();
 			});
-		EditorData::GetInstance().MakeNewFileEvent.AddListener([this](fs::path defaultName) {
+		EditorLayer::GetInstance().MakeNewFileEvent.AddListener([this](fs::path defaultName) {
 			m_newFileName = Im::InputTextToken{};
 			m_newFileName.value().PostLabel = defaultName.extension().string();
 			m_newFileName.value().Text = defaultName.stem().string();
@@ -109,7 +108,7 @@ namespace Twisted::Editor
 
 		// LEFT PANEL: Folder Tree
 		ImGui::BeginChild("LeftPanel", ImVec2(leftPanelWidth, panelHeight), true);
-		PaintTreePart(Project::GetInstance().GetRootPath());
+		PaintTreePart(AssetsLayer::GetInstance().GetProject().GetRootPath());
 		ImGui::EndChild();
 
 		ImGui::SameLine();
@@ -234,7 +233,7 @@ namespace Twisted::Editor
 				{
 					if (ImGui::MenuItem(createPath.c_str()))
 					{
-						EditorData::GetInstance().MakeNewFileEvent.Invoke(importer->DefaultFileName());
+						EditorLayer::GetInstance().MakeNewFileEvent.Invoke(importer->DefaultFileName());
 					}
 				}
 			}

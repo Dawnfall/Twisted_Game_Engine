@@ -6,24 +6,15 @@
 
 namespace Twisted
 {
-	FrameBuffer::FrameBuffer(const std::string& name):TObject(name){}
 
-	FrameBuffer::FrameBuffer(const std::string& name,const FrameBufferParams& params) :
-		TObject(name)
+	void FrameBuffer::Init()
 	{
-		Create(params);
-	}
-
-	void FrameBuffer::Create(const FrameBufferParams& params)
-	{
-		m_params = params;
-
 		glGenFramebuffers(1, &m_id);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 
 		glGenRenderbuffers(1, &m_rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_params.Size.x, m_params.Size.y);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_tex->GetWidth(), m_tex->GetHeight());
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -32,10 +23,13 @@ namespace Twisted
 			TWISTED_WARN(errorMessage);
 		}
 
+		if (m_tex) {
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex->GetTexID(), 0);
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		m_isDirty = true;
 	}
-
 
 	void FrameBuffer::Bind()
 	{
@@ -47,7 +41,7 @@ namespace Twisted
 		if (IsDirty())
 			Update();
 
-		glViewport(0, 0, m_params.Size.x, m_params.Size.y);
+		glViewport(0, 0, m_tex->GetWidth(),m_tex->GetHeight());
 	}
 
 	void FrameBuffer::UnBind()const
@@ -75,8 +69,8 @@ namespace Twisted
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destID);
 
 		glBlitFramebuffer(
-			0, 0, m_params.Size.x, m_params.Size.y,   // src rect
-			0, 0, m_params.Size.x, m_params.Size.y,   // dst rect
+			0, 0, m_tex->GetWidth(), m_tex->GetHeight(),   // src rect
+			0, 0, m_tex->GetWidth(), m_tex->GetHeight(),   // dst rect
 			GL_COLOR_BUFFER_BIT,   // what to copy
 			GL_NEAREST             // filtering
 		);
@@ -85,19 +79,8 @@ namespace Twisted
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-
 	void FrameBuffer::ClearBuffers()const
 	{
-		if (m_params.doClearColor)
-		{
-			glClearColor(
-				m_params.clearColor.r,
-				m_params.clearColor.g,
-				m_params.clearColor.b,
-				m_params.clearColor.a
-			);
-		}
-
 		if (m_clearBits)
 		{
 			if (m_params.doClearColor)
@@ -115,7 +98,7 @@ namespace Twisted
 		if (m_tex)
 		{
 			glBindTexture(GL_TEXTURE_2D, m_tex->GetTexID());
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_params.Size.x, m_params.Size.y,
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_tex->GetWidth(),m_tex->GetHeight(),
 				0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		}
 
@@ -123,7 +106,7 @@ namespace Twisted
 		{
 			glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
-				m_params.Size.x, m_params.Size.y);
+				m_tex->GetWidth(), m_tex->GetHeight());
 		}
 
 		if (m_params.doDepthTest)

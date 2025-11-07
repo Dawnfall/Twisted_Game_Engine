@@ -2,9 +2,19 @@
 
 namespace Twisted
 {
-	Project& Project::GetInstance()
+	void Project::ValidateProject()const
 	{
-		static Project project;
-		return project;
+		Utils::CreateNewFile(m_rootPath / PROJECT_FILE);
+		Utils::CreateFolder(GetAssetsFolder());
+		Utils::CreateFolder(GetInternalFolder());
+		Utils::CreateFolder(GetInternalMeshesFolder());
+	}
+
+	void Project::SetProject(const fs::path& projectFolder)
+	{
+		m_rootPath = projectFolder;
+		ValidateProject();
+
+		ProjectChangeEvent.Invoke();
 	}
 }

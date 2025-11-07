@@ -3,7 +3,6 @@
 #include "Twisted/Gameing/Components/CTransform.h"
 #include "Twisted/Gameing/Components/CName.h"
 #include "Twisted/Gameing/Entity.h"
-#include "EditorData/EditorData.h"
 
 namespace Twisted::Editor
 {

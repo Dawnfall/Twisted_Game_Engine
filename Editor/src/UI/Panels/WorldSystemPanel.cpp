@@ -1,8 +1,8 @@
 #include "WorldSystemPanel.h"
-#include "EditorData/EditorData.h"
 #include "Utils/Utils.h"
 #include "UI/ImguiExtensions.h"
 #include "EditorRegistry.h"
+#include "EditorLayer.h"
 
 namespace Twisted::Editor
 {
@@ -10,7 +10,7 @@ namespace Twisted::Editor
 	const std::string ADD_SYSTEM_POPUP = "system_popup";
 	void WorldSystemPanel::PaintContent()
 	{
-		auto gameWorld = EditorData::GetInstance().GetGameWorld();
+		auto gameWorld = EditorLayer::GetInstance().GetGameWorld();
 		
 		auto& systems = gameWorld->GetAllSystems();
 		for (auto& sys : systems)

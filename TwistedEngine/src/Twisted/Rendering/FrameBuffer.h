@@ -7,6 +7,8 @@
 #include "Utils/GlmUtils.h"
 #include "Texture.h"
 #include "Utils/WPtr.h"
+#include "Twisted/ObjectManager.h"
+
 namespace Twisted
 {
 	struct FrameBufferParams
@@ -17,22 +19,37 @@ namespace Twisted
 		bool doClearStencil = false;
 		bool doClearColor = false;
 
-		Vec2i Size{ 0,0 };
 		Color clearColor{ 0,0,0,1 };
 	};
 
 	class TWISTED_API FrameBuffer :public TObject
 	{
 	public:
-		FrameBuffer(const std::string& name);
-		FrameBuffer(const std::string& name,const FrameBufferParams& params);
+		FrameBuffer(const std::string& name, Vec2i size):
+			TObject(name),
+			m_size(size)
+		{ }
+			
+		FrameBuffer(const std::string& name,Vec2i size,const FrameBufferParams& params):
+			TObject(name),
+			m_size(size),
+			m_params(params)
+		{ }
 
-		~FrameBuffer()
+		void OnCreate()override
 		{
-			//Destroy();
+			//m_tex = ObjectManager::Create<Texture>("main");
+		}
+
+		void OnDestroy() override
+		{
+			Destroy();
 		}
 		
-		bool IsValid()const { return m_id != 0; }
+		bool IsValid()const 
+		{ 
+			return m_id != 0; 
+		}
 		bool IsDirty()const { return m_isDirty; }
 		void SetClearColor(const Color& color)
 		{
@@ -82,22 +99,23 @@ namespace Twisted
 			m_isDirty = true;
 		}
 
-		void Create(const FrameBufferParams& params);
+		void Init();
 		void Destroy();
 
 		void ClearBuffers()const;
 
 		void SetSize(const Vec2i& size)
 		{
-			if (m_params.Size != size)
+			if (m_size != size)
 			{
-				m_params.Size = size;
+				m_size = size;
+				m_tex->Resize(m_size);
 				m_isDirty = true;
 			}
 		}
 
 		Texture* GetTexture() { return m_tex.get(); }
-		Vec2i GetSize()const { return m_params.Size; }
+		Vec2i GetSize()const { return m_size; }
 
 		void Blit(unsigned int destID) const;
 		void Bind();
@@ -107,13 +125,15 @@ namespace Twisted
 
 	private:
 
+		Vec2i m_size;
 		FrameBufferParams m_params;
-		bool m_isDirty = true;
 
+		WPtr<Texture> m_tex;
 		unsigned int m_id = 0;
 		unsigned int m_rbo = 0;
-		WPtr<Texture> m_tex;
 
 		unsigned int m_clearBits = 0;
+
+		bool m_isDirty = true;
 	};
 }

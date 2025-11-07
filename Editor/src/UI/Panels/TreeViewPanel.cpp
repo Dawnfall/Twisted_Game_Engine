@@ -8,7 +8,6 @@
 #include "Twisted/Gameing/Entity.h"
 
 #include "EditorRegistry.h"
-#include "EditorData/EditorData.h"
 #include "UI/ImguiExtensions.h"
 
 namespace Twisted::Editor
@@ -23,7 +22,7 @@ namespace Twisted::Editor
 		if (childCount == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (EditorData::GetInstance().GetSelection().GetSelectedEntities().contains(entity))
+		if (EditorLayer::GetInstance().GetSelection().GetSelectedEntities().contains(entity))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -33,7 +32,7 @@ namespace Twisted::Editor
 
 	static void CheckLeftClickOnNode(TreeViewToken& token, Entity entity)
 	{
-		if (EditorData::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (EditorLayer::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -42,7 +41,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorData::GetInstance().GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_IF_SELECTED);
+				EditorLayer::GetInstance().GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -50,7 +49,7 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorData::GetInstance().GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_OTHERS);
+				EditorLayer::GetInstance().GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
@@ -125,7 +124,7 @@ namespace Twisted::Editor
 
 	void TreeViewPanel::PaintContent()
 	{
-		if (!EditorData::GetInstance().GetGameWorld())
+		if (!EditorLayer::GetInstance().GetGameWorld())
 			return;
 
 		//SetNodeBackgroundColor(); //TODO:... must be done probably somewhere else ??!? not sure
@@ -133,11 +132,11 @@ namespace Twisted::Editor
 		TreeViewToken token;
 		token.EntireRegion = ImGui::GetContentRegionAvail();
 
-		auto& rootEntities = EditorData::GetInstance().GetGameWorld()->GetRootEntities();
+		auto& rootEntities = EditorLayer::GetInstance().GetGameWorld()->GetRootEntities();
 		if (rootEntities.size() > 0)
-			RenderDropZone(Entity{ rootEntities[0],EditorData::GetInstance().GetGameWorld() }, token, false);
+			RenderDropZone(Entity{ rootEntities[0],EditorLayer::GetInstance().GetGameWorld() }, token, false);
 		for (int i = 0; i < rootEntities.size(); i++)
-			RenderTreeNode(Entity{ rootEntities[i],EditorData::GetInstance().GetGameWorld() }, token);
+			RenderTreeNode(Entity{ rootEntities[i],EditorLayer::GetInstance().GetGameWorld() }, token);
 
 		CheckRightClickOnEmpty(token);
 		HandleChanges(token);
@@ -152,7 +151,7 @@ namespace Twisted::Editor
 
 		ImGuiTreeNodeFlags flags = GetNodeFlags(transform.GetChildCount(), entity);
 
-		bool IsSelected = EditorData::GetInstance().GetSelection().GetSelectedEntities().contains(entity);
+		bool IsSelected = EditorLayer::GetInstance().GetSelection().GetSelectedEntities().contains(entity);
 		bool isOpened = ImGui::TreeNodeEx(nodeID.c_str(), flags);
 		bool isHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
@@ -256,7 +255,7 @@ namespace Twisted::Editor
 
 		if (token.doCreateNew)
 		{
-			Entity newEntity = EditorData::GetInstance().GetGameWorld()->CreateNew();
+			Entity newEntity = EditorLayer::GetInstance().GetGameWorld()->CreateNew();
 			newEntity.GetWorld()->GetComponent<CName>(newEntity.GetID()).SetName("New Entity");
 
 			if (token.NewEntityParent)

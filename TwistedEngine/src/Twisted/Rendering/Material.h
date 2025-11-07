@@ -51,8 +51,13 @@ namespace Twisted
 	class TWISTED_API Material :public TObject
 	{
 	public:
-		Material(const std::string& name);
-		Material(const std::string& name, const MaterialData& materialData);
+		Material(const std::string& name) :TObject(name) {}
+
+		Material(const std::string& name, const MaterialData& materialData) :
+			TObject(name),
+			m_data(materialData)
+		{
+		}
 
 		void YAMLDeserialize(const YAML::Node& data);
 		YAML::Node YAMLSerialize()const;

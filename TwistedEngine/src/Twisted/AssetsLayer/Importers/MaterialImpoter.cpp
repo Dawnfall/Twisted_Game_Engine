@@ -2,12 +2,13 @@
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "Twisted/Rendering/Material.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+#include "Twisted/ObjectManager.h"
 
 namespace Twisted
 {
 	void MaterialImporter::ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
-		WPtr<Material> mat(TObject::Create<Material>(assetInfo.GetAssetName()));
+		WPtr<Material> mat(ObjectManager::Create<Material>(assetInfo.GetAssetName()));
 
 		objects.emplace_back(mat);
 	}

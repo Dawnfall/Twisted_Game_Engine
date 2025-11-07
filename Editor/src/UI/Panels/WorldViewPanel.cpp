@@ -3,19 +3,18 @@
 #include "Twisted/Application/Application.h"
 #include "Twisted/Rendering/RenderLayer.h"
 #include "EditorRegistry.h"
-#include "EditorData/EditorData.h"
 #include "EditorRegistry.h"
 
 namespace Twisted::Editor
 {
 	WorldViewPanel::WorldViewPanel() :EditorPanel("World View")
 	{
-		m_framebuffer = EditorData::GetInstance().EditorViewBuffer;
-		this->PanelResizeEvent.AddListener([this]() {
-			if (m_framebuffer)
-				m_framebuffer->SetSize(Size);
-			}
-		);
+		//m_framebuffer = EditorData::GetInstance().EditorViewBuffer;
+		//this->PanelResizeEvent.AddListener([this]() {
+		//	if (m_framebuffer)
+		//		m_framebuffer->SetSize(Size);
+		//	}
+		//);
 	}
 
 	void WorldViewPanel::PaintContent()

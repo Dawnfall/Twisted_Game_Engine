@@ -4,6 +4,8 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Twisted/Rendering/Data/RenderSystemEntry.h"
+#include "Twisted/Rendering/RenderLayer.h"
+#include "Twisted/ObjectManager.h"
 #include <vector>
 
 namespace Twisted
@@ -17,6 +19,7 @@ namespace Twisted
 		void Update();
 		void SubmitEntry(const RenderSystemEntry& entry)
 		{
+			Render();
 			m_entries.emplace_back(entry);
 		}
 
@@ -26,11 +29,39 @@ namespace Twisted
 			m_entries.clear();
 		}
 
+		FrameBuffer* CreateFrameBuffer(const std::string& name, Vec2i size)
+		{
+			auto it = m_framebuffers.find(name);
+			if (it != m_framebuffers.end())
+				return it->second;
+
+			FrameBuffer* newFrameBuffer = ObjectManager::Create<FrameBuffer>(name, size);
+
+			m_framebuffers[name] = newFrameBuffer;
+			return newFrameBuffer;
+		}
+		void DestroyFrameBuffer(const std::string& name)
+		{
+			auto it = m_framebuffers.find(name);
+			if (it != m_framebuffers.end())
+			{
+				ObjectManager::Destroy(it->second);
+				m_framebuffers.erase(it);
+			}
+		}
+		FrameBuffer* GetFrameBuffer(const std::string& name)
+		{
+			auto it = m_framebuffers.find(name);
+			if (it != m_framebuffers.end())
+				return it->second;
+			return nullptr;
+		}
 	private:
-		
+		std::unordered_map<std::string, FrameBuffer*> m_framebuffers;
+		std::vector<RenderSystemEntry> m_entries;
+
 		void Render();
 
-		std::vector<RenderSystemEntry> m_entries;
 	};
 }
 

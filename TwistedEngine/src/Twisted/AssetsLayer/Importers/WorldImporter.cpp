@@ -6,7 +6,7 @@
 #include "Serialization/BinSerializer.h"
 #include "Twisted/Gameing/WorldRegistry.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
-
+#include "Twisted/ObjectManager.h"
 namespace Twisted
 {
 	void WorldImporter::ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
@@ -17,7 +17,7 @@ namespace Twisted
 
 		YAML::Node data = YAML::LoadFile(assetInfo.GetAssetPath().string());
 
-		WPtr<World> world(TObject::Create<World>(assetInfo.GetAssetName()));
+		WPtr<World> world(ObjectManager::Create<World>(assetInfo.GetAssetName()));
 		world->YamlDeserialize(data);
 
 		objects.emplace_back(world);

@@ -57,23 +57,62 @@ namespace Twisted
 		}
 	}
 
-	void Texture::Create(const TextureData& texData, const TextureParams& params)
+	void Texture::SetData(TextureData& data)
 	{
-		m_params = params;
+		Clear();
 
-		m_width = texData.Width;
-		m_height = texData.Height;
-		m_channels = texData.Channels;
+		m_width = data.Width;
+		m_height = data.Height;
+		m_channels = data.Channels;
 
 		m_isDirty = true;
 		glGenTextures(1, &m_texID);
 		glBindTexture(GL_TEXTURE_2D, m_texID);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData.Data); //input must always be RGBA;4 channels
-		Update();
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGBA,
+			m_width,
+			m_height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			data.Data);
+
+		//input must always be RGBA;4 channels
+
+	}
+
+	void Texture::Resize(const Vec2i& newSize)
+	{
+		if (m_width == newSize.x && m_height == newSize.y || m_texID == 0)
+			return;
+
+		m_width = newSize.x;
+		m_height = newSize.y;
+
+		Bind();
+
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0, //mipamap
+			GL_RGBA, //format
+			m_width,
+			m_height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_INT,
+			nullptr
+		);
+
+		UnBind();
 	}
 
 	void Texture::Update()
 	{
+		if (!m_isDirty)
+			return;
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapToGL(m_params.Wrap));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapToGL(m_params.Wrap));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_params.MinFilter));
@@ -82,11 +121,16 @@ namespace Twisted
 		if (m_params.DoMipMaps)
 			glGenerateMipmap(GL_TEXTURE_2D);
 
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		m_isDirty = false;
 	}
 
 	void Texture::Clear()
 	{
+		if (m_texID == 0)
+			return;
+
 		glDeleteTextures(1, &m_texID);
 		m_texID = 0;
 		m_width = m_height = m_channels = 0;

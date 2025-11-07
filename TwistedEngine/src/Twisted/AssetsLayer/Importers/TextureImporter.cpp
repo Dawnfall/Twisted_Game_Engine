@@ -7,6 +7,7 @@
 #include "Utils/WPtr.h"
 #include "Twisted/TObject.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+#include "Twisted/ObjectManager.h"
 
 namespace Twisted
 {
@@ -30,7 +31,8 @@ namespace Twisted
 		if (!texData.Data)
 			return;
 
-		WPtr<Texture> texture(TObject::Create<Texture>(assetInfo.GetAssetName(),texData, TextureParams{}));
+		WPtr<Texture> texture(ObjectManager::Create<Texture>(assetInfo.GetAssetName(), TextureParams{}));
+		texture->SetData(texData);
 
 		objects.emplace_back(texture);
 		stbi_image_free(texData.Data);

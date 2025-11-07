@@ -248,7 +248,10 @@ namespace Twisted
 
 	void Shader::Clear()
 	{
-		//glDeleteProgram(m_programID);
+		if (m_programID == 0)
+			return;
+
+		glDeleteProgram(m_programID);
 		m_programID = 0;
 		m_uniforms.clear();
 	}
@@ -288,7 +291,7 @@ namespace Twisted
 			if (varType == GL_SAMPLER_2D)
 				uniformVar.TextureUnit = textureUnit++;
 
-			//m_uniforms.emplace_back(uniformVar);
+			m_uniforms.emplace_back(uniformVar);
 		}
 	}
 

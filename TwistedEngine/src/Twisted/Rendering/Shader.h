@@ -50,17 +50,23 @@ namespace Twisted
 	{
 	public:
 
-		Shader() = default;
-		Shader(const std::string& name,const ShaderData& shaderData) :TObject(name)
+		Shader(const std::string& name) :
+			TObject(name)
 		{
-			Init(shaderData);
 		}
-		~Shader()
+
+
+		void OnDestroy()override
 		{
 			Clear();
 		}
 
-		
+		void SetData(const ShaderData& shaderData)
+		{
+			Clear();
+			Init(shaderData);
+		}
+
 		void Clear();
 		void Init(const ShaderData& shaderData);
 

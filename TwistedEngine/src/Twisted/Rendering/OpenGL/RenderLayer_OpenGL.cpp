@@ -5,7 +5,7 @@
 #include <string>
 namespace Twisted
 {
-	GLenum MeshTypeToGL(MeshPrimitiveType type)
+	static GLenum MeshTypeToGL(MeshPrimitiveType type)
 	{
 		switch (type)
 		{
@@ -29,23 +29,23 @@ namespace Twisted
 
 	void RenderLayer::Render()
 	{
-		for (auto& entry : m_entries)
+		for (auto& [name, fb] : m_framebuffers)
 		{
-			entry.material->GetShader()->Bind();
-			entry.mesh->Bind();
-
-			entry.material->ApplyUniforms();
-			glDrawElements(MeshTypeToGL(entry.mesh->GetMeshData().PrimitiveType), static_cast<GLsizei>(entry.mesh->GetPrimitiveCount()), GL_UNSIGNED_INT, nullptr);
-			
-			switch (entry.mesh->GetMeshData().PrimitiveType)
+			fb->Bind();
+			for (auto& entry : m_entries)
 			{
-			case MeshPrimitiveType::TRIANGLES:
-				break;
-			}
+				entry.material->GetShader()->Bind();
+				entry.mesh->Bind();
 
-			entry.material->GetShader()->UnBind();
-			entry.mesh->UnBind();
+				entry.material->ApplyUniforms();
+				glDrawElements(MeshTypeToGL(entry.mesh->GetMeshData().PrimitiveType), static_cast<GLsizei>(entry.mesh->GetPrimitiveCount()), GL_UNSIGNED_INT, nullptr);
+
+				entry.material->GetShader()->UnBind();
+				entry.mesh->UnBind();
+			}
+			fb->UnBind();
 		}
+		
 	}
 
 

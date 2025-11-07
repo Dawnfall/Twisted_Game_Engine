@@ -55,6 +55,7 @@ namespace Twisted
 	class TWISTED_API WorldRegistry
 	{
 	public:
+
 		struct RegSystemEntry
 		{
 			std::function<YAML::Node(const SystemBase&)> YamlSerMethod;
@@ -71,7 +72,6 @@ namespace Twisted
 			std::function<bool(Entity)> HasComponentMethod;
 			std::function<void(Entity)> AddComponentMethod;
 		};
-
 
 		template<typename T>
 		void RegisterComponent()

@@ -15,7 +15,6 @@ namespace Twisted
 namespace Twisted::Editor
 {
 	class EditorLayer;
-	class ProjectLoader;
 
 	class EditorApplication : public Application
 	{
@@ -44,6 +43,5 @@ namespace Twisted::Editor
 		RenderLayer* m_renderLayer = nullptr;
 		AssetsLayer* m_assetsLayer = nullptr;
 		EditorLayer* m_editorLayer = nullptr;
-		ProjectLoader* m_projectLoader = nullptr;
 	};
 }

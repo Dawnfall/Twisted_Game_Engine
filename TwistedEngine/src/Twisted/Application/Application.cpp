@@ -19,7 +19,7 @@ namespace Twisted
 		for (auto& layer : m_layers)
 			layer->Init();
 
-		m_time.Start();
+		//m_time.Start();
 
 		OnBeforeRun();
 

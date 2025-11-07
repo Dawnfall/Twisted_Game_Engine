@@ -1,6 +1,5 @@
 #include "EditorApplication.h"
 
-#include "ProjectLoader/ProjectLoader.h"
 #include "EditorLayer.h"
 #include "Twisted/Windowing/WindowLayer.h"
 #include "Twisted/AssetsLayer/AssetsLayer.h"
@@ -8,8 +7,9 @@
 #include "EditorConstants.h"
 #include "UI/ImguiExtensions.h"
 #include "Twisted/BuiltIn/MeshCollections.h"
-#include "EditorData/EditorData.h"
+#include "Twisted/Rendering/FrameBuffer.h"
 
+#include "Twisted/AssetsLayer/Project.h"
 
 namespace Twisted::Editor
 {
@@ -20,24 +20,23 @@ namespace Twisted::Editor
 
 	void EditorApplication::OnBeforeRun()
 	{
-		EditorData::GetInstance().GetConfig().LoadConfig();
-		Project::GetInstance().ProjectChangeEvent.AddListener([this]() {
-			layoutFilePath = (Project::GetInstance().GetRootPath() / "EditorLayout.ini").string();
+		EditorLayer::GetInstance().GetConfig().LoadConfig();
+		m_assetsLayer->GetProject().ProjectChangeEvent.AddListener([this]() {
+			layoutFilePath = (m_assetsLayer->GetProject().GetRootPath() / "EditorLayout.ini").string();
 			Im::SetLayoutIniFile(layoutFilePath, true);
 
-			m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + Project::GetInstance().GetName());
-			m_window->Maximize();
-			m_window->SetPosition(EditorData::GetInstance().GetConfig().GetWindowPos());
+			m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + m_assetsLayer->GetProject().GetName());
 			LoadResources();
 			});
 
 		StartWindow();
-		m_window->SetSize(Vec2i{ 1200,500 });
+		m_window->Maximize();
+		m_window->SetPosition(EditorLayer::GetInstance().GetConfig().GetWindowPos());
 	}
 
 	void EditorApplication::OnFrame()
 	{
-		EditorData& editorData = EditorData::GetInstance();
+		EditorLayer& editorData = EditorLayer::GetInstance();
 
 		Window::PollEvents();
 		m_window->GetContext()->Clear(Constants::WINDOW_CLEAR_COLOR);
@@ -45,42 +44,37 @@ namespace Twisted::Editor
 		Im::StartFrame();
 
 		editorData.GetInput().Update();
+		m_renderLayer->Update();
 
-		if (Project::GetInstance().GetRootPath() == "")
-		{
-			m_projectLoader->Render(m_window);
-		}
-		else
-		{
-			m_renderLayer->Update();
+		if (editorData.GetGameWorld())
+			editorData.GetGameWorld()->UpdateFrame();
 
-			if (editorData.GetGameWorld())
-				editorData.GetGameWorld()->UpdateFrame();
+		m_editorLayer->Render(m_window);
 
-			m_editorLayer->Render(m_window);
-		}
 		Im::EndFrame();
-
 		m_window->GetContext()->SwapBuffers();
 	}
 
 	void EditorApplication::OnTerminate()
 	{
-		EditorData::GetInstance().GetConfig().SetWindowPos(m_window->GetPosition());
-		EditorData::GetInstance().GetConfig().SetWindowSize(m_window->GetSize());
+		EditorLayer::GetInstance().GetConfig().SetWindowPos(m_window->GetPosition());
+		EditorLayer::GetInstance().GetConfig().SetWindowSize(m_window->GetSize());
 
-		EditorData::GetInstance().GetConfig().SaveConfig();
+		EditorLayer::GetInstance().GetConfig().SaveConfig();
 
-		TObject::DestroyAll();
+		ObjectManager::DestroyAll();
 	}
 
 	void EditorApplication::LoadBuiltIn()
 	{
 		auto& layer = AssetsLayer::GetInstance();
 
-		Mesh* triangleMesh = TObject::Create<Mesh>(Collections::triangleMeshName, Collections::triangleMesh, MeshParams{});
-		Mesh* quadMesh = TObject::Create<Mesh>(Collections::quadMeshName, Collections::quadMesh, MeshParams{});
-		Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName, Collections::cubeMesh, MeshParams{});
+		Mesh* triangleMesh = ObjectManager::Create<Mesh>(Collections::triangleMeshName, MeshParams{});
+		triangleMesh->SetData(Collections::triangleMesh);
+		Mesh* quadMesh = ObjectManager::Create<Mesh>(Collections::quadMeshName, MeshParams{});
+		quadMesh->SetData(Collections::quadMesh);
+		Mesh* cubeMesh = ObjectManager::Create<Mesh>(Collections::cubeMeshName, MeshParams{});
+		cubeMesh->SetData(Collections::cubeMesh);
 
 		layer.AddBuiltIn(Collections::triangleMeshUUID, triangleMesh);
 		layer.AddBuiltIn(Collections::quadMeshUUID, quadMesh);
@@ -93,6 +87,7 @@ namespace Twisted::Editor
 		Im::Init(m_windowLayer->GetWindow());
 		Im::SetLayoutIniFile("");
 
+		m_renderLayer->CreateFrameBuffer("Main Framebuffer", Vec2i(100, 100));
 		m_window->CloseWindowEvent.AddListener([&]() {	Stop(); });
 		m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE);
 	}
@@ -105,8 +100,6 @@ namespace Twisted::Editor
 
 	void EditorApplication::RegisterLayers()
 	{
-		m_projectLoader = AddLayer<ProjectLoader>();
-
 		m_windowLayer = AddLayer<WindowLayer>();
 		m_renderLayer = AddLayer<RenderLayer>();
 		m_assetsLayer = AddLayer<AssetsLayer>();

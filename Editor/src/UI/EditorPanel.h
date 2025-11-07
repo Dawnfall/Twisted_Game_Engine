@@ -14,6 +14,8 @@ namespace Twisted::Editor
 	{
 	public:
 		EditorPanel(const std::string& name) : m_panelName(name) {}
+
+		virtual void Init(){}
 		virtual void PaintContent() = 0;
 
 		const std::string& GetName()const { return m_panelName; }
