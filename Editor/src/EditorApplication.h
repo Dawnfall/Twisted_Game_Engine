@@ -1,16 +1,10 @@
-#pragma once
+﻿#pragma once
 #include "Twisted/Application/Application.h"
 
-inline static std::string layoutFilePath = "";
-
-namespace Twisted
-{
-	class Application;
-	class WindowLayer;
-	class RenderLayer;
-	class AssetsLayer;
-	class Window;
-}
+#include "EditorLayer.h"
+#include "Twisted/Windowing/WindowLayer.h"
+#include "Twisted/AssetsLayer/AssetsLayer.h"
+#include "Twisted/Rendering/RenderLayer.h"
 
 namespace Twisted::Editor
 {
@@ -21,27 +15,22 @@ namespace Twisted::Editor
 	public:
 		EditorApplication() = default;
 
-	private:
-
-		void OnCreate() override;
-		void OnBeforeRun() override;
-		void OnFrame() override;
+		void OnInit()override;
+		void OnBeforeRun()override;
+		void OnBeginFrame()override;
+		void OnFrame()override;
+		void OnEndFrame()override;
 		void OnTerminate()override;
 
 	private:
-
-		void LoadBuiltIn();
-		void StartWindow();
-		void LoadResources();
-		void RegisterLayers();
-		void Create();
-
-	private:
-		Window* m_window = nullptr;
+		void SetCallbacks();
+		void CreateAppWindow();
 
 		WindowLayer* m_windowLayer = nullptr;
 		RenderLayer* m_renderLayer = nullptr;
 		AssetsLayer* m_assetsLayer = nullptr;
 		EditorLayer* m_editorLayer = nullptr;
+
+		Window* m_window;
 	};
 }

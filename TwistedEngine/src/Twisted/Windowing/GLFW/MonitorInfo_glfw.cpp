@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 #ifdef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/MonitorInfo.h"
@@ -62,3 +62,4 @@ namespace Twisted
 }
 
 #endif
+

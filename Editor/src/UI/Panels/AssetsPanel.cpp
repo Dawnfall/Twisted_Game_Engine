@@ -1,4 +1,4 @@
-#include "AssetsPanel.h"
+﻿#include "AssetsPanel.h"
 #include "Twisted/Application/Application.h"
 #include "EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
@@ -88,8 +88,8 @@ namespace Twisted::Editor
 
 	void AssetsPanel::Init()
 	{
-		AssetsLayer::GetInstance().GetProject().ProjectChangeEvent.AddListener([this]() {
-			currentDir = AssetsLayer::GetInstance().GetProject().GetAssetsFolder();
+		AssetsLayer::GetInstance()->GetProject().ProjectChangeEvent.AddListener([this]() {
+			currentDir = AssetsLayer::GetInstance()->GetProject().GetAssetsFolder();
 			});
 		EditorLayer::GetInstance().MakeNewFileEvent.AddListener([this](fs::path defaultName) {
 			m_newFileName = Im::InputTextToken{};
@@ -108,7 +108,7 @@ namespace Twisted::Editor
 
 		// LEFT PANEL: Folder Tree
 		ImGui::BeginChild("LeftPanel", ImVec2(leftPanelWidth, panelHeight), true);
-		PaintTreePart(AssetsLayer::GetInstance().GetProject().GetRootPath());
+		PaintTreePart(AssetsLayer::GetInstance()->GetProject().GetRootPath());
 		ImGui::EndChild();
 
 		ImGui::SameLine();
@@ -170,9 +170,9 @@ namespace Twisted::Editor
 		bool justSelected = false;
 		fs::path filename = assetPath.filename();
 
-		AssetsLayer& assetsLayer = AssetsLayer::GetInstance();
-		AssetInfo* info = assetsLayer.GetInfo(assetPath);
-		auto& objects = assetsLayer.GetAssetObjects(info->GetUuid());
+		AssetsLayer* assetsLayer = AssetsLayer::GetInstance();
+		AssetInfo* info = assetsLayer->GetInfo(assetPath);
+		auto& objects = assetsLayer->GetManagedAssetObjects(info);
 
 		ImGuiTreeNodeFlags flags = GetAssetFlags(objects.size(), (info) ? assetPath : "");
 
@@ -213,9 +213,7 @@ namespace Twisted::Editor
 				std::filesystem::path path = currentDir / (m_newFileName->Text + m_newFileName->PostLabel);
 				if (!path.empty() && path.has_filename() && !std::filesystem::exists(path))
 				{
-					auto importer = AssetImporterRegistry::GetInstance().GetImporter(path.extension());
-					importer->CreateNewAsset(path);
-					//TODO... import new Asset
+					EditorLayer::GetInstance().CreateNewAssetPath.Invoke(path);
 				}
 				m_newFileName = std::nullopt;
 			}

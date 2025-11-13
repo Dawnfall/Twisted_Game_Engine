@@ -1,9 +1,8 @@
-#pragma once
+﻿#pragma once
 #include "UI/EditorPanel.h"
-#include <string>
 
 #include "Twisted/Rendering/FrameBuffer.h"
-#include "Utils/WPtr.h"
+#include "Twisted/Rendering/RenderLayer.h"
 
 namespace Twisted::Editor
 {
@@ -11,11 +10,13 @@ namespace Twisted::Editor
 	{
 	public:
 		WorldViewPanel();
+		void Init() override
+		{		
+			m_worldViewFrameBuffer = RenderLayer::GetInstance()->CreateFrameBuffer("World view", Size);
+		}
 
 		virtual void PaintContent()override;
+		FrameBuffer* m_worldViewFrameBuffer = nullptr;
 
-		void SetFrameBuffer(FrameBuffer* framebuffer) { m_framebuffer = framebuffer; }
-
-		WPtr<FrameBuffer> m_framebuffer;
 	};
 }

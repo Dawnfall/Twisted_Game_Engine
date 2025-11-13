@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
@@ -18,52 +18,74 @@
 namespace fs = std::filesystem;
 namespace Twisted
 {
+	class AssetImporter;
 	const std::string ASSET_UUID_KEY = "uuid";
+
 	class AssetInfo
 	{
 	public:
-		AssetInfo(const fs::path& assetPath) :
-			m_assetPath(assetPath)
+		virtual std::string GetAssetName()const=0;
+		virtual AssetUuid GetUuid() const = 0;
+
+		bool operator==(const AssetInfo& other)
+		{
+			return this->GetUuid() == other.GetUuid();
+		}
+		bool operator!=(const AssetInfo& other) { return !((*this) == other); }
+	};
+
+	class BuiltInAssetInfo :public AssetInfo
+	{
+	public:
+		BuiltInAssetInfo(const std::string& name, AssetUuid uuid) :
+			m_name(name),
+			m_uuid(uuid)
 		{
 		}
+
+		std::string GetAssetName()const override { return m_name; }
+		AssetUuid GetUuid() const override{ return m_uuid; }
+
+	private:
+		std::string m_name;
+		AssetUuid m_uuid;
+	};
+
+	class FileAssetInfo :public AssetInfo
+	{
+	public:
+		FileAssetInfo(const fs::path& assetPath);
+
+		std::string GetAssetName()const override { return GetAssetPath().stem().string(); }
+		AssetUuid GetUuid() const override { return GetInfo()[ASSET_UUID_KEY].as<AssetUuid>(AssetUuid::Invalid()); }
 
 		const fs::path& GetAssetPath()const { return m_assetPath; }
 		fs::path GetInfoPath()const { return GetAssetPath().string() + ".info"; }
 		fs::path GetExt()const { return GetAssetPath().extension(); }
-		const fs::file_time_type& GetAssetLastWrite() const { return m_assetLastWrite; }
-		const fs::file_time_type& GetInfoLastWrite() const { return m_infoLastWrite; }
-		std::string GetAssetName()const { return GetAssetPath().stem().string(); }
-		bool AssetExists()const { return Utils::IsExisting(GetAssetPath()); }
-		bool InfoExists()const { return Utils::IsExisting(GetInfoPath()); }
-
-		bool IsValid()const;
-		void Validate();
-
-		bool IsBuiltIn = false;
-
-		AssetUuid GetUuid() const { return GetInfo()[ASSET_UUID_KEY].as<AssetUuid>(AssetUuid::Invalid()); }
-
-		bool operator==(const AssetInfo& other)
-		{
-			return
-				this->GetAssetPath() == other.GetAssetPath() &&
-				this->GetUuid() == other.GetUuid() &&
-				this->GetAssetLastWrite() == other.GetAssetLastWrite() &&
-				this->GetInfoLastWrite() == other.GetInfoLastWrite();
-		}
-		bool operator!=(const AssetInfo& other) { return !((*this) == other); }
-
-		YAML::Node& GetInfo() { return m_infoData; }
-		const YAML::Node& GetInfo()const { return m_infoData; }
+		const AssetImporter* GetImporter() const{ return m_importer; }
 
 		void SaveInfo()const;
 		void LoadInfo();
 
-	private:
+		YAML::Node& GetInfo() { return m_infoData; }
+		const YAML::Node& GetInfo()const { return m_infoData; }
 
-		fs::path m_assetPath;
+		bool IsValid()const;
+		void Validate();
+
+		bool AssetExists()const { return Utils::IsExisting(GetAssetPath()); }
+		bool InfoExists()const { return Utils::IsExisting(GetInfoPath()); }
+
+		const fs::file_time_type& GetAssetLastWrite() const { return m_assetLastWrite; }
+		const fs::file_time_type& GetInfoLastWrite() const { return m_infoLastWrite; }
+
+	private:
+		AssetImporter* m_importer = nullptr;
+		fs::path m_assetPath="";
 		YAML::Node m_infoData;
-		fs::file_time_type m_assetLastWrite;
 		fs::file_time_type m_infoLastWrite;
+		fs::file_time_type m_assetLastWrite;
 	};
 }
+
+

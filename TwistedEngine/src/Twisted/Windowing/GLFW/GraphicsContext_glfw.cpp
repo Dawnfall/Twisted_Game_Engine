@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 #ifdef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/GraphicsContext.h"
@@ -97,3 +97,4 @@ namespace Twisted
 	}
 }
 #endif
+

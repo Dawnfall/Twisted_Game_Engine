@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/Gameing/Entity.h"

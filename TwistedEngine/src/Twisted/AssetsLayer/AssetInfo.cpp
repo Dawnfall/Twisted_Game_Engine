@@ -1,17 +1,17 @@
-#include "AssetInfo.h"
+﻿#include "AssetInfo.h"
 
 #include "AssetImporterRegistry.h"
 #include "AssetsLayer.h"
 
 namespace Twisted
 {
-	void AssetInfo::Validate()
+	void FileAssetInfo::Validate()
 	{
 		m_assetLastWrite = fs::last_write_time(GetAssetPath());
 		m_infoLastWrite = fs::last_write_time(GetInfoPath());
 	}
 
-	bool AssetInfo::IsValid()const
+	bool FileAssetInfo::IsValid()const
 	{
 		return
 			AssetExists() &&
@@ -19,22 +19,21 @@ namespace Twisted
 			GetInfoLastWrite() == fs::last_write_time(GetInfoPath());
 	}
 
-	void AssetInfo::SaveInfo()const
+	void FileAssetInfo::SaveInfo()const
 	{
 		YamlUtils::saveNode(m_infoData, GetInfoPath());
 	}
 
-	void AssetInfo::LoadInfo()
+	void FileAssetInfo::LoadInfo()
 	{
 		if (!InfoExists())
 		{
 			m_infoData[ASSET_UUID_KEY] = AssetUuid::generate();
 
-			AssetImporter* importer = AssetImporterRegistry::GetInstance().GetImporter(GetExt());
-			if (!importer)
+			if (!GetImporter())
 				return;
 
-			importer->FillDefaultInfo(m_infoData);
+			GetImporter()->FillDefaultInfo(m_infoData);
 			SaveInfo();
 		}
 		else
@@ -44,5 +43,13 @@ namespace Twisted
 
 	}
 
+	FileAssetInfo::FileAssetInfo(const fs::path& assetPath) :
+		m_assetPath(assetPath)
+	{
+		m_importer = AssetImporterRegistry::GetInstance().GetImporter(GetExt());
+		LoadInfo();
+	}
+
 
 }
+

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Twisted/Gameing/SystemBase.h"
 //#include "Windowing/WindowLayer.h"
 
@@ -17,3 +17,4 @@ namespace Twisted
 
 	};
 }
+

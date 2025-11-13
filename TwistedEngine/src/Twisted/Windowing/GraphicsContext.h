@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
 #include "Data/Color.h"
@@ -46,3 +46,4 @@ namespace Twisted
 		void* m_glrc = nullptr;
 	};
 }
+

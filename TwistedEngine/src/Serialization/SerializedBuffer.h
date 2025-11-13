@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <filesystem>
 namespace Twisted
@@ -9,3 +9,4 @@ namespace Twisted
 		virtual bool LoadFromFile(const std::filesystem::path& path) = 0;
 	};
 }
+

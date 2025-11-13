@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/Application/Layer.h"
@@ -15,6 +15,9 @@
 #include "Twisted/Constants.h"
 #include "Project.h"
 
+#include "Twisted/Rendering/Mesh.h"
+#include "Twisted/BuiltIn/MeshCollections.h"
+
 namespace fs = std::filesystem;
 
 namespace Twisted
@@ -23,39 +26,20 @@ namespace Twisted
 	class TWISTED_API AssetsLayer :public Layer
 	{
 	public:
-
 		AssetsLayer(Application* app) :Layer(app) { s_instance = this; }
 
-		inline static AssetsLayer& GetInstance()
+		inline static AssetsLayer* GetInstance()
 		{
-			return *s_instance;
+			return s_instance;
 		}
 
-	public:
+		AssetInfo* GetInfo(const fs::path& assetPath)const;
+		AssetInfo* GetInfo(const AssetUuid& uuid)const;
+		AssetInfo* GetObjectAssetInfo(const TObject* object)const;
+		TObject* GetAssetObject(AssetUuid uuid, const std::string& name);
 
-		template<typename T>
-		T* ImportAssetDirect(const fs::path& assetPath)
-		{
-			auto& importerReg = AssetImporterRegistry::GetInstance();
-			auto& reg = AssetsLayer::GetInstance();
-
-			AssetInfo* assetInfo = reg.GetInfo(assetPath);
-			AssetImporter* importer = importerReg.GetImporter(assetPath.extension());
-
-			if (!assetInfo || !importer)
-				return nullptr;
-
-			std::vector<WPtrBase> assetObjects;
-			importer->ImportNew(*assetInfo, assetObjects);
-			importer->PostImport(*assetInfo, assetObjects);
-
-			if (assetObjects.empty())
-				return nullptr;
-			return static_cast<T*>(assetObjects.begin()->GetObj());
-		}
-
-
-		void ImportAssets();
+		void AutoImportAssets();
+		std::vector<WPtrBase> ImportAssetDirect(const fs::path& assetPath)const;
 
 		template<typename T>
 		std::vector<T*> GetObjectsOfType()
@@ -73,52 +57,38 @@ namespace Twisted
 			return objects;
 		}
 
-
-		//for non auto importer assets
-		void SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects);
-		//for auto importedAssets
-		void SaveAsset(AssetUuid uuid);
-
-		AssetUuid GetObjectAsset(const TObject* object)const;
-
-		void CreateInfo(const fs::path& assetPath);
-		AssetInfo* GetInfo(const fs::path& assetPath)const;
-		AssetInfo* GetInfo(const AssetUuid& uuid)const;
-
-		void RemoveAsset(AssetInfo* asset);
-
-		std::vector<WPtrBase>& GetAssetObjects(AssetUuid uuid);
-		const std::vector<WPtrBase>& GetAssetObjects(AssetUuid uuid)const;
-
-
-		TObject* GetAssetObject(AssetUuid uuid, const std::string& name);
-
-		void AddBuiltIn(AssetUuid uuid, TObject* obj);
-
-		bool SelectProjectPath(const fs::path& projectFolder)
-		{
-			if (!Utils::IsExisting(projectFolder))
-			{
-				TWISTED_WARN(std::format("projectFolder must exist {}", projectFolder.string()));
-				return false;
-			}
-			if (Utils::IsEmptyDirectory(projectFolder) || !Utils::IsExisting(projectFolder / PROJECT_FILE))
-			{
-				TWISTED_WARN("Project path must be empty directory or have twisted.editor file: " + projectFolder.string());
-				return false;
-			}
-
-			m_project.SetProject(projectFolder);
-			return true;
-		}
-
 		Project& GetProject() { return m_project; }
 		const Project& GetProject()const { return m_project; }
 
-	private:
+		std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info);
+		const std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info)const;
 
-		void ImportAsset(AssetInfo& info);
-		void PostImportAsset(AssetInfo& info);
+		void AddBuiltIn(AssetUuid uuid, TObject* obj);
+
+		void SaveAsset(const FileAssetInfo* info, const std::vector<WPtrBase>& objects);
+
+		bool CreateNewAsset(const fs::path& path);
+
+		//for non auto importer assets
+		void SaveAssetDirect(const fs::path& assetPath, const std::vector<WPtrBase>& objects);
+
+		void SaveAssetManaged(FileAssetInfo* info);
+
+		void LoadBuiltIn()
+		{
+			Mesh* triangleMesh = TObject::Create<Mesh>(Collections::triangleMeshName);
+			triangleMesh->SetData(Collections::CreateTrianglePackedData(),MeshDrawType::STATIC);
+			Mesh* quadMesh = TObject::Create<Mesh>(Collections::quadMeshName);
+			quadMesh->SetData(Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
+			//Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName, MeshParams{});
+			//cubeMesh->SetData(Collections::cubeMesh);
+
+			AddBuiltIn(Collections::triangleMeshUUID, triangleMesh);
+			AddBuiltIn(Collections::quadMeshUUID, quadMesh);
+			//AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
+		}
+
+	private:
 
 		std::unordered_map<fs::path, SRef<AssetInfo>> m_assetsByPath;
 		std::unordered_map<AssetUuid, SRef<AssetInfo>> m_assetsByUuid;
@@ -129,9 +99,13 @@ namespace Twisted
 	private:
 		Project m_project;
 
+		AssetInfo* CreateInfo(const fs::path& assetPath);
 		void DetectAllAssets(const fs::path& assetsFolder);
 		void DeleteLoneInfos(const fs::path& assetsFolder);
 		void RemoveDanglingAssetObjects(const fs::path& assetsFolder);
+		void ImportManaged(const std::vector<FileAssetInfo*>& infos);
+		void RemoveAsset(FileAssetInfo* asset);
+
 	};
 }
 
@@ -146,3 +120,4 @@ namespace Twisted
 //	template<typename T>
 //	void PostDeserialize(T& obj, BinSerializer& buffer) = delete;
 //}
+

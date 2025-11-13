@@ -1,4 +1,4 @@
-#include "CCamera.h"
+﻿#include "CCamera.h"
 
 #include "Utils/GlmUtils.h"
 
@@ -9,27 +9,57 @@
 
 namespace Twisted
 {
-	CCamera::~CCamera()
+	void CCamera::OnInit()
 	{
-		GetWorld()->RemoveComponent<CMainCamera>(GetID());
+		if (GetWorld()->GetView<CCamera>().size() == 1)
+			SetAsMainCamera(true);
 	}
+
+	void CCamera::OnDestroy()
+	{
+		SetAsMainCamera(false);
+	}
+
+
 	bool CCamera::IsMainCamera()const
 	{
 		return m_entity.GetWorld()->HasComponent<CMainCamera>(GetID());
 	}
 
-	void CCamera::SetAsMainCamera()
+	void CCamera::SetAsMainCamera(bool isMain)
 	{
 		World* world = m_entity.GetWorld();
 
 		CMainCamera* mainCamera = world->FindFirstOfType<CMainCamera>();
-		if (mainCamera)
+
+		if (isMain)
 		{
-			if (mainCamera->GetEntity() == m_entity)
-				return;
-			mainCamera->GetEntity().GetWorld()->RemoveComponent<CMainCamera>(mainCamera->GetID());
+			if (mainCamera)
+			{
+				if (mainCamera->GetID() == GetID())
+					return;
+
+				world->RemoveComponent<CMainCamera>(mainCamera->GetID());
+			}
+			GetWorld()->AddComponent<CMainCamera>(GetID());
 		}
-		GetWorld()->AddComponent<CMainCamera>(GetID());
+		else
+		{
+			if (IsMainCamera())
+			{
+				auto view = GetWorld()->GetView<CCamera>();
+				for (auto& ent : view)
+				{
+					CCamera& cam = view.get<CCamera>(ent);
+					if (&cam != this)
+					{
+						cam.SetAsMainCamera(true);
+						return;
+					}
+				}
+				GetWorld()->RemoveComponent<CMainCamera>(GetID());
+			}
+		}
 	}
 
 	Mat4x4f CCamera::GetViewMatrix()const
@@ -107,8 +137,8 @@ namespace Twisted
 	void CCamera::YamlDeserialize(const YAML::Node& node)
 	{
 		m_projectionType = node["proj"].as<CameraProjectionType>(CameraProjectionType::PERSPECTIVE);
-		m_nearPlane= node["near"].as<float>(1.0f);
-		m_farPlane= node["far"].as<float>(1.0f);
+		m_nearPlane = node["near"].as<float>(1.0f);
+		m_farPlane = node["far"].as<float>(1.0f);
 		m_fovDeg = node["fov"].as<float>(45.0f);
 		m_aspectRatio = node["apect"].as<float>(1.333f);
 		m_leftEdge = node["left"].as<float>(1.0f);
@@ -117,4 +147,6 @@ namespace Twisted
 		m_topEdge = node["top"].as<float>(1.0f);
 	}
 }
+
+
 

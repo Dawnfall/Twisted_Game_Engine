@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Twisted/Application/Application.h"
 
 #include "Twisted/Rendering/RenderLayer.h"

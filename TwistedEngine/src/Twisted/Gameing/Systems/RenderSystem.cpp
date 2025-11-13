@@ -1,4 +1,4 @@
-#include "RenderSystem.h"
+﻿#include "RenderSystem.h"
 
 //#include "Twisted/Rendering/RenderingAPI.h"
 
@@ -12,59 +12,59 @@
 //#include "Twisted/Rendering/Mesh.h"
 //#include "Twisted/Rendering/Material.h"
 //#include "Twisted/Rendering/RenderContext.h"
+#include "Twisted/Rendering/Data/RenderContext.h"
 
 namespace Twisted
 {
-	const std::string MODEL_MATRIX_NAME = "modelMat";
-	const std::string VIEW_MATRIX_NAME = "viewMat";
-	const std::string PROJ_MATRIX_NAME = "projMat";
-
-	RenderSystem::RenderSystem(World* world) :SystemBase(world)
+	RenderSystem::RenderSystem(World* world) :
+		SystemBase(world),
+		m_renderLayer(RenderLayer::GetInstance())
 	{
-		//m_renderLayer = m_world->GetApplication()->GetLayer<RenderLayer>();
-		//m_renderLayer=
 	}
 
 	void RenderSystem::Update()
 	{
+		RenderContext context{};
 		const auto cameras = m_world->GetGroup<CCamera>();
-		auto renderers = m_world->GetGroup<CRenderer, CTransform>();
-
+		context.camDatas.reserve(cameras.size());
 		for (const auto camEnt : cameras)
 		{
 			CCamera& cam = cameras.get<CCamera>(camEnt);
+			CameraData data{};
+			if (cam.IsMainCamera())
+			{
+				data.framebuffer = m_renderLayer->GetFrameBuffer("main");
+			}
+			else
+			{
+				data.framebuffer = cam.GetFrameBuffer();
+				if (!data.framebuffer)
+					continue;
+			}
+			data.viewMatrix = cam.GetViewMatrix();
+			data.projectionMatrix = cam.GetProjectionMatrix();
 
-			FrameBuffer* frameBuffer = cam.GetFrameBuffer();
-			if (!frameBuffer)
+			context.camDatas.emplace_back(data);
+		}
+
+		auto renderers = m_world->GetGroup<CRenderer, CTransform>();
+		context.modelDatas.reserve(renderers.size());
+		for (auto&& [ent, r, t] : renderers.each())
+		{
+			ModelData data{};
+			data.material = r.GetSharedMaterial();
+			data.mesh = r.GetSharedMesh();
+
+			if (!data.material || !data.mesh || !data.material->GetShader())
 				continue;
 
-			frameBuffer->Bind();
-			frameBuffer->ClearBuffers();
-
-			for (auto&& [ent,r,t] : renderers.each())
-			{
-				Material* material = r.GetSharedMaterial();
-				Mesh* mesh = r.GetSharedMesh();
-				if (!material || !mesh)
-					continue;
-				Shader* shader = material->GetShader();
-				if (!shader)
-					continue;
-
-				material->Set<Mat4x4f>(MODEL_MATRIX_NAME, t.GetWorldModelMatrix());
-				material->Set<Mat4x4f>(VIEW_MATRIX_NAME, cam.GetViewMatrix());
-				material->Set<Mat4x4f>(PROJ_MATRIX_NAME, cam.GetProjectionMatrix());
-
-				RenderSystemEntry entry;
-				entry.framebuffer = frameBuffer;
-				entry.material = material;
-				entry.mesh = mesh;
-
-				m_renderLayer->SubmitEntry(entry);
-
-			}
+			data.modelMatrix = t.GetWorldModelMatrix();
+			context.modelDatas.emplace_back(data);
 		}
+
+		m_renderLayer->SubmitEntry(std::move(context));
 	}
 };
 
-REGISTER_SYSTEM(RenderSystem,"RenderSystem")
+REGISTER_SYSTEM(RenderSystem, "RenderSystem")
+

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "UI/ComponentPainter.h"
 #include "Twisted/Gameing/Components/CTransform.h"
@@ -14,4 +14,5 @@ namespace Twisted::Editor
 		void Paint(void* obj) override;
 	};
 }
+
 

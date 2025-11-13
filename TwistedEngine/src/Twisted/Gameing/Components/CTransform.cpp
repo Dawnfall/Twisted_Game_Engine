@@ -1,4 +1,4 @@
-
+﻿
 #include "CTransform.h"
 
 #include "Twisted/Gameing/World.h"
@@ -7,13 +7,25 @@
 #include <algorithm>
 namespace Twisted
 {
-
-	void CTransform::Init()
+	CTransform::CTransform(Entity entity) :
+		AComponent(entity),
+		m_position(0.0f, 0.0f, 0.0f),
+		m_rotation(1, 0, 0, 0),
+		m_scale(1.0f, 1.0f, 1.0f),
+		m_parent(NullEntity)
 	{
-		m_entity.GetWorld()->m_rootEntities.emplace_back(m_entity.GetID());
 	}
 
-	CTransform::~CTransform()
+	void CTransform::OnInit()
+	{
+		if (m_parent == NullEntity)
+			m_entity.GetWorld()->m_rootEntities.emplace_back(m_entity.GetID());
+		else
+		{
+			GetParent()->m_children.emplace_back(m_entity.GetID());
+		}
+	}
+	void CTransform::OnDestroy()
 	{
 		for (EntityID child : GetChildrenIDs())
 			m_entity.GetWorld()->DestroyEntity(child);
@@ -100,7 +112,7 @@ namespace Twisted
 		if (it != roots.end())
 			return std::distance(roots.begin(), it);
 
-		TWISTED_ERROR("Unparented transform should be root entity: " + std::to_string((int)m_entity.GetID()));
+		TWISTED_ERROR(std::format("Unparented transform should be root entity: {}", std::to_string((int)m_entity.GetID())));
 		return 0;
 	}
 
@@ -163,7 +175,7 @@ namespace Twisted
 	{
 		CTransform* currentParentTransform = GetParent();
 
-		if (m_parent!=NullEntity)
+		if (m_parent != NullEntity)
 		{
 			auto it = std::find(currentParentTransform->m_children.begin(), currentParentTransform->m_children.end(), m_entity.GetID());
 			if (it != currentParentTransform->m_children.end())
@@ -220,4 +232,6 @@ namespace Twisted
 		m_children = node["children"].as<std::vector<EntityID>>();
 	}
 }
+
+
 

@@ -1,4 +1,4 @@
-#include "MaterialPainter.h"
+﻿#include "MaterialPainter.h"
 #include "Twisted/Rendering/Material.h"
 
 #include "UI/ImguiExtensions.h"
@@ -17,15 +17,14 @@ namespace Twisted::Editor
 
 		if (ImGui::Button("Save"))
 		{
-			auto& assetsLayer = AssetsLayer::GetInstance();
-			AssetUuid asset=assetsLayer.GetObjectAsset(material);
-			assetsLayer.SaveAsset(asset);
+			auto assetsLayer = AssetsLayer::GetInstance();
+			AssetInfo* asset=assetsLayer->GetObjectAssetInfo(material);
+			assetsLayer->SaveAssetManaged(dynamic_cast<FileAssetInfo*>(asset));
 		}
-		if (!material->GetShader())
-			return;
 
 		//TODO: render uniforms
 	}
 }
 
 REGISTER_DETAILS_PAINTER(Material,MaterialPainter)
+

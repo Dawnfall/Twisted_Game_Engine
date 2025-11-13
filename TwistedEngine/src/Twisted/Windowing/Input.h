@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 
 #include "ButtonCodes.h"
@@ -81,3 +81,4 @@ namespace Twisted
 		Input& operator=(Input&& other) = delete;
 	};
 }
+

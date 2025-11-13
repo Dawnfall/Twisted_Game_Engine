@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 #ifndef GLFW_INCLUDE_NONE
 
 #include "Twisted/Rendering/RenderingAPI.h"
@@ -243,3 +243,4 @@ namespace Twisted
 }
 
 #endif
+

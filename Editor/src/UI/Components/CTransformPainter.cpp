@@ -1,4 +1,4 @@
-#include "CTransformPainter.h"
+﻿#include "CTransformPainter.h"
 #include "EditorRegistry.h"
 
 namespace Twisted::Editor

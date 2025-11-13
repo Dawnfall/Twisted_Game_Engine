@@ -1,4 +1,4 @@
-#include "Application.h"
+﻿#include "Application.h"
 #include "Twisted.h"
 #include "Debug/Logger.h"
 
@@ -6,29 +6,26 @@ namespace Twisted
 {
 	void Application::Run()
 	{
-		LOGGER_INIT();
-
 		if (m_isRunning)
 		{
 			TWISTED_WARN("Cannot start application; Application already running!");
 			return;
 		}
 
-		OnCreate();
+		LOGGER_INIT();
 
-		for (auto& layer : m_layers)
-			layer->Init();
-
-		//m_time.Start();
-
+		OnInit();
 		OnBeforeRun();
 
 		m_isRunning = true;
 		while (m_isRunning)
 		{
+			OnBeginFrame();
 			OnFrame();
+			OnEndFrame();
 		}
-		
+
 		OnTerminate();
 	}
 }
+

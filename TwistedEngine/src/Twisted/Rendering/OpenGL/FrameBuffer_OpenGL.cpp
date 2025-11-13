@@ -1,4 +1,4 @@
-#include "Twisted/Rendering/FrameBuffer.h"
+﻿#include "Twisted/Rendering/FrameBuffer.h"
 
 #include <glad/glad.h>
 #include <string>
@@ -6,16 +6,35 @@
 
 namespace Twisted
 {
-
-	void FrameBuffer::Init()
+	void FrameBuffer::OnCreate()
 	{
+		m_tex = TObject::Create<Texture>("_mainTex");
+		m_tex->Resize(m_size);
+
+		if (!m_tex || !m_tex->IsValid())
+		{
+			TWISTED_WARN("Framebuffer without texture: {}", GetName());
+			return;
+		}
+
 		glGenFramebuffers(1, &m_id);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER,
+			GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D,
+			m_tex->GetTexID(),
+			0
+		);
 
 		glGenRenderbuffers(1, &m_rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_tex->GetWidth(), m_tex->GetHeight());
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+
+		GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, drawBuffers);
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -23,12 +42,26 @@ namespace Twisted
 			TWISTED_WARN(errorMessage);
 		}
 
-		if (m_tex) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex->GetTexID(), 0);
-		}
-
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		m_isDirty = true;
+
+		TWISTED_INFO("Framebuffer '{}' created successfully ({}x{})", GetName(), m_size.x, m_size.y);
+	}
+
+	void FrameBuffer::SetSize(const Vec2i& size)
+	{
+		if (m_tex && m_tex->IsValid())
+		{
+			if (m_size != size)
+			{
+				m_size = size;
+				m_tex->Resize(m_size);
+				m_isDirty = true;
+			}
+		}
+		else
+			TWISTED_WARN("Cannot resize framebuffer with invalid texture");
 	}
 
 	void FrameBuffer::Bind()
@@ -38,10 +71,12 @@ namespace Twisted
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 
-		if (IsDirty())
+		if (m_isDirty)
+		{
 			Update();
+		}
 
-		glViewport(0, 0, m_tex->GetWidth(),m_tex->GetHeight());
+		glViewport(0, 0, m_tex->GetWidth(), m_tex->GetHeight());
 	}
 
 	void FrameBuffer::UnBind()const
@@ -54,12 +89,12 @@ namespace Twisted
 		glDeleteFramebuffers(1, &m_id);
 		glDeleteRenderbuffers(1, &m_rbo);
 
-		SetTexture(nullptr);
+		TObject::Destroy(m_tex.GetObj());
 		m_rbo = m_id = 0;
 		m_isDirty = true;
 	}
 
-	void FrameBuffer::Blit(unsigned int destID)const
+	void FrameBuffer::Blit(unsigned int destID)const //TODO... may be improved
 	{
 		if (!IsValid())
 			return;
@@ -79,57 +114,38 @@ namespace Twisted
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-	void FrameBuffer::ClearBuffers()const
-	{
-		if (m_clearBits)
-		{
-			if (m_params.doClearColor)
-				glClearColor(m_params.clearColor.r, m_params.clearColor.g, m_params.clearColor.b, m_params.clearColor.a);
-			if (m_params.doClearDepth)
-				glClearDepth(1.0f);
-			if (m_params.doClearStencil)
-				glClearStencil(0);
-			glClear(m_clearBits);
-		}
-	}
-
 	void FrameBuffer::Update()
 	{
 		if (m_tex)
 		{
 			glBindTexture(GL_TEXTURE_2D, m_tex->GetTexID());
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_tex->GetWidth(),m_tex->GetHeight(),
-				0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RGBA8,
+				m_tex->GetWidth(),
+				m_tex->GetHeight(),
+				0,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				nullptr
+			);
 		}
 
 		if (m_rbo)
 		{
 			glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
-				m_tex->GetWidth(), m_tex->GetHeight());
+			glRenderbufferStorage(
+				GL_RENDERBUFFER,
+				GL_DEPTH24_STENCIL8,
+				m_tex->GetWidth(),
+				m_tex->GetHeight()
+			);
 		}
 
-		if (m_params.doDepthTest)
-			glEnable(GL_DEPTH_TEST);
-		else
-			glDisable(GL_DEPTH_TEST);
-
-		if (m_params.doClearStencil)
-			glEnable(GL_STENCIL_TEST);
-		else
-			glDisable(GL_STENCIL_TEST);
-
-		glDepthMask(m_params.doDepthWrite ? GL_TRUE : GL_FALSE);
-
-		GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-		glDrawBuffers(1, drawBuffers);
-
-		// Precompute clear bits
-		m_clearBits = 0;
-		if (m_params.doClearColor)   m_clearBits |= GL_COLOR_BUFFER_BIT;
-		if (m_params.doClearDepth)   m_clearBits |= GL_DEPTH_BUFFER_BIT;
-		if (m_params.doClearStencil) m_clearBits |= GL_STENCIL_BUFFER_BIT;
-
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		m_isDirty = false;
 	}
 }
+

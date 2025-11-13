@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Twisted/Gameing/AComponent.h"
+#include "Twisted/Gameing/WorldRegistry.h"
 
 namespace Twisted
 {
@@ -13,3 +14,6 @@ namespace Twisted
 		void YamlDeserialize(const YAML::Node& node) override{};
 	};
 }
+
+REGISTER_COMPONENT(CMainCamera, "CMainCamera");
+

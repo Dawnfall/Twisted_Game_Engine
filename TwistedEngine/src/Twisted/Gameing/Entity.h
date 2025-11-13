@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Serialization/BinSerializer.h"
@@ -92,3 +92,4 @@ namespace YAML
 		}
 	};
 }
+

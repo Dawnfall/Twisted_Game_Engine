@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 
 #include <filesystem>
@@ -59,3 +59,4 @@ namespace Twisted::Utils
 	//// Method to read buffer from a binary file
 	//bool ReadBufferFromFile(const std::string& filePath, Buffer& buffer);
 }
+

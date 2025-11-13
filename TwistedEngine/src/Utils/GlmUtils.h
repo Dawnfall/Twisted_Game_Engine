@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 
 //glm
@@ -486,3 +486,4 @@ struct YAML::convert<glm::quat>
 		return true;
 	}
 };
+

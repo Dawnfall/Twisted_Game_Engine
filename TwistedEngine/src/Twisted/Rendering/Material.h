@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Twisted/TObject.h"
 #include "Shader.h"
@@ -175,3 +175,4 @@ namespace Twisted
 		Shader* m_shader = nullptr;
 	};
 }
+

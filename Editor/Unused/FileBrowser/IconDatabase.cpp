@@ -1,4 +1,4 @@
-#include "editorpch.h"
+﻿#include "editorpch.h"
 #include "IconDatabase.h"
 #include "Rendering/RenderingAPI.h"
 #include "Twisted.h"

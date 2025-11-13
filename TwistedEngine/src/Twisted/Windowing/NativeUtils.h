@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include <string>
 #include <filesystem>
@@ -15,3 +15,4 @@ namespace Twisted::Native
 
 	TWISTED_API bool ShowConfirmDialog(Window& window, const std::wstring& message, const std::wstring& title);
 }
+

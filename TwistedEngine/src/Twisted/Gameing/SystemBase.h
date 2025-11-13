@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 
@@ -22,3 +22,4 @@ namespace Twisted
 		World* m_world;
 	};
 }
+

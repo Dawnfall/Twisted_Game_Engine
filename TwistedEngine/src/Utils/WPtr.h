@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include <cstdint>
@@ -16,7 +16,7 @@ namespace Twisted
 	{
 		static_assert(std::is_base_of_v<TObject, T>, "T must derive from TObject");
 	public:
-		WPtr() {}
+		WPtr() noexcept {}
 		WPtr(std::nullptr_t) noexcept :WPtr() { }
 		explicit WPtr(T* ptr) : WPtrBase(ptr) {  }
 
@@ -26,17 +26,25 @@ namespace Twisted
 				m_id = ptr->GetID();
 			else
 				m_id = ObjectID(); // invalid
+			m_ptr = ptr;
 			return *this; // return reference to self
 		}
+
+		template<typename U>
+		WPtr(const WPtr<U>& other) requires std::is_convertible_v<U*, T*>
+			: WPtrBase(other) {
+		}
+
 		WPtr& operator=(std::nullptr_t) noexcept
 		{
 			m_id = ObjectID(); // make invalid
+			m_ptr = nullptr;
 			return *this;
 		}
 
 		// Access the object
 		[[nodiscard]] T* get() noexcept { return static_cast<T*>(GetObj()); }
-		[[nodiscard]] const T* get() const noexcept { ;return static_cast<const T*>(GetObj()); }
+		[[nodiscard]] const T* get() const noexcept { return static_cast<const T*>(GetObj()); }
 
 		[[nodiscard]] T& operator*() noexcept { return *get(); }
 		[[nodiscard]] const T& operator*() const noexcept { return *get(); }
@@ -47,3 +55,4 @@ namespace Twisted
 		explicit operator bool() const noexcept { return get() != nullptr; }
 	};
 }
+

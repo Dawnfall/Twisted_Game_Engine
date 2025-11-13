@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include <chrono>
@@ -47,3 +47,5 @@ namespace Twisted
 //	m_relativeFrameCount = 0;
 //}
 //const float FRAMERATE_CAPTURE_TIME = 1.0f;
+
+

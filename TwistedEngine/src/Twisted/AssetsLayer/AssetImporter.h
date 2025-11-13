@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Debug/Logger.h"
 
 #include "Utils/FileUtils.h"
@@ -23,9 +23,9 @@ namespace Twisted
 	class TWISTED_API AssetImporter
 	{
 	public:
-		virtual void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
-		virtual void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
-		virtual void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
+		virtual void ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
+		virtual void HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
+		virtual void PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const = 0;
 
 		virtual bool DoAutoImport()const = 0;
 		virtual std::vector<fs::path> GetAssetExtensions()const = 0;
@@ -41,3 +41,4 @@ namespace Twisted
 		}
 	};
 }
+

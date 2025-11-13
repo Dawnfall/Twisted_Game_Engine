@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 
 namespace Twisted
@@ -11,8 +11,6 @@ namespace Twisted
 			m_app(app)
 		{
 		}
-
-		virtual void Init() {};
 
 		Layer(const Layer& other) = delete;
 		Layer(Layer&& other) = delete;
@@ -27,3 +25,4 @@ namespace Twisted
 		Application* m_app;
 	};
 }
+

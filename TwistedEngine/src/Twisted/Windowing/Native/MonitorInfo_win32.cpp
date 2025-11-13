@@ -1,4 +1,4 @@
-#include "AppCore.h"
+Ôªø#include "AppCore.h"
 #ifndef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/MonitorInfo.h"
@@ -29,7 +29,7 @@ namespace Twisted
 
 	Vec2i MonitorInfo::GetMonitorSize()
 	{
-        // Thereís no exact ìphysical sizeî in mm in Win32 without DPI APIs, 
+        // There‚Äôs no exact ‚Äúphysical size‚Äù in mm in Win32 without DPI APIs, 
                 // so you can approximate using resolution / DPI.
         Vec2i res = GetResolution();
         HMONITOR hMon = GetMonitorHandle(m_index);
@@ -111,3 +111,4 @@ namespace Twisted
     }
 }
 #endif
+

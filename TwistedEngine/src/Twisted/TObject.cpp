@@ -1,14 +1,27 @@
-#include "TObject.h"
-#include "ObjectManager.h"
+﻿#include "TObject.h"
 
 namespace Twisted
 {
-	TObject::TObject(const std::string& name) :
-		m_name(name) 
-	{}
+	constexpr size_t startCapacity = 512;
 
-	TObject::~TObject()
+	std::vector<URef<TObject>> TObject::s_objects;
+	std::vector<uint32_t> TObject::s_generation;
+	std::vector<uint32_t> TObject::s_freeIndices;
+
+
+
+	void TObject::Initialize()
 	{
-		ObjectManager::DestroyID(GetID());
+		s_objects.reserve(startCapacity);
+		s_generation.reserve(startCapacity);
+		s_freeIndices.reserve(startCapacity);
 	}
+
+
+
+	struct ObjectManagerInitializer
+	{
+		ObjectManagerInitializer() { TObject::Initialize(); }
+	} s_init; // Runs before main()
 }
+

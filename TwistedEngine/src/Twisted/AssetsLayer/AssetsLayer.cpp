@@ -1,10 +1,9 @@
-#include "AssetsLayer.h"
+﻿#include "AssetsLayer.h"
 #include "Twisted/Application/Application.h"
 #include "Utils/FileUtils.h"
 #include "Debug/Logger.h"
 #include <yaml-cpp/yaml.h>
 
-#include "Twisted/ObjectManager.h"
 #include "Twisted/AssetsLayer/Project.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Utils/WPtr.h"
@@ -14,116 +13,38 @@
 #include "AssetImporter.h"
 namespace Twisted
 {
-	void AssetsLayer::ImportAsset(AssetInfo& info)
+	void AssetsLayer::AutoImportAssets() //TODO:... doesnt use validation for hot reload
 	{
-		if (info.IsValid())
+		if (m_project.GetRootPath() == "")
 			return;
 
-		AssetImporterRegistry& reg = AssetImporterRegistry::GetInstance();
-		AssetsLayer& assetsReg = AssetsLayer::GetInstance();
-
-		AssetImporter* importer = reg.GetImporter(info.GetExt());
-		if (!importer || !importer->DoAutoImport())
-			return;
-
-		if (GetAssetObjects(info.GetUuid()).empty())
-			importer->ImportNew(info, GetAssetObjects(info.GetUuid()));
-		else
-			importer->HotReload(info, GetAssetObjects(info.GetUuid()));
-	}
-
-	void AssetsLayer::PostImportAsset(AssetInfo& info)
-	{
-		if (info.IsValid())
-			return;
-
-		AssetImporterRegistry& importerReg = AssetImporterRegistry::GetInstance();
-		AssetsLayer& assetsReg = AssetsLayer::GetInstance();
-
-		AssetImporter* importer = importerReg.GetImporter(info.GetExt());
-		if (!importer || !importer->DoAutoImport())
-			return;
-
-		importer->PostImport(info, GetAssetObjects(info.GetUuid()));
-
-		info.Validate();
-	}
-
-	void AssetsLayer::ImportAssets()
-	{
 		fs::path assetsFolder = m_project.GetAssetsFolder();
-
 		DeleteLoneInfos(assetsFolder);
 		RemoveDanglingAssetObjects(assetsFolder);
 		DetectAllAssets(assetsFolder);
 
+		std::vector<FileAssetInfo*> toImport;
 		for (auto& [key, info] : m_assetsByPath)
 		{
-			info->LoadInfo(); //TODO... what if info loaded but no auto import?
-			ImportAsset(*info);
+			//TODO:... check for validation
+			toImport.emplace_back(dynamic_cast<FileAssetInfo*>(info.get()));
 		}
-
-		for (auto& [key, info] : m_assetsByPath) //TODO... maybe add to vector
-		{
-			PostImportAsset(*info);
-		}
+		ImportManaged(toImport);
 	}
 
-
-
-
-
-
-
-	AssetUuid AssetsLayer::GetObjectAsset(const TObject* object)const
+	std::vector<WPtrBase> AssetsLayer::ImportAssetDirect(const fs::path& assetPath)const
 	{
-		if (!object)
-			return AssetUuid::Invalid();
+		AssetInfo* assetInfo = GetInfo(assetPath);
+		FileAssetInfo* fileAssetInfo = dynamic_cast<FileAssetInfo*>(assetInfo);
 
-		for (auto& [assetUuid, assetObjects] : m_assetObjects)
-			for (auto& obj : assetObjects)
-				if (obj.GetObj() == object)
-					return assetUuid;
-		return AssetUuid::Invalid();
-	}
+		std::vector<WPtrBase> assetObjects;
+		if (!fileAssetInfo || !fileAssetInfo->GetInfo())
+			return assetObjects;
 
-	void AssetsLayer::SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)
-	{
-		auto importer = AssetImporterRegistry::GetInstance().GetImporter(assetPath.extension());
-		if (!importer)
-			return;
+		fileAssetInfo->GetImporter()->ImportNew(*fileAssetInfo, assetObjects);
+		fileAssetInfo->GetImporter()->PostImport(*fileAssetInfo, assetObjects);
 
-		importer->SaveAsset(assetPath, objects);
-	}
-
-	void AssetsLayer::SaveAsset(AssetUuid uuid)
-	{
-		if (!uuid.IsValid())
-			return;
-
-		auto info = GetInfo(uuid);
-		if (!info)
-			return;
-
-		auto importer = AssetImporterRegistry::GetInstance().GetImporter(info->GetExt());
-		if (!importer)
-			return;
-
-		SaveAsset(info->GetAssetPath(), GetAssetObjects(uuid));
-	}
-
-	void AssetsLayer::CreateInfo(const fs::path& assetPath)
-	{
-		AssetImporter* importer = AssetImporterRegistry::GetInstance().GetImporter(assetPath.extension());
-		if (!importer)
-			return;
-
-		SRef<AssetInfo> newInfo = std::make_shared<AssetInfo>(assetPath);
-		newInfo->LoadInfo();
-
-		m_assetsByPath[newInfo->GetAssetPath()] = newInfo;
-		m_assetsByUuid[newInfo->GetUuid()] = newInfo;
-		m_assetObjects[newInfo->GetUuid()] = {};
+		return assetObjects;
 	}
 
 	AssetInfo* AssetsLayer::GetInfo(const fs::path& assetPath)const
@@ -142,32 +63,18 @@ namespace Twisted
 		return nullptr;
 	}
 
-	void AssetsLayer::RemoveAsset(AssetInfo* asset)
+	AssetInfo* AssetsLayer::GetObjectAssetInfo(const TObject* object)const
 	{
-		for (auto& pair : GetAssetObjects(asset->GetUuid()))
-		{
-			ObjectManager::Destroy(pair.GetObj());
-		}
+		if (!object)
+			return nullptr;
 
-		m_assetsByPath.erase(asset->GetAssetPath());
-		m_assetsByUuid.erase(asset->GetUuid());
-		m_assetObjects.erase(asset->GetUuid());
+		for (auto& [assetUuid, assetObjects] : m_assetObjects)
+			for (auto& obj : assetObjects)
+				if (obj.GetObj() == object)
+					return GetInfo(assetUuid);
+		return nullptr;
 	}
 
-	std::vector<WPtrBase>& AssetsLayer::GetAssetObjects(AssetUuid uuid)
-	{
-		auto it = m_assetObjects.find(uuid);
-		if (it != m_assetObjects.end())
-			return it->second;
-		throw std::exception("Asset not existing");
-	}
-	const std::vector<WPtrBase>& AssetsLayer::GetAssetObjects(AssetUuid uuid)const
-	{
-		auto it = m_assetObjects.find(uuid);
-		if (it != m_assetObjects.end())
-			return it->second;
-		throw std::exception("Asset not existing");
-	}
 	TObject* AssetsLayer::GetAssetObject(AssetUuid uuid, const std::string& objName)
 	{
 		auto itAssets = m_assetObjects.find(uuid);
@@ -180,18 +87,144 @@ namespace Twisted
 		return nullptr;
 	}
 
+	std::vector<WPtrBase>& AssetsLayer::GetManagedAssetObjects(AssetInfo* info)
+	{
+		auto it = m_assetObjects.find(info->GetUuid());
+		if (it != m_assetObjects.end())
+			return it->second;
+		static std::vector<WPtrBase> empty;
+		return empty;
+	}
+	const std::vector<WPtrBase>& AssetsLayer::GetManagedAssetObjects(AssetInfo* info)const
+	{
+		auto it = m_assetObjects.find(info->GetUuid());
+		if (it != m_assetObjects.end())
+			return it->second;
+		static std::vector<WPtrBase> empty;
+		return empty;
+	}
+
+	void AssetsLayer::RemoveAsset(FileAssetInfo* asset)
+	{
+		for (auto& pair : GetManagedAssetObjects(asset))
+		{
+			TObject::Destroy(pair.GetObj());
+		}
+
+		m_assetsByPath.erase(asset->GetAssetPath());
+		m_assetsByUuid.erase(asset->GetUuid());
+		m_assetObjects.erase(asset->GetUuid());
+	}
+
 	void AssetsLayer::AddBuiltIn(AssetUuid uuid, TObject* obj)
 	{
+		SRef<BuiltInAssetInfo> builtInInfo = std::make_shared<BuiltInAssetInfo>(obj->GetName(), uuid);
+		m_assetsByUuid[uuid] = builtInInfo;
 		m_assetObjects[uuid].emplace_back(WPtrBase(obj));
+	}
+
+	void AssetsLayer::SaveAsset(const FileAssetInfo* info, const std::vector<WPtrBase>& objects)
+	{
+		if (!info->GetImporter())
+			return;
+
+		info->GetImporter()->SaveAsset(info->GetAssetPath(), objects);
+		//TODO... validate
+	}
+
+	bool AssetsLayer::CreateNewAsset(const fs::path& path)
+	{
+		if (Utils::IsExisting(path))
+		{
+			TWISTED_WARN(std::format("Asset already exists at path: {}", path.string()));
+			return false;
+		}
+
+		auto importer = AssetImporterRegistry::GetInstance().GetImporter(path.extension());
+		importer->CreateNewAsset(path);
+		AssetInfo* info = CreateInfo(path);
+
+		if (!info || !importer->DoAutoImport())
+			return true;
+
+		std::vector<FileAssetInfo*> infos = { dynamic_cast<FileAssetInfo*>(info) };
+		ImportManaged(infos);
+		return true;
+	}
+
+	void AssetsLayer::SaveAssetDirect(const fs::path& assetPath, const std::vector<WPtrBase>& objects)
+	{
+		auto info = GetInfo(assetPath);
+
+		if (!info)
+		{
+			if (!CreateNewAsset(assetPath))
+				return;
+
+			info = GetInfo(assetPath);
+		}
+
+		auto assetInfo = dynamic_cast<FileAssetInfo*>(info);
+		SaveAsset(assetInfo, objects);
+	}
+
+	void AssetsLayer::SaveAssetManaged(FileAssetInfo* info)
+	{
+		if (!info || !info->GetImporter())
+			return;
+		SaveAsset(info, GetManagedAssetObjects(info));
+	}
+
+	AssetInfo* AssetsLayer::CreateInfo(const fs::path& assetPath)
+	{
+		AssetImporter* importer = AssetImporterRegistry::GetInstance().GetImporter(assetPath.extension());
+		if (!importer)
+			return nullptr;
+
+		SRef<FileAssetInfo> newInfo = std::make_shared<FileAssetInfo>(assetPath);
+
+		m_assetsByPath[newInfo->GetAssetPath()] = newInfo;
+		m_assetsByUuid[newInfo->GetUuid()] = newInfo;
+		if (importer->DoAutoImport())
+			m_assetObjects[newInfo->GetUuid()] = {};
+
+		return newInfo.get();
+	}
+
+	void AssetsLayer::ImportManaged(const std::vector<FileAssetInfo*>& infos)
+	{
+		for (auto info : infos)
+		{
+			info->LoadInfo(); //TODO... what if info loaded but no auto import?
+
+			if (!info->GetImporter() || !info->GetImporter()->DoAutoImport())
+				continue;
+
+			if (GetManagedAssetObjects(info).empty())
+				info->GetImporter()->ImportNew(*info, GetManagedAssetObjects(info));
+			else
+				info->GetImporter()->HotReload(*info, GetManagedAssetObjects(info));
+		}
+
+
+		for (auto info : infos) //TODO... maybe add to vector
+		{
+			if (!info->GetImporter() || !info->GetImporter()->DoAutoImport())
+				continue;
+
+			info->GetImporter()->PostImport(*info, GetManagedAssetObjects(info));
+			info->Validate();
+		}
 	}
 
 	void AssetsLayer::RemoveDanglingAssetObjects(const fs::path& assetsFolder)
 	{
-		std::vector<AssetInfo*> toRemove;
+		std::vector<FileAssetInfo*> toRemove;
 		for (auto& [path, info] : m_assetsByPath)
 		{
-			if (!info->AssetExists())
-				toRemove.emplace_back(info.get());
+			FileAssetInfo* assetInfo = dynamic_cast<FileAssetInfo*>(info.get());
+			if (!assetInfo->AssetExists())
+				toRemove.emplace_back(assetInfo);
 		}
 
 		for (auto& asset : toRemove)
@@ -226,4 +259,7 @@ namespace Twisted
 			CreateInfo(entry.path());
 		}
 	}
+
+
 }
+

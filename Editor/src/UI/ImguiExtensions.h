@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define NOMINMAX
 
 //#include "AppCore.h"
@@ -104,6 +104,8 @@ namespace Im
 		return defaultValue;
 	}
 
+	bool DrawToggle(const char* label, bool& value);
+
 	//from filebrowser
 	bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg);
 	bool FavoriteButton(const char* label, bool isFavorite);
@@ -142,7 +144,7 @@ namespace Im
 			ImGui::Text(label.c_str());
 			ImGui::Separator();
 
-			std::vector<T*> objects = Twisted::AssetsLayer::GetInstance().GetObjectsOfType<T>();
+			std::vector<T*> objects = Twisted::AssetsLayer::GetInstance()->GetObjectsOfType<T>();
 			for (T* assetObject : objects)
 			{
 				if (ImGui::Selectable(assetObject->GetName().c_str()))
@@ -251,7 +253,7 @@ namespace Im
 			auto [success, assetInfo] = Im::DragTarget<Twisted::AssetInfo*>(Twisted::Editor::Constants::ASSET_DRAG_TYPE, nullptr);
 			if (success && assetInfo)
 			{
-				auto& objects = Twisted::AssetsLayer::GetInstance().GetAssetObjects(assetInfo->GetUuid());
+				auto& objects = Twisted::AssetsLayer::GetInstance()->GetManagedAssetObjects(assetInfo);
 				if(!objects.empty())
 					obj = dynamic_cast<T*>(objects[0].GetObj());
 			}

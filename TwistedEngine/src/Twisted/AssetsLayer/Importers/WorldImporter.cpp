@@ -1,4 +1,4 @@
-#include "WorldImporter.h"
+﻿#include "WorldImporter.h"
 
 #include "Twisted/Gameing/World.h"
 #include "Utils/WPtr.h"
@@ -6,10 +6,10 @@
 #include "Serialization/BinSerializer.h"
 #include "Twisted/Gameing/WorldRegistry.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
-#include "Twisted/ObjectManager.h"
+
 namespace Twisted
 {
-	void WorldImporter::ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void WorldImporter::ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//BinSerializer buffer;
 		//buffer.LoadFromFile(assetInfo.AssetPath);
@@ -17,20 +17,20 @@ namespace Twisted
 
 		YAML::Node data = YAML::LoadFile(assetInfo.GetAssetPath().string());
 
-		WPtr<World> world(ObjectManager::Create<World>(assetInfo.GetAssetName()));
+		WPtr<World> world(TObject::Create<World>(assetInfo.GetAssetName()));
 		world->YamlDeserialize(data);
 
 		objects.emplace_back(world);
 	}
 
-	void WorldImporter::HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void WorldImporter::HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//TODO...
 		//World* world = objects[""].GetObj()->static_as<World>();
 		//world->Clear();
 	}
 
-	void WorldImporter::PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void WorldImporter::PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//BinSerializer buffer;
 		//buffer.LoadFromFile(assetInfo.AssetPath);
@@ -66,3 +66,4 @@ namespace Twisted
 }
 
 REGISTER_IMPORTER(WorldImporter)
+

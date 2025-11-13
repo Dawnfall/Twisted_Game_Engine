@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "UI/EditorPanel.h"
 #include <filesystem>
 #include "EditorLayer.h"
@@ -37,4 +37,5 @@ namespace Twisted::Editor
 		std::optional<Im::InputTextToken> m_newFileName = std::nullopt;
 	};
 }
+
 

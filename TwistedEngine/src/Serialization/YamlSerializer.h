@@ -1,4 +1,4 @@
-#include "SerializedBuffer.h"
+﻿#include "SerializedBuffer.h"
 
 #include "Utils/YamlUtils.h"
 
@@ -12,3 +12,4 @@ namespace Twisted
 	};
 
 }
+

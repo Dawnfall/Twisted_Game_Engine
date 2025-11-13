@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Utils/Utils.h"
@@ -17,18 +17,10 @@ namespace Twisted
 	class TWISTED_API CTransform :public AComponent
 	{
 	public:
-		CTransform(Entity entity) :
-			AComponent(entity),
-			m_position(0.0f, 0.0f, 0.0f),
-			m_rotation(1, 0, 0, 0),
-			m_scale(1.0f, 1.0f, 1.0f),
-			m_parent(NullEntity)
-		{
-		}
-		~CTransform();
-		//	CTransform(EntityID entity, const Vec3f& position, const Quat& rotation, const Vec3f& scale);
+		CTransform(Entity entity);
 
-		void Init()override;
+		void OnInit()override;
+		void OnDestroy()override;
 
 		//***************
 		// Transform
@@ -164,4 +156,6 @@ namespace Twisted
 }
 
 REGISTER_COMPONENT(CTransform, "CTransform");
+
+
 

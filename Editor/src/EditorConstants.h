@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Utils/GlmUtils.h"
 #include "Data/Color.h"

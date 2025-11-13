@@ -1,4 +1,4 @@
-#include "WorldSystemPanel.h"
+﻿#include "WorldSystemPanel.h"
 #include "Utils/Utils.h"
 #include "UI/ImguiExtensions.h"
 #include "EditorRegistry.h"
@@ -27,18 +27,18 @@ namespace Twisted::Editor
 
 		if (ImGui::BeginPopup(ADD_SYSTEM_POPUP.c_str()))
 		{
-			/*for (auto& compPainter : SystemReg::GetInstance().Sys)
+			for (auto& [sysName,entry] : WorldRegistry::GetInstance().GetSystemEntries())
 			{
-				void* component = compPainter->GetComponent(*entity);
-				if (!component)
+				bool hasSystem = entry.HasSystemMethod(*gameWorld);
+				if (!hasSystem)
 				{
-					if (ImGui::Selectable(compPainter->GetComponentName().c_str()))
+					if (ImGui::Selectable(sysName.c_str()))
 					{
-						compPainter->AddComponent(*entity);
+						entry.AddSystemMethod(*gameWorld);
 						ImGui::CloseCurrentPopup();
 					}
 				}
-			}*/
+			}
 			ImGui::EndPopup();
 		}
 	}

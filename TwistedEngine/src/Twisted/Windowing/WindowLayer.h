@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Twisted/Application/Application.h"
 #include "Twisted/Application/Layer.h"
@@ -8,18 +8,20 @@ namespace Twisted
 {
 	class TWISTED_API WindowLayer :public Layer
 	{
-	public:		
+	public:
 		WindowLayer(Application* app);
 		~WindowLayer();
 
 		Window* GetWindow() { return (m_window) ? m_window.get() : nullptr; }
-		Window* CreateNewWindow(const std::string& title,const Vec2i& size, const Vec2i& position)
+		Window* CreateNewWindow(const std::string& title, const Vec2i& size, const Vec2i& position)
 		{
 			m_window = std::make_unique<Window>(title, size, position);
 			return m_window.get();
 		}
 
+		void PollEvents();
 	private:
 		URef<Window> m_window;
 	};
 }
+

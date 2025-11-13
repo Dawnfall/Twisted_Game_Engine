@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AComponent.h"
 #include "World.h"
@@ -19,39 +19,6 @@ constexpr const char* GetTypeName() = delete;
 
 namespace Twisted
 {
-	template<typename T>
-	YAML::Node YamlSystemSerialize(const SystemBase& obj) { return YAML::Node(); }
-	template<typename T>
-	URef<SystemBase> YamlSystemDeserialize(const YAML::Node& node, World& world) { return std::make_unique<T>(&world); }
-	template<typename T>
-	YAML::Node YamlSerializeComponents(const World& world)
-	{
-		YAML::Node allCompNode;
-
-		auto view = world.GetRegistry().view<T>();
-		for (auto entity : view)
-		{
-			allCompNode[entity] = view.get<T>(entity).YamlSerialize();
-		}
-
-		return allCompNode;
-	}
-	template<typename T>
-	void YamlDeserializeComponent(World& world, const YAML::Node& allCompNode)
-	{
-		for (auto it = allCompNode.begin(); it != allCompNode.end(); ++it)
-		{
-			EntityID entID = (*it).first.as<EntityID>(NullEntity);
-			const YAML::Node& entNode = (*it).second;
-
-			if (!world.GetRegistry().valid(entID))
-				entID = world.GetRegistry().create(entID);
-
-			T& newComponent = world.GetRegistry().emplace<T>(entID, Entity{ entID, &world });
-			newComponent.YamlDeserialize(entNode);
-		}
-	}
-
 	class TWISTED_API WorldRegistry
 	{
 	public:
@@ -91,13 +58,30 @@ namespace Twisted
 				return entity.GetWorld()->HasComponent<T>(entity.GetID());
 				};
 			entry.YamlSerMethod = [](const World& world)->YAML::Node {
-				return YamlSerializeComponents<T>(world);
+				YAML::Node allCompNode;
+
+				auto view = world.GetRegistry().view<T>();
+				for (auto entity : view)
+				{
+					allCompNode[entity] = view.get<T>(entity).YamlSerialize();
+				}
+
+				return allCompNode;
 				};
-			entry.YamlDeserMethod = [](World& world, const YAML::Node node) {
-				YamlDeserializeComponent<T>(world, node);
+			entry.YamlDeserMethod = [](World& world, const YAML::Node allCompNode) {
+				for (auto it = allCompNode.begin(); it != allCompNode.end(); ++it)
+				{
+					EntityID entID = (*it).first.as<EntityID>(NullEntity);
+					const YAML::Node& entNode = (*it).second;
+
+					if (!world.GetRegistry().valid(entID))
+						entID = world.GetRegistry().create(entID);
+
+					T& newComponent = world.GetRegistry().emplace<T>(entID, Entity{ entID, &world });
+					newComponent.YamlDeserialize(entNode);
+				}
 				};
 		}
-
 
 		template<typename T>
 		void RegisterSystem()
@@ -114,10 +98,10 @@ namespace Twisted
 				return world.HasSystem<T>();
 				};
 			entry.YamlSerMethod = [](const SystemBase& obj)->YAML::Node {
-				return YamlSystemSerialize<T>(static_cast<const T&>(obj));
+				return YAML::Node(); //TODO:... could call it on system or static
 				};
-			entry.YamlDeserMethod = [](World& world, const YAML::Node& node) {
-				return YamlSystemDeserialize<T>(node, world);
+			entry.YamlDeserMethod = [](World& world, const YAML::Node& node)->URef<SystemBase> {
+				return std::make_unique<T>(&world); //TODO:... could call it on system or static
 				};
 		}
 
@@ -171,7 +155,7 @@ namespace Registry														\
 }
 
 #define REGISTER_SYSTEM(S,Name)										\
-template<> const char* GetTypeName<Twisted::S>() { return Name; }					\
+template<> inline const char* GetTypeName<Twisted::S>() { return Name; }					\
 namespace Registry														\
 {																		\
     struct S##AutoRegister												\
@@ -227,3 +211,4 @@ namespace Registry														\
 //m_deserializers[compName] = [this](World& world, BinSerializer& buffer, EntityID id) {
 //	this->DeserializeComponent<T>(world, buffer, id);
 //	};
+

@@ -1,4 +1,4 @@
-#include "CRendererPainter.h"
+﻿#include "CRendererPainter.h"
 #include "EditorRegistry.h"
 
 namespace Twisted::Editor
@@ -7,7 +7,6 @@ namespace Twisted::Editor
 	{
 		CRenderer* renderer = static_cast<CRenderer*>(obj);
 
-		//Im::ComponentDropField<Mesh>();
 		auto newMaterial = Im::ObjectDropField<Material>("Material", renderer->GetSharedMaterial());
 		renderer->SetSharedMaterial(newMaterial);
 		auto newMesh = Im::ObjectDropField<Mesh>("Mesh", renderer->GetSharedMesh());

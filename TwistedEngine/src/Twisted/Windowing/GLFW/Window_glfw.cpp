@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 #ifdef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/Window.h"
@@ -427,10 +427,7 @@ namespace Twisted
 		glfwSetWindowPos(static_cast<GLFWwindow*>(m_pointer), newPosition.x, newPosition.y);
 	}
 
-	void Window::PollEvents()
-	{
-		glfwPollEvents();
-	}
+
 
 	void Window::SetFullScreen(bool isFullScreen) //TODO... borderless fullscreen
 	{
@@ -501,3 +498,5 @@ namespace Twisted
 }
 
 #endif
+
+

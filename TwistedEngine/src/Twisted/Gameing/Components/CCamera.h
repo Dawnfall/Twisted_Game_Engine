@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
@@ -7,6 +7,8 @@
 #include "Twisted/Rendering/FrameBuffer.h"
 #include "CMainCamera.h"
 #include "Twisted/Gameing/WorldRegistry.h"
+
+
 
 namespace Twisted
 {
@@ -40,9 +42,12 @@ namespace Twisted
 		CCamera(Entity entity) : AComponent(entity)
 		{
 		}
-		~CCamera();
+
+		void OnInit()override;
+		void OnDestroy()override;
+
 		bool IsMainCamera()const;
-		void SetAsMainCamera();
+		void SetAsMainCamera(bool isMain);
 
 		Mat4x4f GetViewMatrix()const;
 		Mat4x4f GetProjectionMatrix()const;
@@ -124,3 +129,4 @@ struct YAML::convert<Twisted::CameraProjectionType>
 };
 
 REGISTER_COMPONENT(CCamera, "CCamera");
+

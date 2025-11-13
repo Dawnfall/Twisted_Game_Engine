@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Twisted/RegisterLayer/ObjectID.h"
 #include "Mesh.h"
@@ -17,3 +17,4 @@ namespace Twisted
 		std::vector<Mesh*> Meshes;
 	};
 }
+

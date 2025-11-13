@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include <cstdint>
 
@@ -57,3 +57,5 @@ namespace Twisted
 	};
 
 }
+
+

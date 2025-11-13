@@ -1,4 +1,4 @@
-#include "World.h"
+﻿#include "World.h"
 #include "SystemBase.h"
 
 #include "Twisted/Gameing/Components/CTransform.h"
@@ -12,6 +12,8 @@
 #include <vector>
 #include "WorldRegistry.h"
 
+
+
 namespace Twisted
 {
 	World::World(const std::string& name) :TObject(name) {}
@@ -20,6 +22,7 @@ namespace Twisted
 	{
 		m_registry.clear();
 		m_systems.clear();
+		m_rootEntities.clear();
 	}
 	void World::UpdateFrame()
 	{
@@ -27,32 +30,31 @@ namespace Twisted
 			system->Update();
 	}
 
-
-
 	YAML::Node World::YamlSerialize()const
 	{
 		YAML::Node node;
 
-		YAML::Node systemsNode=node["systems"];
+		auto systemsNode = node[SYSTEMS_SER_KEY];
 		for (auto& system : m_systems)
 		{
 			auto name = system->GetTypeName();
 			const auto entry = WorldRegistry::GetInstance().GetSystemEntry(name);
 			if (entry)
-				entry->YamlSerMethod(*system);
+				systemsNode[name] = entry->YamlSerMethod(*system);
 		}
-		YAML::Node allCompNode = node["components"];
+
+		auto allCompNode = node[COMPONENTS_SER_KEY];
 		for (auto& [compName, entry] : WorldRegistry::GetInstance().GetComponentEntries())
 		{
 			allCompNode[compName] = entry.YamlSerMethod(*this);
 		}
-		node["roots"] = m_rootEntities;
+		node[ROOTS_SER_KEY] = m_rootEntities;
 		return node;
 	}
 
 	void World::YamlDeserialize(const YAML::Node& data)
 	{
-		if (const YAML::Node systemsNode = data["systems"]; systemsNode && systemsNode.IsMap())
+		if (const YAML::Node& systemsNode = data[SYSTEMS_SER_KEY]; systemsNode && systemsNode.IsMap())
 		{
 			for (const auto& sysNode : systemsNode)
 			{
@@ -62,17 +64,21 @@ namespace Twisted
 					m_systems.emplace_back(entry->YamlDeserMethod(*this, sysNode.second));
 			}
 		}
-		if (const YAML::Node& allCompNode = data["components"]; allCompNode && allCompNode.IsMap())
+		if (const YAML::Node& allCompNode = data[COMPONENTS_SER_KEY]; allCompNode && allCompNode.IsMap())
 		{
 			for (auto it = allCompNode.begin(); it != allCompNode.end(); ++it)
 			{
 				const std::string compName = it->first.as<std::string>("");
 				const YAML::Node& compNode = it->second;
-				WorldRegistry::GetInstance().GetComponentEntry(compName)->YamlDeserMethod(*this, compNode);
+
+				auto entry = WorldRegistry::GetInstance().GetComponentEntry(compName);
+				if (entry)
+					entry->YamlDeserMethod(*this, compNode);
 			}
 		}
-		m_rootEntities = data["roots"].as<std::vector<EntityID>>();
 
+		if (const auto& roots = data[ROOTS_SER_KEY]; roots && roots.IsSequence())
+			m_rootEntities = roots.as<std::vector<EntityID>>();
 	}
 }
 
@@ -118,3 +124,4 @@ namespace Twisted
 //	}
 //	return buffer;
 //}
+

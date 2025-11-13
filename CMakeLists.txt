@@ -19,6 +19,10 @@ if(NOT DEFINED ENV{VCPKG_ROOT})
     message(FATAL_ERROR "Please set VCPKG_ROOT to your vcpkg installation")
 endif()
 
+#if(MSVC)
+#    add_compile_options("/utf-8")
+#endif()
+
 # Output directories (organized by build type and platform)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)

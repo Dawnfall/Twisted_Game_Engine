@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/Gameing/SystemBase.h"
@@ -21,3 +21,4 @@ namespace Twisted
 		RenderLayer* m_renderLayer;
 	};
 }
+

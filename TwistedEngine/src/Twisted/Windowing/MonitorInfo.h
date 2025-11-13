@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Utils/GlmUtils.h"
 
@@ -26,3 +26,5 @@ namespace Twisted
 		int m_index = -1;
 	};
 }
+
+

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Utils/Event.h"
 #include "Data/Color.h"
@@ -41,10 +41,12 @@ namespace Twisted
 		Event<Vec2i> WindowResizeEvent;
 
 		inline static Event<void*> PollMsgEvent;
-		static void PollEvents();
+
 
 	private:
 		void* m_pointer = nullptr;
 		URef<GraphicsContext> m_context = nullptr;
 	};
 }
+
+

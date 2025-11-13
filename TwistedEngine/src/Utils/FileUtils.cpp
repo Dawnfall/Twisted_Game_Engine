@@ -1,4 +1,4 @@
-
+﻿
 #include "FileUtils.h"
 #include "Debug/Logger.h"
 
@@ -99,7 +99,7 @@ namespace Twisted::Utils
 		std::vector<std::filesystem::directory_entry> files;
 		if (!Utils::IsFolder(folderPath))
 		{
-			TWISTED_WARN("Not a folder: " + folderPath);
+			TWISTED_WARN(std::format("Not a folder: {}", folderPath));
 			return files;
 		}
 
@@ -117,7 +117,7 @@ namespace Twisted::Utils
 		bool result = fs::create_directories(folderPath, ec);
 
 		if (ec)
-			TWISTED_WARN("Cannot create folder at path: " + folderPath.string() + ", error: " + ec.message());
+			TWISTED_WARN(std::format("Cannot create folder at path: {} , error: {}", folderPath.string(), ec.message()));
 		return result;
 	}
 
@@ -127,12 +127,12 @@ namespace Twisted::Utils
 		bool doExists = fs::exists(filePath, ec);
 		if (ec)
 		{
-			TWISTED_WARN("Cannot create file at path: " + filePath.string() + ", error: " + ec.message());
+			TWISTED_WARN(std::format("Cannot create file at path: {} , error: ", filePath.string(), ec.message()));
 			return false; // File already exists or error checking
 		}
 		if (doExists)
 		{
-			TWISTED_INFO("File already exists: " + filePath.string());
+			TWISTED_INFO(std::format("File already exists: {}", filePath.string()));
 			return true;
 		}
 
@@ -147,7 +147,7 @@ namespace Twisted::Utils
 		}
 		catch (...)
 		{
-			TWISTED_WARN("Error creating file: " + filePath.string());
+			TWISTED_WARN(std::format("Error creating file: {}", filePath.string()));
 			return false;
 		}
 
@@ -158,7 +158,7 @@ namespace Twisted::Utils
 		std::ifstream file(filePath);
 		if (!file.is_open())
 		{
-			TWISTED_WARN(std::format("Failed to open file: {0}", filePath.string()));
+			TWISTED_WARN(std::format("Failed to open file: {}", filePath.string()));
 			return "";
 		}
 		std::stringstream buffer;
@@ -248,3 +248,4 @@ namespace Twisted::Utils
 		return true;
 	}
 }
+

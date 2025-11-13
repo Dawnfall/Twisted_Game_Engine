@@ -1,4 +1,4 @@
-#include "MeshGenerator.h"
+﻿#include "MeshGenerator.h"
 
 //#include "Twisted/Data/Vertex.h"
 #include "Utils/GlmUtils.h"
@@ -88,7 +88,7 @@ namespace Twisted
 		}
 
 		MeshData mesh;
-		mesh.Indices = std::move(indices);
+		/*mesh.Indices = std::move(indices);
 
 		for (auto& pos : positions)
 		{
@@ -98,8 +98,10 @@ namespace Twisted
 			vert.TexCoord = getUVs(vert.Position);
 
 			mesh.Vertices.emplace_back(vert);
-		}
+		}*/
 
 		return mesh;
 	}
 }
+
+

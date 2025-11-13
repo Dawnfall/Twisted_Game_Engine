@@ -1,4 +1,4 @@
-#include "NativeUtils.h"
+﻿#include "NativeUtils.h"
 
 #include <shobjidl.h> 
 
@@ -185,3 +185,5 @@ namespace Twisted::Native
 //		return ofn.lpstrFile;
 //	return "";
 //}
+
+

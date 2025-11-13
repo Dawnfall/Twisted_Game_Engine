@@ -1,4 +1,4 @@
-#include "ModelImporter.h"
+﻿#include "ModelImporter.h"
 
 #include "Utils/GlmUtils.h"
 #include "Data/Vertex.h"
@@ -80,16 +80,16 @@ namespace Twisted
 		return vertex;
 	}
 
-	void ModelImporter::ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void ModelImporter::ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//TODO:...
 	}
-	void ModelImporter::HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void ModelImporter::HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//TODO:...
 	}
 
-	void ModelImporter::PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void ModelImporter::PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		//std::vector<std::string> MaterialUuids;
 		//std::vector<std::string> MeshUuids;
@@ -124,4 +124,6 @@ namespace Twisted
 }
 
 REGISTER_IMPORTER(ModelImporter)
+
+
 

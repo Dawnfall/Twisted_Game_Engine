@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <functional>
 #include <vector>
 
@@ -35,3 +35,5 @@ namespace Twisted
         std::vector<EventHandler> listeners;
     };
 }
+
+

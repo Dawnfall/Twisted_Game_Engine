@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/AssetsLayer/AssetImporter.h"
@@ -13,9 +13,9 @@ namespace Twisted
 	{
 	public:
 
-		void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-		void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-		void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
 
 		bool SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const override;
 
@@ -33,3 +33,5 @@ namespace Twisted
 	};
 }
 //
+
+

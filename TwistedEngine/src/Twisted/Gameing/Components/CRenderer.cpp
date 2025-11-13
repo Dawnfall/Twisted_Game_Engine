@@ -1,4 +1,4 @@
-#include "CRenderer.h"
+﻿#include "CRenderer.h"
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/Material.h"
 
@@ -8,21 +8,23 @@ namespace Twisted
 {
 	void CRenderer::Serialize(BinSerializer& buffer)const
 	{
-		//AssetUuid serMesh = AssetsLayer::GetInstance().GetObjectAsset(m_mesh);
-		//AssetUuid serMaterial = AssetsLayer::GetInstance().GetObjectAsset(m_material);
+		auto serMeshInfo = AssetsLayer::GetInstance()->GetObjectAssetInfo(m_mesh);
+		AssetUuid meshUuid = (serMeshInfo) ? serMeshInfo->GetUuid() : AssetUuid::Invalid();
+		buffer.Write<AssetUuid>(meshUuid, nullptr);
 
-		//buffer.Write<AssetUuid>(serMesh,nullptr);
-		//buffer.Write<AssetUuid>(serMaterial, nullptr);
+		auto serMaterialInfo = AssetsLayer::GetInstance()->GetObjectAssetInfo(m_material);
+		AssetUuid matUuid = (serMaterialInfo) ? serMaterialInfo->GetUuid() : AssetUuid::Invalid();
+		buffer.Write<AssetUuid>(matUuid, nullptr);
 	}
 	void CRenderer::Deserialize(BinSerializer& buffer)
 	{
-		//AssetUuid serMesh = buffer.Read<AssetUuid>(nullptr);
-		//std::string meshName = "";
-		//AssetUuid serMaterial = buffer.Read<AssetUuid>(nullptr);
-		//std::string materialName = "";
-		//
-		//m_mesh = AssetsLayer::GetInstance().GetAssetObject<Mesh>(serMesh,meshName);
-		//m_material = AssetsLayer::GetInstance().GetAssetObject<Material>(serMaterial, materialName);
+		AssetUuid serMesh = buffer.Read<AssetUuid>(nullptr);
+		std::string meshName = "";
+		m_mesh = static_cast<Mesh*>(AssetsLayer::GetInstance()->GetAssetObject(serMesh, meshName));
+
+		AssetUuid serMaterial = buffer.Read<AssetUuid>(nullptr);
+		std::string materialName = "";
+		m_material = static_cast<Material*>(AssetsLayer::GetInstance()->GetAssetObject(serMaterial, materialName));
 	}
 
 	YAML::Node CRenderer::YamlSerialize() const
@@ -41,4 +43,6 @@ namespace Twisted
 		m_material = static_cast<Material*>(YamlUtils::decodeTObject(node["mat"]));
 	}
 }
+
+
 

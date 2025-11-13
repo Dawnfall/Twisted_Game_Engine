@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Utils/GlmUtils.h"
 #include "Utils/FileUtils.h"
 #include "Debug/Logger.h"

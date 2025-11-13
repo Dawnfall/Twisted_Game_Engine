@@ -1,4 +1,4 @@
-#include "Twisted/Rendering/Material.h"
+﻿#include "Twisted/Rendering/Material.h"
 
 #include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "Twisted/Rendering/Shader.h"
@@ -193,3 +193,4 @@ namespace Twisted
 	}
 
 }
+

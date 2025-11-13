@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/Gameing/AComponent.h"
@@ -16,13 +16,12 @@ namespace Twisted
 	{
 	public:
 		CLight(Entity entity) :
-			AComponent(entity),
-			m_type(LightType::DIRECTIONAL)
+			AComponent(entity)
 		{
 		}
 
-		LightType GetType()const { return m_type; }
-		void SetType(LightType lightType) { m_type = lightType; }
+		//LightType GetType()const { return m_type; }
+		//void SetType(LightType lightType) { m_type = lightType; }
 
 		void Serialize(BinSerializer& buffer)const override;
 		void Deserialize(BinSerializer& buffer)override;
@@ -32,7 +31,7 @@ namespace Twisted
 
 	private:
 
-		LightType m_type;
+		//LightType m_type;
 	};
 }
 
@@ -71,3 +70,5 @@ namespace YAML
 
 
 REGISTER_COMPONENT(CLight, "CLight");
+
+

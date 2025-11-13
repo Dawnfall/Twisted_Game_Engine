@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace Twisted
 {
@@ -10,3 +10,4 @@ namespace Twisted
 
 	};
 }
+

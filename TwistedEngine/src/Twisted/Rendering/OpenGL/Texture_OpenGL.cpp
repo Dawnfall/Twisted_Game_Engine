@@ -1,4 +1,4 @@
-#include "Twisted/Rendering/Texture.h"
+﻿#include "Twisted/Rendering/Texture.h"
 
 #include "Debug/Logger.h"
 #include <glad/glad.h>
@@ -65,7 +65,6 @@ namespace Twisted
 		m_height = data.Height;
 		m_channels = data.Channels;
 
-		m_isDirty = true;
 		glGenTextures(1, &m_texID);
 		glBindTexture(GL_TEXTURE_2D, m_texID);
 		glTexImage2D(
@@ -79,17 +78,29 @@ namespace Twisted
 			GL_UNSIGNED_BYTE,
 			data.Data);
 
-		//input must always be RGBA;4 channels
+		ApplyParams();
+		
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		//currently input must always be RGBA;4 channels
 
 	}
 
 	void Texture::Resize(const Vec2i& newSize)
 	{
-		if (m_width == newSize.x && m_height == newSize.y || m_texID == 0)
-			return;
+		if (newSize.x <= 0 || newSize.y <= 0)
+			return; // dont allow zero or negative sizes
+
+		if (m_width == newSize.x && m_height == newSize.y && IsValid())
+			return; // already correct size
 
 		m_width = newSize.x;
 		m_height = newSize.y;
+
+		if (!IsValid())
+		{
+			glGenTextures(1, &m_texID);
+		}
 
 		Bind();
 
@@ -101,34 +112,78 @@ namespace Twisted
 			m_height,
 			0,
 			GL_RGBA,
-			GL_UNSIGNED_INT,
+			GL_UNSIGNED_BYTE,
 			nullptr
 		);
+
+		ApplyParams();
 
 		UnBind();
 	}
 
-	void Texture::Update()
+	void Texture::SetParams(const TextureParams& params)
 	{
-		if (!m_isDirty)
+		m_params = params;
+
+		if (!IsValid())
 			return;
 
+		Bind();
+		ApplyParams();
+		UnBind();
+	}
+
+	void Texture::SetWrapType(TextureWrap wrapType)
+	{
+		if (m_params.Wrap == wrapType)
+			return;
+
+		m_params.Wrap = wrapType;
+
+		if (!IsValid())
+			return;
+
+		Bind();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapToGL(m_params.Wrap));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapToGL(m_params.Wrap));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_params.MinFilter));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilterToGL(m_params.MagFilter));
+		UnBind();
+	}
 
+	void Texture::SetMagFilter(TextureMagFilter magFilter)
+	{
+		if (m_params.MagFilter == magFilter)
+			return;
+
+		m_params.MagFilter = magFilter;
+
+		if (!IsValid())
+			return;
+
+		Bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilterToGL(m_params.MagFilter));
+		UnBind();
+	}
+
+	void Texture::SetMinFilter(TextureMinFilter minFilter)
+	{
+		if (m_params.MinFilter == minFilter)
+			return;
+
+		m_params.MinFilter = minFilter;
+
+		if (!IsValid())
+			return;
+
+		Bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_params.MinFilter));
 		if (m_params.DoMipMaps)
 			glGenerateMipmap(GL_TEXTURE_2D);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		m_isDirty = false;
+		UnBind();
 	}
 
 	void Texture::Clear()
 	{
-		if (m_texID == 0)
+		if (!IsValid())
 			return;
 
 		glDeleteTextures(1, &m_texID);
@@ -146,4 +201,16 @@ namespace Twisted
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, m_texID);
 	}
+
+	void Texture::ApplyParams()const
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapToGL(m_params.Wrap));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapToGL(m_params.Wrap));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilterToGL(m_params.MinFilter));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFilterToGL(m_params.MagFilter));
+
+		if (m_params.DoMipMaps)
+			glGenerateMipmap(GL_TEXTURE_2D);
+	}
 }
+

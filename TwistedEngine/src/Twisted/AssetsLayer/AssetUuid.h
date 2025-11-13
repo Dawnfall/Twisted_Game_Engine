@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cstdint>
 #include <string>
@@ -128,3 +128,4 @@ struct YAML::convert<Twisted::AssetUuid>
 		return true;
 	}
 };
+

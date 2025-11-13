@@ -1,10 +1,10 @@
-#include "CCameraPainter.h"
+﻿#include "CCameraPainter.h"
 #include "EditorRegistry.h"
 
 #include "Twisted/Gameing/Components/CCamera.h"
 #include "Twisted/Gameing/World.h"
 
-#include <imgui.h>
+#include "UI/ImguiExtensions.h"
 
 namespace Twisted::Editor
 {
@@ -12,6 +12,11 @@ namespace Twisted::Editor
 	{
 		CCamera* camera = static_cast<CCamera*>(obj);
 
+        bool isMainCamera = camera->IsMainCamera();
+        if (Im::DrawToggle("Main camera", isMainCamera))
+        {
+            camera->SetAsMainCamera(isMainCamera);
+        }
         std::vector<const char*> options;
         for (int i = 0; i < static_cast<int>(CameraProjectionType::COUNT); ++i)
         {
@@ -76,3 +81,4 @@ namespace Twisted::Editor
 }
 
 REGISTER_COMPONENT_PAINTER(CCameraPainter,CCamera)
+

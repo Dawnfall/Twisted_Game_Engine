@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/Application/Application.h"
@@ -76,10 +76,6 @@ namespace Twisted
 			return false;
 		}
 
-
-
-
-
 		std::vector<URef<SystemBase>>& GetAllSystems() { return m_systems; }
 		const std::vector<URef<SystemBase>>& GetAllSystems()const { return m_systems; }
 
@@ -108,26 +104,55 @@ namespace Twisted
 		template<typename T, typename ... Args>
 		T& AddComponent(EntityID id, Args&&... args)
 		{
-			static_assert(std::is_base_of<AComponent, T>::value, "T must derive from AComponent");
+			static_assert(std::is_base_of_v<AComponent, T>, "T must derive from AComponent");
+			if (T* comp=m_registry.try_get<T>(id);comp)
+			{
+				TWISTED_INFO("entity already contains component");
+				return *comp;
+			}
+
+			TWISTED_INFO(std::format("World::AddComponent<{}> called for id {}", typeid(T).name(), (uint32_t)id));
+			assert(m_registry.valid(id) && "Entity invalid before adding component");
+
+			size_t beforeCount = std::distance(m_registry.storage<entt::entity>().begin(), m_registry.storage<entt::entity>().end());
 			T& newComponent = m_registry.emplace<T>(id, Entity{ id,this }, std::forward<Args>(args)...);
-			newComponent.Init();
+		
+			assert(m_registry.valid(id) && "Entity invalidated before Init()");
+			newComponent.OnInit();
+
+			assert(m_registry.valid(id) && "Entity invalidated after adding component");
+			size_t afterCount = std::distance(m_registry.storage<entt::entity>().begin(), m_registry.storage<entt::entity>().end());
+			TWISTED_INFO(std::format("World::AddComponent: storage size before = {}, after = {}", beforeCount, afterCount));
+
 			return newComponent;
 		}
 
 		template<typename... ComponentTypes>
 		void AddComponents(EntityID id)
 		{
-			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
 			(AddComponent<ComponentTypes>(id), ...);
+		}
+
+		template<typename T>
+		void RemoveComponent(EntityID id)
+		{
+			static_assert(std::is_base_of_v<AComponent, T>, "All types must derive from AComponent");
+			static_assert(!std::is_same_v<CTransform, T>, "Component types must not be CTransform");
+
+			if (m_registry.valid(id))
+			{
+				if (T* comp = m_registry.try_get<T>(id); comp)
+				{
+					comp->OnDestroy();
+					m_registry.remove<T>(id);
+				}
+			}
 		}
 
 		template<typename... ComponentTypes>
 		void RemoveComponents(EntityID id)
 		{
-			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
-			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
-
-			(m_registry.remove<ComponentTypes>(id), ...);
+			(RemoveComponent<ComponentTypes>(id), ...);
 		}
 
 		template<typename T>
@@ -215,15 +240,7 @@ namespace Twisted
 			return nullptr; // None found
 		}
 
-		template<typename T>
-		void RemoveComponent(EntityID id)
-		{
-			static_assert(std::is_base_of_v<AComponent, T>, "T must derive from AComponent");
-			static_assert(!std::is_same_v<CTransform, T>, "Cannot remove CTransform component");
 
-			if (m_registry.any_of<T>(id))
-				m_registry.remove<T>(id);
-		}
 
 		template<typename T>
 		void RemoveAllComponents()
@@ -235,7 +252,6 @@ namespace Twisted
 		}
 
 		YAML::Node YamlSerialize()const;
-
 		void YamlDeserialize(const YAML::Node& node);
 
 	private:
@@ -263,4 +279,6 @@ namespace Twisted
 	}
 
 }
+
+
 

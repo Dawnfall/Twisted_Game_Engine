@@ -1,25 +1,15 @@
-#pragma once
+﻿#pragma once
 
 #include "Twisted/Application/Layer.h"
-#include "Twisted/Rendering/FrameBuffer.h"
-#include "LoadupConfig.h"
-#include "EditorConstants.h"
-
-#include "Utils/WPtr.h"
-#include "Twisted/TObject.h"
-#include "Twisted/Gameing/Systems/RenderSystem.h"
-#include "Twisted/Gameing/World.h"
 #include "Utils/Event.h"
+
+#include "LoadupConfig.h"
 #include "EditorConfig.h"
 #include "EditorData/Selection.h"
 #include "EditorData/EditorInput.h"
-#include "EditorData/DragPayload.h"
 
-namespace Twisted
-{
-	class Window;
-	class Application;
-}
+#include "UI/UIWindow.h"
+#include "Twisted/Rendering/FrameBuffer.h"
 
 namespace Twisted::Editor
 {
@@ -39,8 +29,10 @@ namespace Twisted::Editor
 			return *s_instance;
 		}
 
-		void Init() override;
-		void Render(Window* window);
+		void Init();			
+		void Update();
+		void SaveEditor();
+		void SetWorld(World* world);
 
 		World* GetGameWorld() { return m_gameWorld; }
 		World* GetEditorWorld() { return m_editorWorld; }
@@ -48,40 +40,27 @@ namespace Twisted::Editor
 		EditorInput& GetInput() { return m_input; }
 		EditorConfig& GetConfig() { return m_editorConfig; }
 		LoadupConfig& GetLoadupConfig() { return m_loadupConfigData; }
-
-		void SetWorld(World* world)
-		{
-			if (m_gameWorld)
-			{
-				ObjectManager::Destroy(m_gameWorld);
-				m_selection.ClearEntities();
-			}
-
-			if (!world)
-			{
-				world = ObjectManager::Create<World>("New world"); //m_app
-				world->AddSystem<RenderSystem>();
-			}
-
-			m_gameWorld = world;
-			//m_editorWorld = TObject::Create<World>(); //TODO...
-			WorldChangeEvent.Invoke();
-		}
+		UIWindow& GetUIWindow() { return m_uiWindow; }
 
 	public:
 		Event<fs::path> MakeNewFileEvent; //extension
+		Event<fs::path> SelectWorldPath;
+		Event<fs::path> SelectedProjectPath;
+		Event<fs::path> SaveWorldPath;
+		Event<fs::path> CreateNewAssetPath;
+
+		Event<> ConfirmedQuitEvent;
 		Event<> WorldChangeEvent;
 	private:
 		inline static EditorLayer* s_instance = nullptr;
 
 		World* m_gameWorld = nullptr;
 		World* m_editorWorld = nullptr;
+
 		Selection m_selection;
 		EditorInput m_input;
 		EditorConfig m_editorConfig;
 		LoadupConfig m_loadupConfigData;
-
-		void RenderDockSpace();
-		void RenderMenuBar(Window* window);
+		UIWindow m_uiWindow;
 	};
 }

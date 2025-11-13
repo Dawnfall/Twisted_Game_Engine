@@ -1,4 +1,4 @@
-#include "WorldRegistry.h"
+﻿#include "WorldRegistry.h"
 
 namespace Twisted
 {
@@ -8,3 +8,4 @@ namespace Twisted
 		return instance;
 	}
 }
+

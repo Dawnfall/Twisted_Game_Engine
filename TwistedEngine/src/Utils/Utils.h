@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include <vector>
 #include <string>
-
+#include <sstream>
 //struct Resource 
 //{
 //    std::string fileName;
@@ -72,4 +72,14 @@ namespace Twisted::Utils
 	TWISTED_API std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter);
 
 	TWISTED_API void StringToArray(const std::string& str, char* buffer, size_t bufferSize);
+
+	// Helper to build a string from variadic arguments
+	template<typename... Args>
+	std::string buildString(Args&&... args)
+	{
+		std::ostringstream oss;
+		(oss << ... << args); // fold expression: simple concatenation
+		return oss.str();
+	}
 }
+

@@ -1,11 +1,11 @@
-#include "Twisted/Rendering/Mesh.h"
+﻿#include "Twisted/Rendering/Mesh.h"
 #include "Debug/Logger.h"
 #include <glad/glad.h>
 #include <string>
 
 namespace Twisted
 {
-	static GLenum PrimitiveTypeToGL(MeshPrimitiveType primitveType)
+	[[nodiscard]] static GLenum PrimitiveTypeToGL(MeshPrimitiveType primitveType)
 	{
 		switch (primitveType)
 		{
@@ -21,20 +21,7 @@ namespace Twisted
 		}
 	}
 
-	static size_t CalcNumberPrimitives(MeshPrimitiveType primitiveType, size_t indexCount)
-	{
-		switch (primitiveType)
-		{
-		case MeshPrimitiveType::POINTS: return indexCount;
-		case MeshPrimitiveType::LINES:  return indexCount / 2;
-		case MeshPrimitiveType::TRIANGLES: return indexCount / 3;
-		default:
-			//TWISTED_WARN(std::string("Unsupported mesh type") + std::to_string(primitiveType));
-			return 0;
-		}
-	}
-
-	static GLenum GetDrawType(MeshDrawType drawType)
+	[[nodiscard]] static GLenum DrawTypeToGL(MeshDrawType drawType)
 	{
 		switch (drawType)
 		{
@@ -45,41 +32,56 @@ namespace Twisted
 		}
 	}
 
-	void Mesh::Create(const MeshData& meshData,const MeshParams& params)
+	[[nodiscard]] static size_t CalcNumberPrimitives(MeshPrimitiveType primitiveType, size_t indexCount)
 	{
-		m_data = meshData;
-		m_params = params;
-		m_primitiveCount = CalcNumberPrimitives(meshData.PrimitiveType, meshData.Indices.size());
-		m_params = params;
+		switch (primitiveType)
+		{
+		case MeshPrimitiveType::POINTS: return indexCount;
+		case MeshPrimitiveType::LINES:  return indexCount >= 2 ? indexCount / 2 : 0;
+		case MeshPrimitiveType::TRIANGLES: return indexCount >= 3 ? indexCount / 3 : 0;
+		default:
+			//TWISTED_WARN(std::string("Unsupported mesh type") + std::to_string(primitiveType));
+			return 0;
+		}
+	}
+
+
+	void Mesh::SetData(const PackedMeshData& packedData, MeshDrawType drawType)
+	{
+		Clear();
+
+		if (packedData.VertexBuffer.empty() || packedData.Indices.empty())
+			return;
+
+		m_drawType = drawType;
+		m_indexCount = packedData.Indices.size();
 
 		glGenVertexArrays(1, &m_vao);
 		glGenBuffers(1, &m_vbo);
 		glGenBuffers(1, &m_ebo);
 
 		glBindVertexArray(m_vao);
+
+		ApplyBuffers(packedData);
+		SetMeshLayout(packedData);
+
+		glBindVertexArray(0);
+	}
+
+	void Mesh::ApplyBuffers(const PackedMeshData& packedData)const
+	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		glBufferData(GL_ARRAY_BUFFER,
-			m_data.Vertices.size() * sizeof(Vertex),
-			m_data.Vertices.data(),
-			GetDrawType(m_data.DrawType));
+			packedData.VertexBuffer.size() * sizeof(float),
+			packedData.VertexBuffer.data(),
+			DrawTypeToGL(m_drawType)
+		);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			m_data.Indices.size() * sizeof(unsigned int),
-			m_data.Indices.data(),
-			GetDrawType(m_data.DrawType));
-
-		// vertex positions
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-		// vertex normals
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-		// vertex texture coords
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoord));
-
-		glBindVertexArray(0);
+			packedData.Indices.size() * sizeof(unsigned int),
+			packedData.Indices.data(),
+			DrawTypeToGL(m_drawType));
 	}
 
 	void Mesh::Clear()
@@ -89,18 +91,36 @@ namespace Twisted
 		glDeleteBuffers(1, &m_ebo);
 
 		m_vbo = m_ebo = m_vao = 0;
-		m_data = MeshData{};
 	}
 
-	void Mesh::Bind()
+	void Mesh::Bind()const
 	{
+		glFrontFace(m_windOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
 		glBindVertexArray(m_vao);
-		glFrontFace(m_params.Order == WindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
-
 	}
 
 	void Mesh::UnBind()const
 	{
 		glBindVertexArray(0);
 	}
+
+	void Mesh::SetMeshLayout(const PackedMeshData& packedData)
+	{
+		// Set layout
+		for (unsigned int i = 0; i < packedData.Layout.size(); ++i)
+		{
+			const auto& attrib = packedData.Layout[i];
+			glEnableVertexAttribArray(attrib.Location);
+			glVertexAttribPointer(
+				attrib.Location,
+				static_cast<GLint>(attrib.Count),
+				GL_FLOAT,
+				GL_FALSE,
+				static_cast<GLsizei>(packedData.Stride * sizeof(float)),
+				(void*)(attrib.Offset * sizeof(float))
+			);
+		}
+	}
 }
+
+

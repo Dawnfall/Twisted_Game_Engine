@@ -1,4 +1,4 @@
-#include "Logger.h"
+﻿#include "Logger.h"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/async_logger.h>
@@ -16,11 +16,8 @@ namespace Twisted
 
 	Logger& Logger::GetInstance()
 	{
-		if (!s_instance)
-		{
-			s_instance = std::make_shared<Logger>();
-		}
-		return *s_instance;
+		static Logger instance; // local static, initialized on first call, thread-safe
+		return instance;
 	}
 
 	bool Logger::Init()
@@ -29,8 +26,8 @@ namespace Twisted
 		return true;
 	}
 
-	void Logger::Trace(const std::string& str) { m_logger->trace(str); }
-	void Logger::Info(const std::string& str) { m_logger->info(str); }
-	void Logger::Warn(const std::string& str) { m_logger->warn(str); }
-	void Logger::Error(const std::string& str) { m_logger->error(str); }
+	void Logger::TraceMsg(const std::string& str) { m_logger->log(spdlog::level::trace, str); }
+	void Logger::InfoMsg(const std::string& str) { m_logger->log(spdlog::level::info, str); }
+	void Logger::WarnMsg(const std::string& str) { m_logger->log(spdlog::level::warn, str); }
+	void Logger::ErrorMsg(const std::string& str) { m_logger->log(spdlog::level::err, str); }
 }

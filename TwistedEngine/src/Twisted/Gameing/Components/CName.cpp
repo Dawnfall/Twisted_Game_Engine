@@ -1,4 +1,4 @@
-#include "CName.h"
+﻿#include "CName.h"
 
 namespace Twisted
 {
@@ -24,5 +24,7 @@ namespace Twisted
 		m_name = node["name"].as<std::string>();
 	}
 }
+
+
 
 

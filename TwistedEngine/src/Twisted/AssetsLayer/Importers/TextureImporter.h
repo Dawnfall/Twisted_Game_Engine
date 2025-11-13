@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Twisted/AssetsLayer/AssetImporter.h"
 
 namespace Twisted
@@ -9,9 +9,9 @@ namespace Twisted
 	{
 	public:
 
-		void ImportNew(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-		void PostImport(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-		void HotReload(AssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
+		void HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
 
 		void FillDefaultInfo(YAML::Node& node)const override
 		{
@@ -22,4 +22,6 @@ namespace Twisted
 		std::vector<fs::path> GetAssetExtensions()const override { return { ".jpg",".jpeg",".png",".bmp",".tga" }; }
 	};
 }
+
+
 

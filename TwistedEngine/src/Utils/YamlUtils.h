@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
@@ -36,3 +36,4 @@ namespace YamlUtils
 //		}
 //	};
 //}
+

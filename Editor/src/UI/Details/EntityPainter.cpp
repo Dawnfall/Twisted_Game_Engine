@@ -1,4 +1,4 @@
-#include "EntityPainter.h"
+﻿#include "EntityPainter.h"
 
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"
@@ -27,10 +27,9 @@ namespace Twisted::Editor
 		for (const auto& [name, entry] : reg.GetComponentEntries())
 		{
 			AComponent* comp = entry.GetComponentMethod(*entity);
-			if (comp)
+			auto painter = EditorRegistry::GetInstance().GetComponentPainter(name);
+			if (comp && painter)
 			{
-				auto painter = EditorRegistry::GetInstance().GetComponentPainter(name);
-
 				float windowWidth = ImGui::GetContentRegionAvail().x;
 				float labelWidth = ImGui::CalcTextSize(name.c_str()).x;
 				float labelPosX = (windowWidth - labelWidth) * 0.5f;
@@ -70,3 +69,4 @@ namespace Twisted::Editor
 }
 
 REGISTER_DETAILS_PAINTER(Entity, EntityPainter)
+

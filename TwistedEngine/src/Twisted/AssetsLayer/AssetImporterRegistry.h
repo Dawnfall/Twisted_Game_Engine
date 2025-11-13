@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 
@@ -72,3 +72,4 @@ namespace Registry                  \
     };                                        \
     static type##Register s_##type##Register; \
 }
+

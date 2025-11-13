@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "FrameBuffer.h"
 
 namespace Twisted
@@ -17,3 +17,4 @@ namespace Twisted
 		FrameBuffer* m_buffer;
 	};
 }
+

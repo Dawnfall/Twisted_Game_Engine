@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Utils/FileUtils.h"
@@ -16,7 +16,7 @@ namespace Twisted
 	public:
 		Project() = default;
 
-		void SetProject(const fs::path& projectFolder);
+		bool SetProject(const fs::path& projectFolder);
 
 		const fs::path& GetRootPath()const { return m_rootPath; }
 		fs::path GetInternalFolder() const { return m_rootPath / "Internal"; }
@@ -31,3 +31,4 @@ namespace Twisted
 		fs::path m_rootPath;
 	};
 }
+

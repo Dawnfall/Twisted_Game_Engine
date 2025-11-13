@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include <cstdint>
@@ -20,12 +20,16 @@ namespace Twisted
 		uint32_t Index() const { return uint32_t(m_id & ((1ULL << INDEX_BITS) - 1)); }
 		uint32_t Generation() const { return uint32_t(m_id >> INDEX_BITS); }
 
-		bool IsValid() const;
-		std::string ToString()const;
+		//bool IsValid() const;
+		std::string ToString()const
+		{
+			return std::to_string(m_id);
+		}
 
 		bool operator==(const ObjectID& other) const { return m_id == other.m_id; }
 		bool operator!=(const ObjectID& other) const { return m_id != other.m_id; }
 
+		static ObjectID Invalid() noexcept { return ObjectID(0); }
 	private:
 		uint64_t m_id = 0;
 	};
@@ -39,4 +43,6 @@ struct std::hash<Twisted::ObjectID>
 		return static_cast<size_t>(e.GetID());
 	}
 };
+
+
 

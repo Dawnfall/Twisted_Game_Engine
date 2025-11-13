@@ -1,4 +1,4 @@
-#include "YamlUtils.h"
+﻿#include "YamlUtils.h"
 #include <fstream>
 
 #include "Twisted/AssetsLayer/AssetsLayer.h"
@@ -24,10 +24,15 @@ namespace YamlUtils
 	{
 		YAML::Node node;
 		if (!obj)
-			return node;
-
-		node["name"] = obj->GetName();
-		node["uuid"] = Twisted::AssetsLayer::GetInstance().GetObjectAsset(obj);
+		{
+			node[Twisted::NAME_SER_KEY] = "";
+			node[Twisted::UUID_SER_KEY] = Twisted::AssetUuid::Invalid();
+		}
+		else
+		{
+			node[Twisted::NAME_SER_KEY] = obj->GetName();
+			node[Twisted::UUID_SER_KEY] = Twisted::AssetsLayer::GetInstance()->GetObjectAssetInfo(obj)->GetUuid();
+		}
 		return node;
 	}
 
@@ -36,7 +41,8 @@ namespace YamlUtils
 		std::string name = node["name"].as<std::string>("");
 		Twisted::AssetUuid uuid = node["uuid"].as<Twisted::AssetUuid>(Twisted::AssetUuid::Invalid());
 
-		return Twisted::AssetsLayer::GetInstance().GetAssetObject(uuid, name);
+		return Twisted::AssetsLayer::GetInstance()->GetAssetObject(uuid, name);
 
 	}
 }
+

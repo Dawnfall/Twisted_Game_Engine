@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 #ifndef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/WindowLayer.h"
@@ -10,3 +10,4 @@ namespace Twisted
 }
 
 #endif
+

@@ -1,4 +1,4 @@
-#include "AppCore.h"
+﻿#include "AppCore.h"
 #ifndef GLFW_INCLUDE_NONE
 
 #include "Twisted/Windowing/Window.h"
@@ -22,7 +22,7 @@
 	case WM_XBUTTONDOWN:
 	case WM_XBUTTONUP:
 	{
-		// Determine if it�s XBUTTON1 or XBUTTON2
+		// Determine if it’s XBUTTON1 or XBUTTON2
 		// GET_XBUTTON_WPARAM macro extracts which X button
 		UINT button = GET_XBUTTON_WPARAM(msg);
 		if (button == XBUTTON1) return Twisted::MouseButton::Button4;
@@ -421,3 +421,4 @@ namespace Twisted
 
 }
 #endif
+

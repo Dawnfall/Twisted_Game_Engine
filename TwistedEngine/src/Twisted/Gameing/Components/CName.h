@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Twisted/Gameing/AComponent.h"
 #include "Serialization/BinSerializer.h"
@@ -29,3 +29,4 @@ namespace Twisted
 }
 
 REGISTER_COMPONENT(CName, "CName");
+

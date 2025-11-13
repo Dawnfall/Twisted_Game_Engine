@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <memory>
 #include <filesystem>
 
@@ -58,5 +58,7 @@ using SRef = std::shared_ptr<T>;
 
 template<typename T>
 using URef = std::unique_ptr<T>;
+
+
 
 

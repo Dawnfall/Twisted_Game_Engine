@@ -1,19 +1,12 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
+#include "Twisted/Rendering/Data/MeshData.h"
 #include "Twisted/TObject.h"
 #include "Data/Vertex.h"
 #include <filesystem>
 
 namespace Twisted
 {
-	enum class MeshPrimitiveType
-	{
-		POINTS,
-		LINES,
-		TRIANGLES,
-		//TODO maybe: GL_LINE_STRIP , GL_LINE_LOOP , GL_TRIANGLE_STRIP , GL_TRIANGLE_FAN
-	};
-
 	enum class MeshDrawType
 	{
 		DYNAMIC,
@@ -21,87 +14,56 @@ namespace Twisted
 		STATIC
 	};
 
-	enum class WindingOrder
+	enum class MeshWindingOrder
 	{
 		CLOCKWISE,
 		COUNTER_CLOCKWISE
 	};
 
-	struct MeshParams
-	{
-		WindingOrder Order = WindingOrder::CLOCKWISE;
-	};
-
-	struct TWISTED_API MeshData
-	{
-		std::vector<Vertex> Vertices;
-		std::vector<unsigned int> Indices;
-		MeshPrimitiveType PrimitiveType = MeshPrimitiveType::TRIANGLES;
-		MeshDrawType DrawType = MeshDrawType::DYNAMIC;
-	};
-
-	class TWISTED_API Mesh :public TObject // assumes normals are provided  , TODO: type can be smaller for smaller meshes,instancing
+	class TWISTED_API Mesh :public TObject
 	{
 	public:
 		Mesh(const std::string& name):
 			TObject(name)
 		{ }
 
-		Mesh(const std::string& name,const MeshParams& params) :
-			TObject(name),
-			m_params(params)
-		{ }
+		unsigned int GetVAO()const { return m_vao; }
+		unsigned int GetVBO()const { return m_vbo; }
+		unsigned int GetEBO()const { return m_ebo; }
+		size_t GetIndexCount()const { return m_indexCount; }
+		MeshDrawType GetDrawType()const { return m_drawType; }
+		MeshWindingOrder GetWindOrder()const { return m_windOrder; }
+
+		void SetData(const PackedMeshData& packedData,MeshDrawType drawType);
+		void Clear();
+
+		void Bind()const;
+		void UnBind()const;
+
+		void SetWindingOrder(MeshWindingOrder windOrder)
+		{
+			if (m_windOrder == windOrder)
+				return;
+
+			m_windOrder = windOrder;
+		}
 
 		void OnDestroy()override
 		{
 			Clear();
 		}
 
-		void SetParams(const MeshParams& params) { m_params = params; }
-		void SetData(const MeshData& data)
-		{
-			Create(data, m_params);
-		}
-
-		void Create(const MeshData& meshData, const MeshParams& params);
-		void Clear();
-
-		void Bind();
-		void UnBind()const;
-
-		bool IsValid()const { return m_vao != 0; }
-
-		void SetDrawType(MeshDrawType drawType)
-		{
-			if (m_data.DrawType == drawType)
-				return;
-
-			m_data.DrawType = drawType;
-
-			Clear();
-			Create(m_data, m_params);
-		}
-		void SetWindingOrder(WindingOrder windOrder)
-		{
-			if (m_params.Order == windOrder)
-				return;
-
-			m_params.Order = windOrder;
-		}
-
-		unsigned int GetVAO()const { return m_vao; }
-		unsigned int GetVBO()const { return m_vbo; }
-		unsigned int GetEBO()const { return m_ebo; }
-		size_t GetPrimitiveCount()const { return m_primitiveCount; }
-		const MeshData& GetMeshData()const { return m_data; }
-		const MeshParams& GetParams()const { return m_params; }
-
 	private:
+		void ApplyBuffers(const PackedMeshData& packedData)const;
+		void SetMeshLayout(const PackedMeshData& packedData);
+
 		unsigned int m_vao = 0;
 		unsigned int m_vbo = 0;
 		unsigned int m_ebo = 0;
-		MeshData m_data;
-		MeshParams m_params;
-		unsigned int m_primitiveCount = 0;
+		size_t m_indexCount = 0;
+
+		MeshWindingOrder m_windOrder = MeshWindingOrder::CLOCKWISE;
+		MeshDrawType m_drawType = MeshDrawType::STATIC;
 	};
 }
+

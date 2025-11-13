@@ -1,4 +1,4 @@
-#include "Twisted/Rendering/Shader.h"
+﻿#include "Twisted/Rendering/Shader.h"
 #include "Debug/Logger.h"
 
 #include <glad/glad.h>
@@ -328,3 +328,4 @@ namespace Twisted
 		glUniform1i(locationID, unit);
 	}
 }
+

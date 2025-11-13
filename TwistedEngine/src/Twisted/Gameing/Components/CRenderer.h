@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AppCore.h"
 #include "Twisted/Gameing/AComponent.h"
@@ -11,6 +11,7 @@ namespace Twisted
 	class TWISTED_API CRenderer :public AComponent
 	{
 	public:
+		CRenderer() = delete;
 		CRenderer(Entity entity) :AComponent(entity) {}
 
 		Mesh* GetSharedMesh() { return m_mesh; }
@@ -45,3 +46,4 @@ namespace Twisted
 }
 
 REGISTER_COMPONENT(CRenderer, "CRenderer");
+

@@ -1,4 +1,4 @@
-#include "DetailsPanel.h"
+﻿#include "DetailsPanel.h"
 
 #include "Twisted/Gameing/World.h"
 
@@ -37,9 +37,9 @@ namespace Twisted::Editor
 			auto& selectedPaths = selection.GetSelectedPaths();
 			if (selectedPaths.size() >= 1)
 			{
-				AssetsLayer& assetsLayer = AssetsLayer::GetInstance();
-				auto info = assetsLayer.GetInfo(*selectedPaths.begin());
-				auto& objects = assetsLayer.GetAssetObjects(info->GetUuid());
+				AssetsLayer* assetsLayer = AssetsLayer::GetInstance();
+				auto info = assetsLayer->GetInfo(*selectedPaths.begin());
+				auto& objects = assetsLayer->GetManagedAssetObjects(info);
 
 				if (objects.size() >= 1)
 				{

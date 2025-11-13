@@ -1,4 +1,4 @@
-#include "CNamePainter.h"
+﻿#include "CNamePainter.h"
 #include "EditorRegistry.h"
 
 namespace Twisted::Editor

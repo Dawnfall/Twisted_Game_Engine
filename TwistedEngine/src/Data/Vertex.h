@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Utils/GlmUtils.h"
 
 struct Vertex {
@@ -6,3 +6,4 @@ struct Vertex {
 	Vec3f Normal;
 	Vec2f TexCoord;
 };
+

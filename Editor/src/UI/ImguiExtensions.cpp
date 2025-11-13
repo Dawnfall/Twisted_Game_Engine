@@ -1,4 +1,4 @@
-#include "ImguiExtensions.h"
+﻿#include "ImguiExtensions.h"
 
 #include "AppCore.h"
 #include "Debug/Logger.h"
@@ -449,4 +449,12 @@ namespace Im
 		token.JustCreated = false;
 		return changed;
 	}
+
+	bool DrawToggle(const char* label, bool& value)
+	{
+		bool previous = value;
+		ImGui::Checkbox(label, &value);
+		return value != previous;
+	}
 }
+

@@ -1,4 +1,4 @@
-#include "Utils.h"
+﻿#include "Utils.h"
 #include "FileUtils.h"
 
 #include <regex>
@@ -50,3 +50,4 @@ namespace Twisted::Utils
 		buffer[bufferSize - 1] = '\0'; // Ensure null-termination
 	}
 }
+

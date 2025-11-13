@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Layer.h"
 #include "TimeManager.h"
@@ -38,10 +38,11 @@ namespace Twisted
 		}
 
 	protected:
-
-		virtual void OnCreate() = 0;
+		virtual void OnInit() = 0;
 		virtual void OnBeforeRun() = 0;
+		virtual void OnBeginFrame() = 0;
 		virtual void OnFrame() = 0;
+		virtual void OnEndFrame() = 0;
 		virtual void OnTerminate() = 0;
 
 		std::vector<URef<Layer>> m_layers;
@@ -50,3 +51,4 @@ namespace Twisted
 
 
 }
+

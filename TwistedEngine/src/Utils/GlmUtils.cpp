@@ -1,4 +1,4 @@
-#include "GlmUtils.h"
+﻿#include "GlmUtils.h"
 #include <string>
 #include <glm/glm.hpp>
 #include <sstream>
@@ -105,3 +105,4 @@ namespace Utils
     }
 
 }
+

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //
 //#include "AppCore.h"
 //
@@ -150,3 +150,4 @@ namespace Twisted::Editor
 		std::unordered_set<std::filesystem::path> m_selectedPaths;
 	};
 }
+

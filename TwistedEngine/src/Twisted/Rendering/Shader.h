@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AppCore.h"
 #include "Twisted/TObject.h"
 #include "Utils/GlmUtils.h"
@@ -115,4 +115,6 @@ namespace Twisted
 		std::vector<ShaderUniformVar> m_uniforms;
 	};
 }
+
+
 

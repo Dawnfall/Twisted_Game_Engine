@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 //TODO: byte order normalization... little/big endian
 
@@ -204,3 +204,5 @@ namespace Twisted
 	};
 
 }
+
+

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace Twisted
 {
@@ -24,3 +24,4 @@ namespace Twisted
 	const Color red = { 1.0f,0.0f,0.0f,1.0f };
 	const Color green = { 0.0f,1.0f,0.0f,1.0f };
 }
+

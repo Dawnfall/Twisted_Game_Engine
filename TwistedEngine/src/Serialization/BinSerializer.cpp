@@ -1,4 +1,4 @@
-#include "BinSerializer.h"
+﻿#include "BinSerializer.h"
 
 namespace Twisted
 {
@@ -71,3 +71,4 @@ namespace Twisted
 
 
 }
+

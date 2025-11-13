@@ -1,229 +1,65 @@
-#include "EditorLayer.h"
-#include "Twisted/Application/Application.h"
-#include "Twisted/AssetsLayer/Project.h"
-#include "Twisted/Windowing/NativeUtils.h"
-#include "UI/ImguiExtensions.h"
+﻿#include "EditorLayer.h"
 
-#include "EditorConstants.h"
-#include "AppCore.h"
-#include "Twisted/Windowing/Window.h"
-#include "Twisted/AssetsLayer/AssetsLayer.h"
+#include "Twisted/Gameing/Systems/RenderSystem.h"
 
-#include "Twisted/Gameing/World.h"
-#include "Twisted/AssetsLayer/Importers/WorldImporter.h"
-#include "Twisted/Gameing/WorldRegistry.h"
+#include "Twisted/Windowing/WindowLayer.h"
+#include "Twisted/Rendering/RenderLayer.h"
 
-#include <imgui.h>
-#include <string>
-
-#include "UI/Panels/DetailsPanel.h"
-#include "UI/Panels/TreeViewPanel.h"
-#include "UI/Panels/WorldViewPanel.h"
-#include "UI/Panels/AssetsPanel.h"
-
-#include "Twisted/Gameing/Entity.h"
 #include "EditorRegistry.h"
+
+#include "Twisted/Application/Application.h"
+#include "UI/ImguiExtensions.h"
 
 namespace Twisted::Editor
 {
 	void EditorLayer::Init()
 	{
+		Im::Init(m_app->GetLayer<WindowLayer>()->GetWindow());
+		m_editorConfig.LoadConfig();
+		//Im::SetLayoutIniFile(""); //TODO:... not sure we can do this some place else
+
 		for (auto& panel : EditorRegistry::GetInstance().m_panels)
 			panel->Init();
-		//EditorData::GetInstance().GameViewBuffer = TObject::Create<FrameBuffer>("Main Framebuffer");
-		//EditorData::GetInstance().EditorViewBuffer = TObject::Create<FrameBuffer>("Editor Framebuffer");
 
 		SetWorld(nullptr);
 	}
 
-	void EditorLayer::Render(Window* window)
+	void EditorLayer::SaveEditor()
 	{
-		RenderMenuBar(window);
-		RenderDockSpace();
+		Window* window = m_app->GetLayer<WindowLayer>()->GetWindow();
+		GetConfig().SetWindowPos(window->GetPosition());
+		GetConfig().SetWindowSize(window->GetSize());
+		GetConfig().SaveConfig();
 	}
 
-	void EditorLayer::RenderMenuBar(Window* window)
+	void EditorLayer::SetWorld(World* world)
 	{
-		AssetsLayer* assetsLayer = m_app->GetLayer<AssetsLayer>();
-
-		// Push style settings
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 15));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15, 15));
-		// Create the menu bar
-		if (ImGui::BeginMainMenuBar())
+		if (m_gameWorld)
 		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("New Project"))
-				{
-					std::filesystem::path selectedPath = Native::OpenFolderDialog(*window);
-					if (selectedPath != "")
-					{
-						//TODO
-						//SelectProjectPath(selectedPath);
-					}
-				}
-				if (ImGui::MenuItem("Load Project"))
-				{
-					std::vector<std::pair<std::wstring, std::wstring>> filter = {
-						{L"project file (twisted.editor)", L"twisted.editor"}
-					};
-					std::filesystem::path selectedPath = Native::OpenFileDialog(*window, filter);
-					if (selectedPath != "")
-					{
-						//TODO
-						//SelectProjectPath(selectedPath);
-					}
-				}
-				if (ImGui::BeginMenu("Recent Projects"))
-				{
-					int count = 0;
-					for (const std::string& recentProjPath : m_loadupConfigData.GetRecentProjects())
-					{
-						if (count++ >= 5) break; // limit to 5 projects
-						if (ImGui::MenuItem(recentProjPath.c_str()))
-						{
-							std::filesystem::path selectedPath = recentProjPath;
-							if (fs::is_regular_file(selectedPath))
-								selectedPath = selectedPath.parent_path();
-
-							if (assetsLayer->SelectProjectPath(selectedPath))
-								m_loadupConfigData.AddLatest(selectedPath.string());
-							else
-								m_loadupConfigData.RemoveEntry(selectedPath.string());
-							m_loadupConfigData.Save();
-						}
-					}
-					ImGui::EndMenu();
-				}
-				if (ImGui::MenuItem("Reload Assets"))
-				{
-					//assetsLayer->LoadAssets(*GetActiveProject());
-				}
-				if (ImGui::MenuItem("Exit"))
-				{
-					if (Native::ShowConfirmDialog(*window, L"Are you sure?", L"Exit editor?"))
-						GetApplication()->Stop();
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Project"))
-			{
-				if (ImGui::MenuItem("New World"))
-				{
-					SetWorld(nullptr);
-				}
-				if (ImGui::MenuItem("Open World"))
-				{
-					std::filesystem::path path = Native::OpenFileDialog(*window, { {L"world file (*.world)",L"*.world"} });
-					if (!path.empty())
-					{
-						World* world = assetsLayer->ImportAssetDirect<World>(path);
-						if (world)
-							SetWorld(world);
-					}
-				}
-				if (ImGui::MenuItem("Save World As"))
-				{
-					World* gameWorld = GetGameWorld();
-					if (gameWorld)
-					{
-						std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} });
-						path = path.replace_extension(".world");
-
-						std::vector<WPtrBase> assetObjects = { WPtrBase(gameWorld) };
-						assetsLayer->SaveAsset(path, { assetObjects });
-					}
-				}
-				if (ImGui::MenuItem("Save World"))
-				{
-					//TODO:... since world isnt managed by assetsLayer we need to track in manually
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Panels"))
-			{
-				for (auto& panel : EditorRegistry::GetInstance().m_panels)
-				{
-					if (ImGui::MenuItem(panel->GetName().c_str(), nullptr, panel->IsShowing))
-						panel->IsShowing = !panel->IsShowing;
-				}
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Create"))
-			{
-				auto& importers = AssetImporterRegistry::GetInstance().GetImporters();
-
-				for (auto imp : importers)
-				{
-					std::string createPath = imp->GetCreatePath();
-					if (createPath != "")
-						if (ImGui::MenuItem(createPath.c_str()))
-						{
-							MakeNewFileEvent.Invoke(imp->DefaultFileName());
-						}
-				}
-
-				ImGui::EndMenu();
-			}
+			TObject::Destroy(m_gameWorld);
+			m_selection.ClearEntities();
 		}
-		ImGui::EndMainMenuBar();
-		ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
-	}
 
-	void EditorLayer::RenderDockSpace()
-	{
-
-		// Get viewport
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		float menuBarHeight = ImGui::GetFrameHeight() + 22; // Get the actual height of the menu bar
-
-		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-
-		ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight));
-		ImGui::SetNextWindowSize(ImVec2(displaySize.x, displaySize.y - menuBarHeight));
-		ImGui::SetNextWindowBgAlpha(1.0f);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-		ImGui::Begin(Constants::mainDockSpaceLabel.c_str(), nullptr, Constants::dockFlags);
-		ImGui::PopStyleVar(2);
-
-		//// Dockspace
-		ImGuiID dockspace_id = ImGui::GetID(Constants::mainDockSpaceLabel.c_str());
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
-
-		ImGui::End();
-
-		if (AssetsLayer::GetInstance().GetProject().GetRootPath() != "")
+		if (!world)
 		{
-			for (auto& panel : EditorRegistry::GetInstance().m_panels)
-			{
-				if (!panel->IsShowing)
-					continue;
-
-				ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_FirstUseEver);
-				if (!panel->IsInit)
-				{
-					panel->IsInit = true;
-				}
-
-				ImGui::Begin(panel->GetName().c_str(), &panel->IsShowing, Constants::panelFlags);
-
-				// Get the size of the panel
-				ImVec2 size = ImGui::GetContentRegionAvail();
-
-				// Resize the framebuffer if the size has changed
-				if (size.x != panel->Size.x || size.y != panel->Size.y)
-				{
-					panel->Size = Vec2i(size.x, size.y);
-					panel->PanelResizeEvent.Invoke();
-				}
-
-				panel->PaintContent();
-				ImGui::End();
-			}
+			world = TObject::Create<World>("New world"); //m_app
+			world->AddSystem<RenderSystem>();
 		}
+
+		m_gameWorld = world;
+		//m_editorWorld = TObject::Create<World>(); //TODO...
+		WorldChangeEvent.Invoke();
 	}
+
+	void EditorLayer::Update()
+	{
+		if (GetGameWorld())
+			GetGameWorld()->UpdateFrame();
+	}
+
+
+
+
+
+
 }
