@@ -3,10 +3,10 @@
   "configurePresets": 
   [
     {
-      "name": "vs2022",
+      "name": "vs2026",
       "hidden": false,
-      "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/vs2022",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build/vs2026",
       "cacheVariables": 
       {
         "CMAKE_GENERATOR_PLATFORM": "x64",
@@ -20,18 +20,18 @@
   "buildPresets": 
   [
     {
-      "name": "Debug",
-      "configurePreset": "vs2022",
+      "name": "vs2026-Debug",
+      "configurePreset": "vs2026",
       "configuration": "Debug"
     },
     {
-      "name": "Release",
-      "configurePreset": "vs2022",
+      "name": "vs2026-Release",
+      "configurePreset": "vs2026",
       "configuration": "Release"
     },
     {
-      "name": "Deploy",
-      "configurePreset": "vs2022",
+      "name": "vs2026-Deploy",
+      "configurePreset": "vs2026",
       "configuration": "Deploy"
     }
   ]

@@ -133,7 +133,7 @@ namespace Im
 		bool isSuccess = false;
 		T* obj = nullptr;
 
-		const std::string buttonID = "ObjPickerPopupButton##" + uniqueID;
+		const std::string buttonID = "...##" + uniqueID;
 		const std::string popupID = "ObjPickerPopup##" + uniqueID;
 
 		if (ImGui::Button(buttonID.c_str(), ImVec2(25, 0)))
@@ -239,7 +239,7 @@ namespace Im
 		ImGui::SameLine();
 
 		//drop area
-		std::string dropFieldText = obj ? std::type_index(typeid(T)).name() : "None";
+		std::string dropFieldText = obj ? obj->GetName() : "None";
 		dropFieldText += "##" + label;
 		ImGui::Button(dropFieldText.c_str(), ImVec2(150, 0)); // fixed-width dummy
 		auto objResult = Im::DragTarget<T*>(Twisted::Editor::Constants::OBJECT_DRAG_TYPE, nullptr);

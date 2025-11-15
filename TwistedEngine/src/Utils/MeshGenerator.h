@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Twisted/Rendering/Mesh.h"
+#include "Twisted/Rendering/Data/MeshData.h"
 //TODO: move to rendering I guess
 
 namespace Twisted

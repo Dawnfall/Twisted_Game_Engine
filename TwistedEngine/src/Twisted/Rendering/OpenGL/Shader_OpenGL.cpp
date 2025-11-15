@@ -1,10 +1,27 @@
-﻿#include "Twisted/Rendering/Shader.h"
+﻿#include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
+#include "Twisted/Rendering/Shader.h"
+
 #include "Debug/Logger.h"
 
 #include <glad/glad.h>
+#include <string>
+#include <vector>
+
 namespace Twisted
 {
-	static ShaderVarType FromGLShaderType(GLenum glShaderVarType)
+	Shader::Shader(const std::string& name) :
+		TObject(name)
+	{
+	}
+	void Shader::OnDestroy()
+	{
+		Shader_GL::Clear(*this);
+	}
+}
+
+namespace Twisted::Shader_GL
+{
+	ShaderVarType FromGLShaderType(GLenum glShaderVarType)
 	{
 		switch (glShaderVarType)
 		{
@@ -62,7 +79,7 @@ namespace Twisted
 		}
 	}
 
-	static GLenum ToGlShaderType(ShaderVarType shaderVarType)
+	GLenum ToGlShaderType(ShaderVarType shaderVarType)
 	{
 		switch (shaderVarType)
 		{
@@ -117,7 +134,7 @@ namespace Twisted
 		}
 	}
 
-	static bool ValidateShader(GLuint id, const std::string& name, GLenum shaderType)
+	bool ValidateShader(GLuint id, const std::string& name, GLenum shaderType)
 	{
 		GLint success;
 		glGetShaderiv(id, GL_COMPILE_STATUS, &success);
@@ -147,7 +164,7 @@ namespace Twisted
 		return true;
 	}
 
-	static bool ValidateProgram(GLuint id, const std::string& name)
+	bool ValidateProgram(GLuint id, const std::string& name)
 	{
 		GLint success;
 		glGetProgramiv(id, GL_LINK_STATUS, &success);
@@ -177,7 +194,7 @@ namespace Twisted
 		return true;
 	}
 
-	static GLuint CompileShaderCode(GLenum shaderType, const char* shaderName, const char* shaderCode)
+	GLuint CompileShaderCode(GLenum shaderType, const char* shaderName, const char* shaderCode)
 	{
 		GLuint shaderID = glCreateShader(shaderType);
 
@@ -198,7 +215,141 @@ namespace Twisted
 		return shaderID;
 	}
 
-	static GLuint LinkProgram(GLuint vertexID, GLuint fragmentID, GLuint geometryID)
+
+	void SetData(Shader& shader, const ShaderData& shaderData)
+	{
+		if (shaderData.VertShader == "")
+		{
+			TWISTED_ERROR("Shader compilation failed: missing vertex shader");
+			return;
+		}
+		if (shaderData.FragShader == "")
+		{
+			TWISTED_ERROR("Shader compilation failed: missing fragment shader");
+			return;
+		}
+
+		GLuint vertexID = Shader_GL::CompileShaderCode(GL_VERTEX_SHADER, "Vertex", shaderData.VertShader.c_str());
+		GLuint fragmentID = Shader_GL::CompileShaderCode(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShader.c_str());
+		GLuint geometryID = 0;
+		if (shaderData.GeoShader != "")
+			geometryID = Shader_GL::CompileShaderCode(GL_GEOMETRY_SHADER, "Geometry", shaderData.GeoShader.c_str());
+
+		shader.ProgramID = Shader_GL::LinkProgram(vertexID, fragmentID, geometryID);
+		glDeleteShader(vertexID);
+		glDeleteShader(fragmentID);
+		glDeleteShader(geometryID);
+
+		if (shader.IsValid())
+		{
+			shader.Uniforms = Shader_GL::detectShaderUniformVars(shader.ProgramID);
+			shader.UniformBlocks = Shader_GL::detectShaderUniformBlocks(shader.ProgramID);
+		}
+	}
+
+	void Clear(Shader& shader)
+	{
+		if (shader.ProgramID == 0)
+			return;
+
+		glDeleteProgram(shader.ProgramID);
+		shader.ProgramID = 0;
+		shader.Uniforms.clear();
+	}
+
+	void Bind(const Shader& shader)
+	{
+		glUseProgram(shader.ProgramID);
+	}
+
+	void UnBind()
+	{
+		glUseProgram(0);
+	}
+
+
+	std::vector<ShaderUniformBlock> detectShaderUniformBlocks(GLuint shaderProgram)
+	{
+		std::vector<ShaderUniformBlock> uniformBlocks;
+
+		//block uniforms
+		GLint blockCount = 0;
+		glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_BLOCKS, &blockCount);
+
+		GLuint nextBindingPoint = 0;
+		for (GLuint i = 0; i < (GLuint)blockCount; ++i)
+		{
+
+			char name[256];
+			GLsizei length = 0;
+			glGetActiveUniformBlockName(shaderProgram, i, sizeof(name), &length, name);
+
+			GLint blockSize = 0;
+			glGetActiveUniformBlockiv(shaderProgram, i, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+
+			// store block name, size, and index
+			ShaderUniformBlock blockInfo;
+			blockInfo.Name = std::string(name, length);
+			blockInfo.Index = i;
+			blockInfo.Size = blockSize;
+
+			// ---------------------------
+			// Create UBO buffer
+			// ---------------------------
+			glGenBuffers(1, &blockInfo.BufferID);
+			glBindBuffer(GL_UNIFORM_BUFFER, blockInfo.BufferID);
+			glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+			// ---------------------------
+			// Assign binding point
+			// ---------------------------
+			blockInfo.Binding = nextBindingPoint++;
+			glUniformBlockBinding(shaderProgram, blockInfo.Index, blockInfo.Binding);
+
+			// ---------------------------
+			// Bind UBO object to binding point
+			// ---------------------------
+			glBindBufferBase(GL_UNIFORM_BUFFER, blockInfo.Binding, blockInfo.BufferID);
+
+			uniformBlocks.push_back(blockInfo);
+		}
+		return uniformBlocks;
+	}
+
+	std::vector<ShaderUniformVar> detectShaderUniformVars(GLuint shaderProgram)
+	{
+		std::vector<ShaderUniformVar> uniforms;
+
+		GLint count = 0;
+		GLint varSize;
+		GLenum varType;
+
+		GLint maxNameLength = 0;
+		glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
+		std::vector<GLchar> nameBuffer(maxNameLength);
+
+		glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &count);
+		GLint textureUnit = 0;
+		for (int i = 0; i < count; i++)
+		{
+			GLsizei nameLength;
+			glGetActiveUniform(shaderProgram, (GLuint)i, maxNameLength, &nameLength, &varSize, &varType, nameBuffer.data());
+			GLint uniformID = glGetUniformLocation(shaderProgram, nameBuffer.data());
+
+			ShaderUniformVar uniformVar;
+			uniformVar.Name = nameBuffer.data();
+			uniformVar.Type = FromGLShaderType(varType);
+			uniformVar.UniformID = uniformID;
+			if (varType == GL_SAMPLER_2D)
+				uniformVar.TextureUnit = textureUnit++;
+
+			uniforms.emplace_back(uniformVar);
+		}
+		return uniforms;
+	}
+
+	[[nodiscard]] GLuint LinkProgram(GLuint vertexID, GLuint fragmentID, GLuint geometryID)
 	{
 		if (vertexID == 0 || fragmentID == 0)
 			return 0;
@@ -218,114 +369,38 @@ namespace Twisted
 		return program;
 	}
 
-	void Shader::Init(const ShaderData& shaderData)
-	{
-		if (shaderData.VertShader == "")
-		{
-			TWISTED_ERROR("Shader compilation failed: missing vertex shader");
-			return;
-		}
-		if (shaderData.FragShader == "")
-		{
-			TWISTED_ERROR("Shader compilation failed: missing fragment shader");
-			return;
-		}
-
-		GLuint vertexID = CompileShaderCode(GL_VERTEX_SHADER, "Vertex", shaderData.VertShader.c_str());
-		GLuint fragmentID = CompileShaderCode(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShader.c_str());
-		GLuint geometryID = 0;
-		if (shaderData.GeoShader != "")
-			geometryID = CompileShaderCode(GL_GEOMETRY_SHADER, "Geometry", shaderData.GeoShader.c_str());
-
-		m_programID = LinkProgram(vertexID, fragmentID, geometryID);
-		glDeleteShader(vertexID);
-		glDeleteShader(fragmentID);
-		glDeleteShader(geometryID);
-
-		if (IsValid())
-			DetectUniformVars();
-	}
-
-	void Shader::Clear()
-	{
-		if (m_programID == 0)
-			return;
-
-		glDeleteProgram(m_programID);
-		m_programID = 0;
-		m_uniforms.clear();
-	}
-
-	void Shader::Bind()const
-	{
-		glUseProgram(m_programID);
-	}
-
-	void Shader::UnBind()const
-	{
-		glUseProgram(0);
-	}
-
-	void Shader::DetectUniformVars()
-	{
-		GLint count = 0;
-		GLint varSize;
-		GLenum varType;
-
-		GLint maxNameLength = 0;
-		glGetProgramiv(m_programID, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
-		std::vector<GLchar> nameBuffer(maxNameLength);
-
-		glGetProgramiv(m_programID, GL_ACTIVE_UNIFORMS, &count);
-		GLint textureUnit = 0;
-		for (int i = 0; i < count; i++)
-		{
-			GLsizei nameLength;
-			glGetActiveUniform(m_programID, (GLuint)i, maxNameLength, &nameLength, &varSize, &varType, nameBuffer.data());
-			GLint uniformID = glGetUniformLocation(m_programID, nameBuffer.data());
-
-			ShaderUniformVar uniformVar;
-			uniformVar.Name = nameBuffer.data();
-			uniformVar.Type = FromGLShaderType(varType);
-			uniformVar.UniformID = uniformID;
-			if (varType == GL_SAMPLER_2D)
-				uniformVar.TextureUnit = textureUnit++;
-
-			m_uniforms.emplace_back(uniformVar);
-		}
-	}
-
-	void Shader::SetVar(int locationID, bool value) const { glUniform1i(locationID, static_cast<int>(value)); }
-	void Shader::SetVar(int locationID, int value) const { glUniform1i(locationID, value); }
-	void Shader::SetVar(int locationID, float value) const { glUniform1f(locationID, value); }
-	void Shader::SetVar(int locationID, double value) const { glUniform1d(locationID, value); }
-	void Shader::SetVar(int locationID, unsigned int value) const { glUniform1ui(locationID, value); }
-
-	void Shader::SetVar(int locationID, const Vec4f& value) const { glUniform4f(locationID, value[0], value[1], value[2], value[3]); }
-	void Shader::SetVar(int locationID, const Vec3f& value) const { glUniform3f(locationID, value[0], value[1], value[2]); }
-	void Shader::SetVar(int locationID, const Vec2f& value) const { glUniform2f(locationID, value[0], value[1]); }
-
-	void Shader::SetVar(int locationID, const Vec4d& value) const { glUniform4d(locationID, value[0], value[1], value[2], value[3]); }
-	void Shader::SetVar(int locationID, const Vec3d& value) const { glUniform3d(locationID, value[0], value[1], value[2]); }
-	void Shader::SetVar(int locationID, const Vec2d& value) const { glUniform2d(locationID, value[0], value[1]); }
-
-	void Shader::SetVar(int locationID, const Vec4i& value) const { glUniform4i(locationID, value[0], value[1], value[2], value[3]); }
-	void Shader::SetVar(int locationID, const Vec3i& value) const { glUniform3i(locationID, value[0], value[1], value[2]); }
-	void Shader::SetVar(int locationID, const Vec2i& value) const { glUniform2i(locationID, value[0], value[1]); }
-
-	void Shader::SetVar(int locationID, const Mat4x4f& value) const { glUniformMatrix4fv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void Shader::SetVar(int locationID, const Mat3x3f& value) const { glUniformMatrix3fv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void Shader::SetVar(int locationID, const Mat2x2f& value) const { glUniformMatrix2fv(locationID, 1, GL_FALSE, &value[0][0]); }
-
-	void Shader::SetVar(int locationID, const Mat4x4d& value) const { glUniformMatrix4dv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void Shader::SetVar(int locationID, const Mat3x3d& value) const { glUniformMatrix3dv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void Shader::SetVar(int locationID, const Mat2x2d& value) const { glUniformMatrix2dv(locationID, 1, GL_FALSE, &value[0][0]); }
-
-	void Shader::SetTex(int locationID, int unit, unsigned int texID)const
+	void SetVar(int locationID, bool value) { glUniform1i(locationID, static_cast<int>(value)); }
+	void SetVar(int locationID, int value) { glUniform1i(locationID, value); }
+	void SetVar(int locationID, float value) { glUniform1f(locationID, value); }
+	void SetVar(int locationID, double value) { glUniform1d(locationID, value); }
+	void SetVar(int locationID, unsigned int value) { glUniform1ui(locationID, value); }
+	void SetVar(int locationID, const Vec4f& value) { glUniform4f(locationID, value[0], value[1], value[2], value[3]); }
+	void SetVar(int locationID, const Vec3f& value) { glUniform3f(locationID, value[0], value[1], value[2]); }
+	void SetVar(int locationID, const Vec2f& value) { glUniform2f(locationID, value[0], value[1]); }
+	void SetVar(int locationID, const Vec4d& value) { glUniform4d(locationID, value[0], value[1], value[2], value[3]); }
+	void SetVar(int locationID, const Vec3d& value) { glUniform3d(locationID, value[0], value[1], value[2]); }
+	void SetVar(int locationID, const Vec2d& value) { glUniform2d(locationID, value[0], value[1]); }
+	void SetVar(int locationID, const Vec4i& value) { glUniform4i(locationID, value[0], value[1], value[2], value[3]); }
+	void SetVar(int locationID, const Vec3i& value) { glUniform3i(locationID, value[0], value[1], value[2]); }
+	void SetVar(int locationID, const Vec2i& value) { glUniform2i(locationID, value[0], value[1]); }
+	void SetVar(int locationID, const Mat4x4f& value) { glUniformMatrix4fv(locationID, 1, GL_FALSE, &value[0][0]); }
+	void SetVar(int locationID, const Mat3x3f& value) { glUniformMatrix3fv(locationID, 1, GL_FALSE, &value[0][0]); }
+	void SetVar(int locationID, const Mat2x2f& value) { glUniformMatrix2fv(locationID, 1, GL_FALSE, &value[0][0]); }
+	void SetVar(int locationID, const Mat4x4d& value) { glUniformMatrix4dv(locationID, 1, GL_FALSE, &value[0][0]); }
+	void SetVar(int locationID, const Mat3x3d& value) { glUniformMatrix3dv(locationID, 1, GL_FALSE, &value[0][0]); }
+	void SetVar(int locationID, const Mat2x2d& value) { glUniformMatrix2dv(locationID, 1, GL_FALSE, &value[0][0]); }
+	void SetTex(int locationID, int unit, unsigned int texID)
 	{
 		glActiveTexture(GL_TEXTURE0 + unit);
 		glBindTexture(GL_TEXTURE_2D, texID);
 		glUniform1i(locationID, unit);
 	}
+	void SetBuffer(int bufferID, const void* data, size_t size)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, bufferID);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, size, &data);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	}	
 }
 

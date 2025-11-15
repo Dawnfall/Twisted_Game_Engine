@@ -12,8 +12,6 @@ namespace Twisted
 		size_t idx = static_cast<size_t>(key);
 		if (isDown)
 		{
-			TWISTED_TRACE("key down");
-
 			if (!m_pressedKeys.test(idx))
 				m_justPressedKeys.set(idx);
 			m_pressedKeys.set(idx);

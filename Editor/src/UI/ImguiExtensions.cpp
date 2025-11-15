@@ -76,7 +76,7 @@ namespace Im
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
-		io.IniFilename = nullptr;
+		io.IniFilename = "F:/Programiranje/C++/GameEngine/EditorConfig/editor_imgui.ini";
 
 		ImGui::StyleColorsDark();
 	}

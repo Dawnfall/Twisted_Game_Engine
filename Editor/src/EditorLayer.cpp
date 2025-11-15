@@ -15,8 +15,6 @@ namespace Twisted::Editor
 	void EditorLayer::Init()
 	{
 		Im::Init(m_app->GetLayer<WindowLayer>()->GetWindow());
-		m_editorConfig.LoadConfig();
-		//Im::SetLayoutIniFile(""); //TODO:... not sure we can do this some place else
 
 		for (auto& panel : EditorRegistry::GetInstance().m_panels)
 			panel->Init();

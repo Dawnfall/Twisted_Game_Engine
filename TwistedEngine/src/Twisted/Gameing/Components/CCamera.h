@@ -8,8 +8,6 @@
 #include "CMainCamera.h"
 #include "Twisted/Gameing/WorldRegistry.h"
 
-
-
 namespace Twisted
 {
 	enum class TWISTED_API CameraProjectionType :int
@@ -86,6 +84,8 @@ namespace Twisted
 		void SetFrameBuffer(FrameBuffer* buffer) { m_frameBuffer = buffer; }
 		FrameBuffer* GetFrameBuffer() { return m_frameBuffer.get(); }
 
+		const ClearParams& GetClearParams()const { return m_clearParams; }
+		ClearParams& GetClearParams() { return m_clearParams; }
 	private:
 
 		CameraProjectionType m_projectionType = CameraProjectionType::PERSPECTIVE;
@@ -101,6 +101,8 @@ namespace Twisted
 		float m_rightEdge = 1.0f;
 		float m_botEdge = 1.0f;
 		float m_topEdge = 1.0f;
+
+		ClearParams m_clearParams;
 
 		WPtr<FrameBuffer> m_frameBuffer = nullptr;
 	};

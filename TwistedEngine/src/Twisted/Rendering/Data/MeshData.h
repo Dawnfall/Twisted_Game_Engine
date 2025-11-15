@@ -1,7 +1,5 @@
 #pragma once
-#include "MeshPrimitiveType.h"
 #include "Utils/GlmUtils.h"
-
 #include <vector>
 
 namespace Twisted
@@ -10,6 +8,13 @@ namespace Twisted
     constexpr unsigned int NORMAL_LAYOUT_LOC = 1;
     constexpr unsigned int TEXCOORD_LAYOUT_LOC = 2;
     constexpr unsigned int COLOR_LAYOUT_LOC = 3;
+
+    enum class MeshPrimitiveType
+    {
+        POINTS,
+        LINES,
+        TRIANGLES,
+    };
 
     struct VertexAttribute
     {

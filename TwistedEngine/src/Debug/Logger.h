@@ -65,7 +65,8 @@ namespace Twisted
 #define TWISTED_WARN(...)  Twisted::Logger::GetInstance().Warn(__VA_ARGS__)
 #define TWISTED_ERROR(...) Twisted::Logger::GetInstance().Error(__VA_ARGS__)
 #else
-#define TWISTED_INIT()
+#define LOGGER_INIT()
+#define TWISTED_TRACE(...)
 #define TWISTED_INFO(...) 
 #define TWISTED_WARN(...) 
 #define TWISTED_ERROR(...) 

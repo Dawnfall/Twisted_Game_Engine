@@ -9,7 +9,7 @@
 #include "EditorData/EditorInput.h"
 
 #include "UI/UIWindow.h"
-#include "Twisted/Rendering/FrameBuffer.h"
+#include <Twisted/Gameing/World.h>
 
 namespace Twisted::Editor
 {
@@ -39,10 +39,12 @@ namespace Twisted::Editor
 		Selection& GetSelection() { return m_selection; }
 		EditorInput& GetInput() { return m_input; }
 		EditorConfig& GetConfig() { return m_editorConfig; }
+
 		LoadupConfig& GetLoadupConfig() { return m_loadupConfigData; }
 		UIWindow& GetUIWindow() { return m_uiWindow; }
 
 	public:
+
 		Event<fs::path> MakeNewFileEvent; //extension
 		Event<fs::path> SelectWorldPath;
 		Event<fs::path> SelectedProjectPath;
@@ -51,7 +53,9 @@ namespace Twisted::Editor
 
 		Event<> ConfirmedQuitEvent;
 		Event<> WorldChangeEvent;
+
 	private:
+
 		inline static EditorLayer* s_instance = nullptr;
 
 		World* m_gameWorld = nullptr;
@@ -59,8 +63,9 @@ namespace Twisted::Editor
 
 		Selection m_selection;
 		EditorInput m_input;
-		EditorConfig m_editorConfig;
-		LoadupConfig m_loadupConfigData;
 		UIWindow m_uiWindow;
+
+		LoadupConfig m_loadupConfigData;
+		EditorConfig m_editorConfig;
 	};
 }

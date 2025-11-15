@@ -32,5 +32,7 @@ namespace Twisted::Editor
 		EditorLayer* m_editorLayer = nullptr;
 
 		Window* m_window;
+		
+
 	};
 }

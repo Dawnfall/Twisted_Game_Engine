@@ -12,6 +12,7 @@ namespace Twisted
 		Mat4x4f viewMatrix;
 		Mat4x4f projectionMatrix;
 		FrameBuffer* framebuffer;
+		ClearParams clearParams;
 	};
 
 	struct ModelData

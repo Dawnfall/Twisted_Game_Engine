@@ -11,17 +11,6 @@
 
 namespace Twisted
 {
-	struct ClearParams
-	{
-		bool doDepthTest = false;
-		bool doDepthWrite = false;
-		bool doDepthClear = false;
-		bool doClearStencil = false;
-		bool doClearColor = false;
-
-		Color clearColor{ 0,0,0,1 };
-	};
-
 	class TWISTED_API RenderLayer :public Layer
 	{
 	public:
@@ -84,55 +73,20 @@ namespace Twisted
 		unsigned int m_clearBits = 0;
 		ClearParams m_clearParams;
 
-		//void SetClearColor(const Color& color)
-//{
-//	if (m_params.clearColor != color)
-//	{
-//		m_params.clearColor = color;
-//	}
-//}
-//void SetDepthTest(bool enabled)
-//{
-//	if (m_params.doDepthTest != enabled)
-//	{
-//		m_params.doDepthTest = enabled;
-//		m_isDirty = true;
-//	}
-//}
-//void SetDepthWrite(bool enabled)
-//{
-//	if (m_params.doDepthWrite != enabled)
-//	{
-//		m_params.doDepthWrite = enabled;
-//		m_isDirty = true;
-//	}
-//}
-//void SetClearDepth(bool enabled)
-//{
-//	if (m_params.doClearDepth != enabled)
-//	{
-//		m_params.doClearDepth = enabled;
-//		m_isDirty = true;
-//	}
-//}
-//void SetClearStencil(bool enabled)
-//{
-//	if (m_params.doClearStencil != enabled)
-//	{
-//		m_params.doClearStencil = enabled;
-//		m_isDirty = true;
-//	}
-//}
-//void SetClearColorFlag(bool enabled)
-//{
-//	if (m_params.doClearColor != enabled)
-//	{
-//		m_params.doClearColor = enabled;
-//		m_isDirty = true;
-//	}
-//}
-		void SetClearParams();
-		void ApplyClearParams();
+		void RenderSettings() //to be moved
+		{
+			//if (m_clearParams.doDepthTest)
+			//	glEnable(GL_DEPTH_TEST);
+			//else
+			//	glDisable(GL_DEPTH_TEST);
+			
+			//if (m_clearParams.doClearStencil)
+			//	glEnable(GL_STENCIL_TEST);
+			//else
+			//	glDisable(GL_STENCIL_TEST);
+			
+			//glDepthMask(m_clearParams.doDepthWrite ? GL_TRUE : GL_FALSE);
+		}
 	};
 }
 

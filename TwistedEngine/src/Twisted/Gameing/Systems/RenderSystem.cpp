@@ -43,6 +43,7 @@ namespace Twisted
 			}
 			data.viewMatrix = cam.GetViewMatrix();
 			data.projectionMatrix = cam.GetProjectionMatrix();
+			data.clearParams = cam.GetClearParams();
 
 			context.camDatas.emplace_back(data);
 		}

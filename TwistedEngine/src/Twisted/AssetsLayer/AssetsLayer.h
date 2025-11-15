@@ -18,6 +18,8 @@
 #include "Twisted/Rendering/Mesh.h"
 #include "Twisted/BuiltIn/MeshCollections.h"
 
+#include "Twisted/Rendering/OpenGL/Mesh_OpenGL.h"
+
 namespace fs = std::filesystem;
 
 namespace Twisted
@@ -77,15 +79,17 @@ namespace Twisted
 		void LoadBuiltIn()
 		{
 			Mesh* triangleMesh = TObject::Create<Mesh>(Collections::triangleMeshName);
-			triangleMesh->SetData(Collections::CreateTrianglePackedData(),MeshDrawType::STATIC);
+			Mesh_GL::SetData(*triangleMesh, Collections::CreateTrianglePackedData(), MeshDrawType::STATIC);
+
 			Mesh* quadMesh = TObject::Create<Mesh>(Collections::quadMeshName);
-			quadMesh->SetData(Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
-			//Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName, MeshParams{});
-			//cubeMesh->SetData(Collections::cubeMesh);
+			Mesh_GL::SetData(*quadMesh, Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
+
+			Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName);
+			Mesh_GL::SetData(*cubeMesh, Collections::CreateCubePackedData(), MeshDrawType::STATIC);
 
 			AddBuiltIn(Collections::triangleMeshUUID, triangleMesh);
 			AddBuiltIn(Collections::quadMeshUUID, quadMesh);
-			//AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
+			AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
 		}
 
 	private:

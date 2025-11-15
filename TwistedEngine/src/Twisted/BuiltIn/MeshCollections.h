@@ -105,53 +105,63 @@ namespace Twisted::Collections
 
 	constexpr AssetUuid cubeMeshUUID{ 0xAAE4B2C9244E4D36ULL, 0xA7320DBB31C7B18FULL }; // "b1ad370d45c144ab88f20165f9059f7e"
 	const std::string cubeMeshName = "cube";
-	//const MeshData cubeMesh = {
-	//	{
-	//		Vertex{Vec3f(-0.5f, -0.5f, 0.5f),Vec3f(0.0f,0.0f,1.0f),Vec2f(0.0f,0.0f)},//a
-	//		Vertex{Vec3f(0.5f, -0.5f, 0.5f),Vec3f(0.0f,0.0f,1.0f),Vec2f(1.0f,0.0f)},//b
-	//		Vertex{Vec3f(0.5f,  0.5f, 0.5f),Vec3f(0.0f,0.0f,1.0f),Vec2f(1.0f,1.0f)},//c
-	//		Vertex{Vec3f(-0.5f,  0.5f, 0.5f),Vec3f(0.0f,0.0f,1.0f),Vec2f(0.0f,1.0f)},//d
+	inline PackedMeshData CreateCubePackedData()
+	{
+		MeshData cubeData;
 
-	//		Vertex{Vec3f(0.5f, -0.5f, 0.5f),Vec3f(1.0f,0.0f,0.0f),Vec2f(0.0f,0.0f)},//b
-	//		Vertex{Vec3f(0.5f, -0.5f,  -0.5f),Vec3f(1.0f,0.0f,0.0f),Vec2f(1.0f,0.0f)},//f
-	//		Vertex{Vec3f(0.5f,  0.5f,  -0.5f),Vec3f(1.0f,0.0f,0.0f),Vec2f(1.0f,1.0f)},//g
-	//		Vertex{Vec3f(0.5f,  0.5f, 0.5f),Vec3f(1.0f,0.0f,0.0f),Vec2f(0.0f,1.0f)},//c
+		// Define cube corners
+		Vec3f positions[8] = {
+			{-0.5f, -0.5f, -0.5f}, // 0
+			{ 0.5f, -0.5f, -0.5f}, // 1
+			{ 0.5f,  0.5f, -0.5f}, // 2
+			{-0.5f,  0.5f, -0.5f}, // 3
+			{-0.5f, -0.5f,  0.5f}, // 4
+			{ 0.5f, -0.5f,  0.5f}, // 5
+			{ 0.5f,  0.5f,  0.5f}, // 6
+			{-0.5f,  0.5f,  0.5f}  // 7
+		};
 
-	//		Vertex{Vec3f(0.5f, -0.5f,  -0.5f),Vec3f(0.0f,0.0f,-1.0f),Vec2f(0.0f,0.0f)},//f
-	//		Vertex{Vec3f(-0.5f, -0.5f,  -0.5f),Vec3f(0.0f,0.0f,-1.0f),Vec2f(1.0f,0.0f)},//e
-	//		Vertex{Vec3f(-0.5f,  0.5f,  -0.5f),Vec3f(0.0f,0.0f,-1.0f),Vec2f(1.0f,1.0f)},//h
-	//		Vertex{Vec3f(0.5f,  0.5f,  -0.5f),Vec3f(0.0f,0.0f,-1.0f),Vec2f(0.0f,1.0f)},//g
+		// Face definitions (indices into positions array)
+		struct Face { int v0, v1, v2, v3; Vec3f normal; };
+		Face faces[6] = {
+			{0, 1, 2, 3, { 0,  0, -1}}, // back
+			{5, 4, 7, 6, { 0,  0,  1}}, // front
+			{4, 0, 3, 7, {-1,  0,  0}}, // left
+			{1, 5, 6, 2, { 1,  0,  0}}, // right
+			{3, 2, 6, 7, { 0,  1,  0}}, // top
+			{4, 5, 1, 0, { 0, -1,  0}}  // bottom
+		};
 
-	//		Vertex{Vec3f(-0.5f, -0.5f, -0.5f),Vec3f(-1.0f,0.0f,0.0f),Vec2f(0.0f,0.0f)},//e
-	//		Vertex{Vec3f(-0.5f, -0.5f, 0.5f),Vec3f(-1.0f,0.0f,0.0f),Vec2f(1.0f,0.0f)},//a
-	//		Vertex{Vec3f(-0.5f,  0.5f, 0.5f),Vec3f(-1.0f,0.0f,0.0f),Vec2f(1.0f,1.0f)},//d
-	//		Vertex{Vec3f(-0.5f,  0.5f, -0.5f),Vec3f(-1.0f,0.0f,0.0f),Vec2f(0.0f,1.0f)},//h
+		// Standard UVs for each face
+		Vec2f uvs[4] = {
+			{0.0f, 0.0f}, // bottom-left
+			{1.0f, 0.0f}, // bottom-right
+			{1.0f, 1.0f}, // top-right
+			{0.0f, 1.0f}  // top-left
+		};
 
-	//		Vertex{Vec3f(0.5f, -0.5f, 0.5f),Vec3f(0.0f,-1.0f,0.0f),Vec2f(0.0f,0.0f)},//b
-	//		Vertex{Vec3f(-0.5f, -0.5f, 0.5f),Vec3f(0.0f,-1.0f,0.0f),Vec2f(1.0f,0.0f)},//a
-	//		Vertex{Vec3f(-0.5f, -0.5f, -0.5f),Vec3f(0.0f,-1.0f,0.0f),Vec2f(1.0f,1.0f)},//e
-	//		Vertex{Vec3f(0.5f, -0.5f, -0.5f),Vec3f(0.0f,-1.0f,0.0f),Vec2f(0.0f,1.0f)},//f
+		for (auto& face : faces)
+		{
+			int startIndex = cubeData.Positions.size();
 
-	//		Vertex{Vec3f(-0.5f,  0.5f, 0.5f),Vec3f(0.0f,1.0f,0.0f),Vec2f(0.0f,0.0f)},//d
-	//		Vertex{Vec3f(0.5f,  0.5f, 0.5f),Vec3f(0.0f,1.0f,0.0f),Vec2f(1.0f,0.0f)},//c
-	//		Vertex{Vec3f(0.5f,  0.5f, -0.5f),Vec3f(0.0f,1.0f,0.0f),Vec2f(1.0f,1.0f)},//g
-	//		Vertex{Vec3f(-0.5f,  0.5f, -0.5f),Vec3f(0.0f,1.0f,0.0f),Vec2f(0.0f,1.0f)},//h
-	//	},
-	//	{
-	//		0,2,1,
-	//		0,3,2,
-	//		4,6,5,
-	//		4,7,6,
-	//		8,10,9,
-	//		8,11,10,
-	//		12,14,13,
-	//		12,15,14,
-	//		16,18,17,
-	//		16,19,18,
-	//		20,22,21,
-	//		20,23,22
-	//	}
-	//};
+			// Add positions, normals, UVs for this face
+			cubeData.AddPosition(positions[face.v0]); cubeData.AddNormal(face.normal); cubeData.AddTexCoord(uvs[0]);
+			cubeData.AddPosition(positions[face.v1]); cubeData.AddNormal(face.normal); cubeData.AddTexCoord(uvs[1]);
+			cubeData.AddPosition(positions[face.v2]); cubeData.AddNormal(face.normal); cubeData.AddTexCoord(uvs[2]);
+			cubeData.AddPosition(positions[face.v3]); cubeData.AddNormal(face.normal); cubeData.AddTexCoord(uvs[3]);
+
+			// Two triangles per face
+			cubeData.Indices.push_back(startIndex + 0);
+			cubeData.Indices.push_back(startIndex + 1);
+			cubeData.Indices.push_back(startIndex + 2);
+
+			cubeData.Indices.push_back(startIndex + 2);
+			cubeData.Indices.push_back(startIndex + 3);
+			cubeData.Indices.push_back(startIndex + 0);
+		}
+
+		return cubeData.Pack();
+	}
 
 	constexpr AssetUuid icoSphereMeshUUID{ 0xD134F531D88B4C4DULL, 0xBAE64CEBBA0D92B2ULL }; // "8b71a6de763d4c4ba3ccd87f464edd20"
 	const std::string icoSphereMeshName = "isoSphere";

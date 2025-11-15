@@ -9,8 +9,6 @@
 
 namespace Twisted
 {
-	class Material;
-
 	enum class TWISTED_API ShaderVarType : uint8_t
 	{
 		BOOL, UNSIGNED_INT, INT, FLOAT, DOUBLE,
@@ -32,6 +30,15 @@ namespace Twisted
 		int UniformID = 0;
 	};
 
+	struct ShaderUniformBlock
+	{
+		std::string Name = "";
+		unsigned int Index = 0;       // block index inside the shader
+		unsigned int Binding = 0;     // binding point we assign
+		unsigned int BufferID = 0;    // the generated UBO
+		int Size = 0;       // block size in bytes
+	};
+
 	struct ShaderData
 	{
 		std::string VertShader;
@@ -46,73 +53,15 @@ namespace Twisted
 		T value = T();
 	};
 
-	class TWISTED_API Shader :public TObject
+	struct TWISTED_API Shader :public TObject
 	{
-	public:
+		Shader(const std::string& name);
+		void OnDestroy()override;
+		bool IsValid()const { return ProgramID != 0; }
 
-		Shader(const std::string& name) :
-			TObject(name)
-		{
-		}
-
-
-		void OnDestroy()override
-		{
-			Clear();
-		}
-
-		void SetData(const ShaderData& shaderData)
-		{
-			Clear();
-			Init(shaderData);
-		}
-
-		void Clear();
-		void Init(const ShaderData& shaderData);
-
-		bool IsValid()const { return m_programID != 0; }
-
-		void Bind()const;
-		void UnBind()const;
-
-		unsigned int GetProgramID()const { return m_programID; }
-		const std::vector<ShaderUniformVar>& GetUniforms()const { return m_uniforms; }
-
-		void SetVar(int locationID, bool value)const;
-
-		void SetVar(int locationID, int value)const;
-		void SetVar(int locationID, float value)const;
-		void SetVar(int locationID, double value)const;
-		void SetVar(int locationID, unsigned int value)const;
-
-		void SetVar(int locationID, const Vec4d& value)const;
-		void SetVar(int locationID, const Vec3d& value)const;
-		void SetVar(int locationID, const Vec2d& value)const;
-
-		void SetVar(int locationID, const Vec4f& value)const;
-		void SetVar(int locationID, const Vec3f& value)const;
-		void SetVar(int locationID, const Vec2f& value)const;
-
-		void SetVar(int locationID, const Vec4i& value)const;
-		void SetVar(int locationID, const Vec3i& value)const;
-		void SetVar(int locationID, const Vec2i& value)const;
-
-		void SetVar(int locationID, const Mat4x4f& value)const;
-		void SetVar(int locationID, const Mat3x3f& value)const;
-		void SetVar(int locationID, const Mat2x2f& value)const;
-
-		void SetVar(int locationID, const Mat4x4d& value)const;
-		void SetVar(int locationID, const Mat3x3d& value)const;
-		void SetVar(int locationID, const Mat2x2d& value)const;
-
-		void SetTex(int locationID, int unit, unsigned int texID)const;
-
-	private:
-
-		void DetectUniformVars();
-
-		unsigned int m_programID = 0;
-		std::vector<ShaderUniformVar> m_uniforms;
+		unsigned int ProgramID = 0;
+		std::vector<ShaderUniformVar> Uniforms;
+		std::vector<ShaderUniformBlock> UniformBlocks;
 	};
 }
 

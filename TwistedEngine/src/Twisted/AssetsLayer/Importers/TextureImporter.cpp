@@ -8,30 +8,31 @@
 #include "Twisted/TObject.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+
 namespace Twisted
 {
-
-
 	TextureData LoadTextureData(const fs::path& assetPath)
 	{
 		TextureData texData;
+		stbi_set_flip_vertically_on_load(true);
 		texData.Data = stbi_load(assetPath.string().c_str(), &texData.Width, &texData.Height, &texData.Channels, 4); //must be 4 channels for now
 
 		if (!texData.Data)
 		{
-			TWISTED_WARN(std::format("Failed to load texture: {} ; {}" , assetPath.string(), std::string(stbi_failure_reason())));
+			TWISTED_WARN("Failed to load texture: {} ; {}", assetPath.string(), std::string(stbi_failure_reason()));
 		}
 		return texData;
 	}
 
-	void TextureImporter::ImportNew(FileAssetInfo& assetInfo,std::vector<WPtrBase>& objects)const
+	void TextureImporter::ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
 	{
 		TextureData texData = LoadTextureData(assetInfo.GetAssetPath());
 		if (!texData.Data)
 			return;
 
 		WPtr<Texture> texture(TObject::Create<Texture>(assetInfo.GetAssetName(), TextureParams{}));
-		texture->SetData(texData);
+		Texture_GL::SetData(*texture.get(), texData);
 
 		objects.emplace_back(texture);
 		stbi_image_free(texData.Data);

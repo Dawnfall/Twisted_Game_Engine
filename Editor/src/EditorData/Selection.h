@@ -143,7 +143,7 @@ namespace Twisted::Editor
 		}
 
 	private:
-		SelectionType m_activeType;
+		SelectionType m_activeType=SelectionType::NONE;
 
 		std::unordered_set<ObjectID> m_selectedObjects;
 		std::unordered_set<Entity> m_selectedEntities;

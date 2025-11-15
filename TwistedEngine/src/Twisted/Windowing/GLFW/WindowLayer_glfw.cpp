@@ -8,7 +8,7 @@
 namespace Twisted
 {
 	WindowLayer::WindowLayer(Application* app) :Layer(app)
-	{ 
+	{
 		if (!glfwInit())
 		{
 			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!");
@@ -21,8 +21,10 @@ namespace Twisted
 		TWISTED_INFO("GLFW init success");
 		TWISTED_INFO("RenderCore Init success!");
 	}
-	WindowLayer::~WindowLayer() 
-	{ 
+	WindowLayer::~WindowLayer()
+	{
+		if (m_window)
+			DestroyWindow(m_window.get());
 		glfwTerminate();
 	}
 

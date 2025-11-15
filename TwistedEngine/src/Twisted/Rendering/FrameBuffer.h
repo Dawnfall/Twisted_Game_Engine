@@ -10,50 +10,32 @@
 
 namespace Twisted
 {
+	struct ClearParams
+	{
+		bool doDepthClear = true;
+		bool doClearStencil = true;
+		bool doClearColor = true;
 
+		Color clearColor{ 0,0,0,1 };
+	};
 
 	class TWISTED_API FrameBuffer :public TObject
 	{
 	public:
-		FrameBuffer(const std::string& name, Vec2i size) :
-			TObject(name),
-			m_size(size)
-		{
-		}
+		FrameBuffer(const std::string& name, Vec2i size);
+		void OnCreate() override;
+		void OnDestroy() override;
 
 		bool IsValid()const
 		{
-			return m_id != 0 && m_tex && m_tex->IsValid();
+			return Id != 0 && Tex && Tex->IsValid();
 		}
 
-		const Texture* GetTexture()const { return m_tex.get(); }
-		Vec2i GetSize()const { return m_size; }
-
-		void SetSize(const Vec2i& size);
-
-		void Bind();
-		void UnBind()const;
-
-		void OnCreate() override;
-		void OnDestroy() override
-		{
-			Destroy();
-		}
-
-		void Blit(unsigned int destID) const;
-
-	private:
-		void Update();
-		void Destroy();
-
-		Vec2i m_size;
-
-		WPtr<Texture> m_tex;
-		unsigned int m_id = 0;
-		unsigned int m_rbo = 0;
-
-
-		bool m_isDirty = true;
+		Vec2i Size;
+		WPtr<Texture> Tex;
+		unsigned int Id = 0;
+		unsigned int Rbo = 0;
+		bool IsDirty = true;
 	};
 }
 

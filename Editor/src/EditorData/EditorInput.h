@@ -54,7 +54,6 @@ namespace Twisted::Editor
 				{
 					m_isDragStart = true;
 					m_isDragging = true;
-					TWISTED_TRACE("Drag start");
 				}
 			}
 
@@ -69,11 +68,9 @@ namespace Twisted::Editor
 	private:
 
 		ImVec2 m_mousePostion = ImVec2(0, 0);
-
-		bool m_isMouseDown = false;
-
 		ImVec2 m_lastClickPos = ImVec2(0, 0);
 
+		bool m_isMouseDown = false;
 		bool m_isDragStart = false;
 		bool m_isDragging = false;
 		bool m_isDragEnd = false;

@@ -1,6 +1,7 @@
 ﻿#include "EditorApplication.h"
 #include "UI/ImguiExtensions.h"
 #include "Twisted/Gameing/World.h"
+#include <Twisted/TObject.h>
 
 inline static std::string layoutFilePath = "";
 
@@ -16,6 +17,8 @@ namespace Twisted::Editor
 
 	void EditorApplication::OnBeforeRun()
 	{
+		m_editorLayer->GetConfig().LoadConfig();
+
 		SetCallbacks();
 		CreateAppWindow();
 
@@ -103,7 +106,7 @@ namespace Twisted::Editor
 
 	void EditorApplication::CreateAppWindow()
 	{
-		m_window = m_windowLayer->CreateNewWindow(Constants::LOADUP_WIN_TITLE, Constants::LOADUP_WIN_SIZE, Constants::LOADUP_WIN_POS);
+		m_window = m_windowLayer->CreateNewWindow(Constants::EDITOR_WINDOW_TITLE, m_editorLayer->GetConfig().GetWindowSize(), m_editorLayer->GetConfig().GetWindowPos());
 		m_window->CloseWindowEvent.AddListener([this]() { Stop(); });
 		m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE);
 		m_window->Maximize();

@@ -44,50 +44,19 @@ namespace Twisted
 		int Channels;
 	};
 
-	class TWISTED_API Texture :public TObject //assumes mipmap, rgba 4 channel input , assumes valid texture
+	struct TWISTED_API Texture :public TObject //assumes mipmap, rgba 4 channel input , assumes valid texture
 	{
-	public:
-		Texture(const std::string& name):
-			TObject(name)
-		{}
-		Texture(const std::string& name,const TextureParams& params) :
-			TObject(name),
-			m_params(params)
-		{}
+		Texture(const std::string& name);
+		Texture(const std::string& name, const TextureParams& params);
+		void OnDestroy() override;
 
-		unsigned int GetTexID() const { return m_texID; }
-		const TextureParams& GetParams() const { return m_params; }
-		int GetWidth()const { return m_width; }
-		int GetHeight()const { return m_height; }
-		int GetChannelsCount()const { return m_channels; }
-		bool IsValid()const { return m_texID != 0; }
+		bool IsValid()const { return TexID != 0; }
 
-		void Clear();
-
-		void OnDestroy() override
-		{
-			Clear();
-		}
-
-		void SetData(TextureData& data);
-		void Resize(const Vec2i& newSize);
-		void Bind(unsigned int slot = 0) const;
-		void UnBind()const;
-
-		void SetParams(const TextureParams& params);
-		void SetWrapType(TextureWrap wrapType);
-		void SetMagFilter(TextureMagFilter magFilter);
-		void SetMinFilter(TextureMinFilter minFilter);
-
-	private:
-		void ApplyParams()const;
-
-		TextureParams m_params;
-
-		int m_width = 0;
-		int m_height = 0;
-		int m_channels = 0;
-		unsigned int m_texID = 0;
+		TextureParams Params;
+		int Width = 0;
+		int Height = 0;
+		int Channels = 0;
+		unsigned int TexID = 0;
 	};
 }
 

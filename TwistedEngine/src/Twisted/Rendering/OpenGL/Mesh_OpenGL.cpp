@@ -1,11 +1,43 @@
 ﻿#include "Twisted/Rendering/Mesh.h"
+#include "Twisted/Rendering/OpenGL/Mesh_OpenGL.h"
+
 #include "Debug/Logger.h"
-#include <glad/glad.h>
+
 #include <string>
+#include <glad/glad.h>
 
 namespace Twisted
 {
-	[[nodiscard]] static GLenum PrimitiveTypeToGL(MeshPrimitiveType primitveType)
+	Mesh::Mesh(const std::string& name) :
+		TObject(name)
+	{
+	}
+
+	void Mesh::OnDestroy()
+	{
+		Mesh_GL::Clear(*this);
+	}
+}
+
+namespace Twisted::Mesh_GL
+{
+	GLenum MeshTypeToGL(MeshPrimitiveType type)
+	{
+		switch (type)
+		{
+		case MeshPrimitiveType::TRIANGLES:
+			return GL_TRIANGLES;
+		case MeshPrimitiveType::LINES:
+			return GL_LINES;
+		case MeshPrimitiveType::POINTS:
+			return GL_POINT;
+		default:
+			TWISTED_ERROR(std::string("Unsupported mesh type"));
+			return GL_INVALID_ENUM;
+		}
+	}
+
+	GLenum PrimitiveTypeToGL(MeshPrimitiveType primitveType)
 	{
 		switch (primitveType)
 		{
@@ -21,7 +53,7 @@ namespace Twisted
 		}
 	}
 
-	[[nodiscard]] static GLenum DrawTypeToGL(MeshDrawType drawType)
+	GLenum DrawTypeToGL(MeshDrawType drawType)
 	{
 		switch (drawType)
 		{
@@ -32,7 +64,7 @@ namespace Twisted
 		}
 	}
 
-	[[nodiscard]] static size_t CalcNumberPrimitives(MeshPrimitiveType primitiveType, size_t indexCount)
+	size_t CalcNumberPrimitives(MeshPrimitiveType primitiveType, size_t indexCount)
 	{
 		switch (primitiveType)
 		{
@@ -45,66 +77,73 @@ namespace Twisted
 		}
 	}
 
-
-	void Mesh::SetData(const PackedMeshData& packedData, MeshDrawType drawType)
+	void SetData(Mesh& mesh, const PackedMeshData& packedData, MeshDrawType drawType)
 	{
-		Clear();
+		Clear(mesh);
 
 		if (packedData.VertexBuffer.empty() || packedData.Indices.empty())
 			return;
 
-		m_drawType = drawType;
-		m_indexCount = packedData.Indices.size();
+		mesh.DrawType = drawType;
+		mesh.IndexCount = packedData.Indices.size();
 
-		glGenVertexArrays(1, &m_vao);
-		glGenBuffers(1, &m_vbo);
-		glGenBuffers(1, &m_ebo);
+		glGenVertexArrays(1, &mesh.Vao);
+		glGenBuffers(1, &mesh.Vbo);
+		glGenBuffers(1, &mesh.Ebo);
 
-		glBindVertexArray(m_vao);
+		glBindVertexArray(mesh.Vao);
 
-		ApplyBuffers(packedData);
+		ApplyBuffers(mesh, packedData);
 		SetMeshLayout(packedData);
 
 		glBindVertexArray(0);
 	}
 
-	void Mesh::ApplyBuffers(const PackedMeshData& packedData)const
+	void ApplyBuffers(const Mesh& mesh, const PackedMeshData& packedData)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.Vbo);
 		glBufferData(GL_ARRAY_BUFFER,
 			packedData.VertexBuffer.size() * sizeof(float),
 			packedData.VertexBuffer.data(),
-			DrawTypeToGL(m_drawType)
+			DrawTypeToGL(mesh.DrawType)
 		);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.Ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			packedData.Indices.size() * sizeof(unsigned int),
 			packedData.Indices.data(),
-			DrawTypeToGL(m_drawType));
+			DrawTypeToGL(mesh.DrawType));
 	}
 
-	void Mesh::Clear()
+	void Clear(Mesh& mesh)
 	{
-		glDeleteVertexArrays(1, &m_vao);
-		glDeleteBuffers(1, &m_vbo);
-		glDeleteBuffers(1, &m_ebo);
+		glDeleteVertexArrays(1, &mesh.Vao);
+		glDeleteBuffers(1, &mesh.Vbo);
+		glDeleteBuffers(1, &mesh.Ebo);
 
-		m_vbo = m_ebo = m_vao = 0;
+		mesh.Vbo = mesh.Ebo = mesh.Vao = 0;
 	}
 
-	void Mesh::Bind()const
+	void Bind(const Mesh& mesh)
 	{
-		glFrontFace(m_windOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
-		glBindVertexArray(m_vao);
+		glFrontFace(mesh.WindOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
+		glBindVertexArray(mesh.Vao);
 	}
 
-	void Mesh::UnBind()const
+	void UnBind()
 	{
 		glBindVertexArray(0);
 	}
 
-	void Mesh::SetMeshLayout(const PackedMeshData& packedData)
+	void SetWindingOrder(Mesh& mesh, MeshWindingOrder windOrder)
+	{
+		if (mesh.WindOrder == windOrder)
+			return;
+
+		mesh.WindOrder = windOrder;
+	}
+
+	void SetMeshLayout(const PackedMeshData& packedData)
 	{
 		// Set layout
 		for (unsigned int i = 0; i < packedData.Layout.size(); ++i)

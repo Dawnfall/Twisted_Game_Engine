@@ -18,7 +18,11 @@ namespace Twisted
 			m_window = std::make_unique<Window>(title, size, position);
 			return m_window.get();
 		}
-
+		void DestroyWindow(Window* window)
+		{
+			if (window && m_window && window == m_window.get())
+				m_window = nullptr;
+		}
 		void PollEvents();
 	private:
 		URef<Window> m_window;
