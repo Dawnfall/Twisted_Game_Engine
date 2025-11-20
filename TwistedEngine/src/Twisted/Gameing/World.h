@@ -1,16 +1,18 @@
 ﻿#pragma once
 
 #include "AppCore.h"
-#include "Twisted/Application/Application.h"
-#include "Twisted/TObject.h"
+#include "Debug/Logger.h"
+
 #include "Twisted/Gameing/SystemBase.h"
-#include "Twisted/AssetsLayer/AssetsLayer.h"
-#include "Serialization/BinSerializer.h"
-#include "Entity.h"
+#include "Twisted/TObject.h"
+#include "Twisted/Gameing/Entity.h"
 
-#include <EnTT/entt.hpp>
+#include "Utils/YamlUtils.h"
 
-#include <unordered_map>
+#include <entt/entt.hpp>
+#include <memory>
+#include <vector>
+#include <string>
 
 namespace Twisted
 {
@@ -19,77 +21,96 @@ namespace Twisted
 	public:
 		World(const std::string& name);
 
-		auto GetAllEntities() const { return m_registry.storage<entt::entity>(); }
-
-		template<typename T>
-		const T* GetSystem()const
-		{
-			for (auto& system : m_systems)
-			{
-				T* castSystem = dynamic_cast<T*>(system.get());
-				if (castSystem)
-					return castSystem;
-			}
-			return nullptr;
-		}
-
-		template<typename T>
-		T* GetSystem()
-		{
-			for (auto& system : m_systems)
-			{
-				T* castSystem = dynamic_cast<T*>(system.get());
-				if (castSystem)
-					return castSystem;
-			}
-			return nullptr;
-		}
-
 		entt::registry& GetRegistry() { return m_registry; }
 		const entt::registry& GetRegistry() const { return m_registry; }
+		auto GetAllEntities() const { return m_registry.storage<entt::entity>(); }
+
+		//********
+		// Managers
+		//********
 
 		template<typename T>
-		void AddSystem()
+		T& ForceGetManager()
+		{
+			if (T* obj = m_registry.ctx().find<T>(); obj)
+				return *obj;
+			return m_registry.ctx().emplace<T>(this);
+		}
+		template<typename T>
+		T* GetManager()
+		{
+			return m_registry.ctx().find<T>();
+		}
+		template<typename T>
+		const T* GetManager()const
+		{
+			return m_registry.ctx().find<T>();
+		}
+
+		//********
+		// Systems
+		//********
+
+		const std::vector<URef<SystemBase>>& GetAllSystems() const { return m_systems; }
+		std::vector<URef<SystemBase>>& GetAllSystems() { return m_systems; }
+
+		template<typename T>
+		bool HasSystem()const
 		{
 			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
-			if (HasSystem<T>())
-				return;
-			m_systems.emplace_back(std::make_unique<T>(this));
+			return m_registry.ctx().find<T>() != nullptr;
 		}
+
+		template<typename T>
+		T* GetSystem() {
+			for (auto& sys : m_systems) {
+				if (auto* ptr = dynamic_cast<T*>(sys.get()))
+					return ptr;
+			}
+			return nullptr;
+		}
+
+		template<typename T>
+		const T* GetSystem() const {
+			for (auto& sys : m_systems) {
+				if (auto* ptr = dynamic_cast<T*>(sys.get()))
+					return ptr;
+			}
+			return nullptr;
+		}
+
+		template<typename T>
+		T& AddSystem()
+		{
+			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
+			if (T* sys = GetSystem<T>(); sys != nullptr)
+				return *sys;
+			URef<T> newSys = std::make_unique<T>(this);
+			T* sysPtr = newSys.get();
+			m_systems.emplace_back(std::move(newSys));
+			return *sysPtr;
+		}
+
+		//********
+		// Components
+		//********
 
 		void Clear();
 
 		//Application* GetApplication() { return m_app; }
 
-		const std::vector<EntityID>& GetRootEntities()const { return m_rootEntities; }
-		std::vector<EntityID>& GetRootEntities() { return m_rootEntities; }
-
 		void UpdateFrame();
 
-		template<typename T>
-		bool HasSystem()
-		{
-			static_assert(std::is_base_of <SystemBase, T>::value, "T must derive from SystemBase");
-			for (auto& system : m_systems)
-				if (dynamic_cast<T*>(system.get()))
-					return true;
-			return false;
-		}
-
-		std::vector<URef<SystemBase>>& GetAllSystems() { return m_systems; }
-		const std::vector<URef<SystemBase>>& GetAllSystems()const { return m_systems; }
+		Entity CreateNewEntity();
 
 		template<typename... ComponentTypes>
-		inline Entity CreateNew(ComponentTypes&&... args)
+		inline Entity CreateNewEntityWithComponents()
 		{
 			static_assert((std::is_base_of<AComponent, ComponentTypes>::value && ...), "All types must derive from AComponent");
 			static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
 			static_assert((!std::is_same<CName, ComponentTypes>::value && ...), "Component types must not be CName");
 
-			Entity newEntity{ m_registry.create(),this };
-
-			AddComponent<CTransform>(newEntity.GetID());
-			AddComponent<CName>(newEntity.GetID());
+			Entity newEntity = CreateNewEntity();
 			(AddComponent<ComponentTypes>(newEntity.GetID()), ...);
 
 			return newEntity;
@@ -105,25 +126,13 @@ namespace Twisted
 		T& AddComponent(EntityID id, Args&&... args)
 		{
 			static_assert(std::is_base_of_v<AComponent, T>, "T must derive from AComponent");
-			if (T* comp=m_registry.try_get<T>(id);comp)
+			if (T* comp = m_registry.try_get<T>(id); comp)
 			{
 				TWISTED_INFO("entity already contains component");
 				return *comp;
 			}
 
-			TWISTED_INFO(std::format("World::AddComponent<{}> called for id {}", typeid(T).name(), (uint32_t)id));
-			assert(m_registry.valid(id) && "Entity invalid before adding component");
-
-			size_t beforeCount = std::distance(m_registry.storage<entt::entity>().begin(), m_registry.storage<entt::entity>().end());
 			T& newComponent = m_registry.emplace<T>(id, Entity{ id,this }, std::forward<Args>(args)...);
-		
-			assert(m_registry.valid(id) && "Entity invalidated before Init()");
-			newComponent.OnInit();
-
-			assert(m_registry.valid(id) && "Entity invalidated after adding component");
-			size_t afterCount = std::distance(m_registry.storage<entt::entity>().begin(), m_registry.storage<entt::entity>().end());
-			TWISTED_INFO(std::format("World::AddComponent: storage size before = {}, after = {}", beforeCount, afterCount));
-
 			return newComponent;
 		}
 
@@ -143,7 +152,6 @@ namespace Twisted
 			{
 				if (T* comp = m_registry.try_get<T>(id); comp)
 				{
-					comp->OnDestroy();
 					m_registry.remove<T>(id);
 				}
 			}
@@ -240,8 +248,6 @@ namespace Twisted
 			return nullptr; // None found
 		}
 
-
-
 		template<typename T>
 		void RemoveAllComponents()
 		{
@@ -251,20 +257,16 @@ namespace Twisted
 			m_registry.clear<T>();
 		}
 
-		YAML::Node YamlSerialize()const;
-		void YamlDeserialize(const YAML::Node& node);
-
 	private:
 		entt::registry m_registry;
-
-		std::vector<std::unique_ptr<SystemBase>> m_systems;
-		std::vector<EntityID> m_rootEntities;
+		std::vector<URef<SystemBase>> m_systems;
 
 		friend class WorldImporter;
 		friend class CTransform;
-		friend class WorldSerializer;
-	};
 
+		friend YAML::Node YamlSerialize<World>(const World& world);
+		friend void YamlDeserialize<World>(World& world, const YAML::Node& node);
+	};
 
 	inline void writeToBuffer(const EntityID& entityID, BinSerializer& buffer, void* data)
 	{
@@ -278,6 +280,11 @@ namespace Twisted
 		return static_cast<EntityID>(id);
 	}
 
+	template<>
+	YAML::Node YamlSerialize<World>(const World& world);
+
+	template<>
+	void YamlDeserialize<World>(World& world, const YAML::Node& data);
 }
 
 

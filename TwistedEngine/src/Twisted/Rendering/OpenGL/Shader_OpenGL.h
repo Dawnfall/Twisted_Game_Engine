@@ -42,5 +42,5 @@ namespace Twisted::Shader_GL
 	void SetVar(int locationID, const Mat3x3d& value);
 	void SetVar(int locationID, const Mat2x2d& value);
 	void SetTex(int locationID, int unit, unsigned int texID);
-	void SetBuffer(int bufferID, const void* data, size_t size);
+	void SetBuffer(const std::string& name, const Shader& shader, const void* data);
 }

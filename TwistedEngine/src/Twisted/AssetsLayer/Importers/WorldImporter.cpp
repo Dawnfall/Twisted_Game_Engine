@@ -18,8 +18,10 @@ namespace Twisted
 		YAML::Node data = YAML::LoadFile(assetInfo.GetAssetPath().string());
 
 		WPtr<World> world(TObject::Create<World>(assetInfo.GetAssetName()));
-		world->YamlDeserialize(data);
+		if (!world)
+			return;
 
+		YamlDeserialize<World>(*world.get(), data);
 		objects.emplace_back(world);
 	}
 
@@ -44,7 +46,11 @@ namespace Twisted
 		//buffer.SaveToFile(assetPath);
 
 		auto world = std::make_unique<World>(assetPath.stem().string());
-		YAML::Node data = world->YamlSerialize();
+
+		if (!world)
+			return;
+
+		YAML::Node data = YamlSerialize<World>(*world.get());
 		YamlUtils::saveNode(data, assetPath);
 	}
 
@@ -57,7 +63,7 @@ namespace Twisted
 		if (!world)
 			return false;
 
-		YAML::Node data = world->YamlSerialize();
+		YAML::Node data = YamlSerialize<World>(*world);
 		YamlUtils::saveNode(data, assetPath);
 
 		return true;

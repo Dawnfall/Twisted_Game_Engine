@@ -7,10 +7,8 @@ namespace Twisted::Editor
 	{
 		CRenderer* renderer = static_cast<CRenderer*>(obj);
 
-		auto newMaterial = Im::ObjectDropField<Material>("Material", renderer->GetSharedMaterial());
-		renderer->SetSharedMaterial(newMaterial);
-		auto newMesh = Im::ObjectDropField<Mesh>("Mesh", renderer->GetSharedMesh());
-		renderer->SetSharedMesh(newMesh);
+		Im::ObjectDropField<Material>("Material", renderer->material);
+		Im::ObjectDropField<Mesh>("Mesh", renderer->mesh);
 	}
 }
 

@@ -12,6 +12,14 @@
 
 namespace Twisted
 {
+	void RenderLayer::Init()
+	{
+		glFrontFace(GL_CCW);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+	}
+
 	void RenderLayer::Render()
 	{
 		for (const auto& camData : m_context.camDatas)
@@ -22,17 +30,18 @@ namespace Twisted
 
 			for (const auto& modelData : m_context.modelDatas)
 			{
-				Shader_GL::Bind(*modelData.material->GetShader());
+				Shader_GL::Bind(*modelData.material->Shader);
 				modelData.material->ApplyUniforms();
 				Mesh_GL::Bind(*modelData.mesh);
-				//ShaderDataLayout data;
-				//data.ModelMatrix = Constants::IdentityMat;// modelData.modelMatrix;
-				//data.ProjectionMatrix = Constants::IdentityMat;// camData.projectionMatrix;
-				//data.ViewMatrix = Constants::IdentityMat;// camData.viewMatrix;
 
-				//modelData.material->GetShader()->SetBuffer(3, &data, sizeof(ShaderDataLayout));
+				ShaderMVPBuffer data;
+				data.ModelMatrix = modelData.modelMatrix;
+				data.ProjectionMatrix = camData.projectionMatrix;
+				data.ViewMatrix = camData.viewMatrix;
+				Shader_GL::SetBuffer("MVP_uniforms", *modelData.material->Shader,&data);
 
 				size_t primitiveCount = modelData.mesh->IndexCount;
+				//Mesh_GL::Render(model.mesh);
 				glDrawElements(
 					GL_TRIANGLES,                    // primitive type
 					static_cast<GLsizei>(modelData.mesh->IndexCount), // number of indices

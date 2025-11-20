@@ -231,7 +231,7 @@ namespace Im
 	}
 
 	template<typename T>
-	T* ObjectDropField(const std::string& label, T* obj)
+	T* ObjectDropField(const std::string& label, T*& obj)
 	{
 		static_assert(std::is_base_of_v<Twisted::TObject, T>, "T must derive from TObject");
 

@@ -5,11 +5,16 @@
 #include "Twisted/Gameing/AComponent.h"
 #include "Serialization/BinSerializer.h"
 #include "Twisted/Rendering/FrameBuffer.h"
-#include "CMainCamera.h"
 #include "Twisted/Gameing/WorldRegistry.h"
+#include "Utils/YamlUtils.h"
+#include "Twisted/Gameing/Components/CTransform.h"
+#include "Twisted/Gameing/Managers/CameraManager.h"
 
 namespace Twisted
 {
+	inline const char* PERSPECTIVE_PROJ_NAME = "perspective";
+	inline const char* ORTHOGRAPHIC_PROJ_NAME = "orthographic";
+
 	enum class TWISTED_API CameraProjectionType :int
 	{
 		PERSPECTIVE,
@@ -17,95 +22,162 @@ namespace Twisted
 		COUNT
 	};
 
-	inline const char* ProjTypeToString(CameraProjectionType type)
+	inline static const std::string ProjTypeToString(CameraProjectionType type)
 	{
 		switch (type)
 		{
-		case CameraProjectionType::PERSPECTIVE:  return "Perspective";
-		case CameraProjectionType::ORTHOGRAPHIC: return "Orthographic";
-		default:           throw std::exception("unsupported projection type");
+		case CameraProjectionType::PERSPECTIVE:  return PERSPECTIVE_PROJ_NAME;
+		case CameraProjectionType::ORTHOGRAPHIC: return ORTHOGRAPHIC_PROJ_NAME;
+		default:
+			throw std::exception("unsupported projection type");
 		}
 	}
 
-	inline CameraProjectionType ProjTypeFromString(const std::string& str)
+	inline static CameraProjectionType ProjTypeFromString(const std::string& str)
 	{
-		if (str == "Perspective") return CameraProjectionType::PERSPECTIVE;
-		if (str == "Orthographic") return CameraProjectionType::ORTHOGRAPHIC;
+		if (str == PERSPECTIVE_PROJ_NAME) return CameraProjectionType::PERSPECTIVE;
+		if (str == ORTHOGRAPHIC_PROJ_NAME) return CameraProjectionType::ORTHOGRAPHIC;
 		throw std::exception("unsupported projection type string");
 	}
 
-	class TWISTED_API CCamera :public AComponent
+	class TWISTED_API CameraComponent :public AComponent
 	{
 	public:
-		CCamera(Entity entity) : AComponent(entity)
+		CameraComponent(Entity entity) : AComponent(entity)
 		{
 		}
 
-		void OnInit()override;
-		void OnDestroy()override;
 
-		bool IsMainCamera()const;
-		void SetAsMainCamera(bool isMain);
+		float GetFovInRad()const { return glm::radians(FovDeg); }
+		void SetFovInRad(float fovInRad) { FovDeg = glm::degrees(fovInRad); }
 
-		Mat4x4f GetViewMatrix()const;
-		Mat4x4f GetProjectionMatrix()const;
+		bool IsMainCamera()const
+		{
+			return CamManager->MainCamera == GetID();
+		}
 
-		CameraProjectionType GetProjectionType()const { return m_projectionType; }
-		void SetProjectionType(CameraProjectionType projType) { m_projectionType = projType; }
+		void SetAsMainCamera(bool isMain)
+		{
+			CamManager->MainCamera = (isMain) ? GetID() : NullEntity;
+		}
 
-		float GetNearPlane()const { return m_nearPlane; }
-		float GetFarPlane()const { return m_farPlane; }
-		void SetNearPlane(float nearPlane) { m_nearPlane = nearPlane; }
-		void SetFarPlane(float farPlane) { m_farPlane = farPlane; }
+		Mat4x4f GetViewMatrix()const
+		{
+			const CTransform& transform = GetWorld()->GetComponent<CTransform>(GetID());
 
-		float GetFovInRad()const { return glm::radians(m_fovDeg); }
-		float GetFovInDeg() const { return m_fovDeg; }
-		void SetFovInRad(float fovInRad) { m_fovDeg = glm::degrees(fovInRad); }
-		void SetFovInDeg(float fovInDeg) { m_fovDeg = fovInDeg; }
+			auto position = transform.GetWorldPosition();
+			auto target = position + transform.GetWorldForward();
+			auto viewMat = glm::lookAt(position, target, Constants::Up);
 
-		float GetAspectRatio() const { return m_aspectRatio; }
-		void SetAspectRatio(float aspectRatio) { m_aspectRatio = aspectRatio; }
+			//std::cout << "World Pos:\n " << glm::to_string(position) << std::endl;
+			//std::cout << "Target:\n " << glm::to_string(target) << std::endl;
+			//std::cout << "View:\n " << glm::to_string(viewMat) << std::endl;
 
-		float GetLeftEdge() const { return m_leftEdge; }
-		float GetRightEdge() const { return m_rightEdge; }
-		float GetBotEdge() const { return m_botEdge; }
-		float GetTopEdge() const { return m_topEdge; }
-		void SetLeftEdge(float leftEdge) { m_leftEdge = leftEdge; }
-		void SetRightEdge(float rightEdge) { m_rightEdge = rightEdge; }
-		void SetBotEdge(float botEdge) { m_botEdge = botEdge; }
-		void SetTopEdge(float topEdge) { m_topEdge = topEdge; }
+			return viewMat;
+		}
 
-		void Serialize(BinSerializer& buffer)const override;
-		void Deserialize(BinSerializer& buffer) override;
+		Mat4x4f GetProjectionMatrix()const
+		{
+			switch (ProjectionType)
+			{
+			case CameraProjectionType::PERSPECTIVE:
+				return glm::perspective(GetFovInRad(), AspectRatio, NearPlane, FarPlane);
+			case CameraProjectionType::ORTHOGRAPHIC:
+				return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
+			default:
+				TWISTED_ERROR("Unsupported projection type!");
+				return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
+			}
+		}
 
-		YAML::Node YamlSerialize() const override;
-		void YamlDeserialize(const YAML::Node& node) override;
-
-		void SetFrameBuffer(FrameBuffer* buffer) { m_frameBuffer = buffer; }
-		FrameBuffer* GetFrameBuffer() { return m_frameBuffer.get(); }
-
-		const ClearParams& GetClearParams()const { return m_clearParams; }
-		ClearParams& GetClearParams() { return m_clearParams; }
-	private:
-
-		CameraProjectionType m_projectionType = CameraProjectionType::PERSPECTIVE;
-
+		CameraProjectionType ProjectionType = CameraProjectionType::PERSPECTIVE;
 		//perspetive proj
-		float m_fovDeg = 45.0f; //in deg
-		float m_aspectRatio = 1.0f;
-		float m_nearPlane = 0.01f;
-		float m_farPlane = 100.0f;
-
+		float FovDeg = 45.0f; //in deg
+		float AspectRatio = 1.0f;
+		float NearPlane = 0.01f;
+		float FarPlane = 100.0f;
 		//ortographic proj
-		float m_leftEdge = 1.0f;
-		float m_rightEdge = 1.0f;
-		float m_botEdge = 1.0f;
-		float m_topEdge = 1.0f;
+		float LeftEdge = 1.0f;
+		float RightEdge = 1.0f;
+		float BotEdge = 1.0f;
+		float TopEdge = 1.0f;
 
-		ClearParams m_clearParams;
-
-		WPtr<FrameBuffer> m_frameBuffer = nullptr;
+		ClearParams ClearParams;
+		WPtr<FrameBuffer> Fb = nullptr;
+		CameraManager* CamManager = nullptr;
 	};
+
+	template<>
+	inline void OnCreateComponent(CameraComponent& camera)
+	{
+		if (camera.CamManager->MainCamera == NullEntity)
+			camera.SetAsMainCamera(true);
+	}
+
+	template<>
+	inline void OnDestroyComponent<CameraComponent>(CameraComponent& camera)
+	{
+		camera.SetAsMainCamera(false);
+	}
+
+	template<>
+	inline  YAML::Node YamlSerialize<CameraComponent>(const CameraComponent& camera)
+	{
+		YAML::Node node;
+
+		node["proj"] = camera.ProjectionType;
+		node["near"] = camera.NearPlane;
+		node["far"] = camera.FarPlane;
+		node["fov"] = camera.FovDeg;
+		node["apect"] = camera.AspectRatio;
+		node["left"] = camera.LeftEdge;
+		node["right"] = camera.RightEdge;
+		node["bot"] = camera.BotEdge;
+		node["top"] = camera.TopEdge;
+
+		return node;
+	}
+	template<>
+	inline void YamlDeserialize<CameraComponent>(CameraComponent& camera, const YAML::Node& node)
+	{
+		camera.ProjectionType = node["proj"].as<CameraProjectionType>(CameraProjectionType::PERSPECTIVE);
+		camera.NearPlane = node["near"].as<float>(1.0f);
+		camera.FarPlane = node["far"].as<float>(1.0f);
+		camera.FovDeg = node["fov"].as<float>(45.0f);
+		camera.AspectRatio = node["apect"].as<float>(1.333f);
+		camera.LeftEdge = node["left"].as<float>(1.0f);
+		camera.RightEdge = node["right"].as<float>(1.0f);
+		camera.BotEdge = node["bot"].as<float>(1.0f);
+		camera.TopEdge = node["top"].as<float>(1.0f);
+	}
+
+	template<typename T>
+	inline void BinSerialize(const CameraComponent& camera, BinSerializer& buffer)
+	{
+		buffer.Write<CameraProjectionType>(camera.ProjectionType, nullptr);
+		buffer.Write<float>(camera.NearPlane, nullptr);
+		buffer.Write<float>(camera.FarPlane, nullptr);
+		buffer.Write<float>(camera.FovDeg, nullptr);
+		buffer.Write<float>(camera.AspectRatio, nullptr);
+		buffer.Write<float>(camera.LeftEdge, nullptr);
+		buffer.Write<float>(camera.RightEdge, nullptr);
+		buffer.Write<float>(camera.BotEdge, nullptr);
+		buffer.Write<float>(camera.TopEdge, nullptr);
+	}
+
+	template<typename T>
+	inline void BinDeserialize(CameraComponent& camera, BinSerializer& buffer)
+	{
+		camera.ProjectionType = buffer.Read<CameraProjectionType>(nullptr);
+		camera.NearPlane = buffer.Read<float>(nullptr);
+		camera.FarPlane = buffer.Read<float>(nullptr);
+		camera.FovDeg = buffer.Read<float>(nullptr);
+		camera.AspectRatio = buffer.Read<float>(nullptr);
+		camera.LeftEdge = buffer.Read<float>(nullptr);
+		camera.RightEdge = buffer.Read<float>(nullptr);
+		camera.BotEdge = buffer.Read<float>(nullptr);
+		camera.TopEdge = buffer.Read<float>(nullptr);
+	}
 }
 
 template<>
@@ -130,5 +202,5 @@ struct YAML::convert<Twisted::CameraProjectionType>
 	}
 };
 
-REGISTER_COMPONENT(CCamera, "CCamera");
+REGISTER_COMPONENT(CameraComponent, "CCamera");
 

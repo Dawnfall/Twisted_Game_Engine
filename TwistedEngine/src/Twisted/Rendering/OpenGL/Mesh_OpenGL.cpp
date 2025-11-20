@@ -126,21 +126,15 @@ namespace Twisted::Mesh_GL
 
 	void Bind(const Mesh& mesh)
 	{
+		glEnable(GL_CULL_FACE);
 		glFrontFace(mesh.WindOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
+		glCullFace(GL_BACK);
 		glBindVertexArray(mesh.Vao);
 	}
 
 	void UnBind()
 	{
 		glBindVertexArray(0);
-	}
-
-	void SetWindingOrder(Mesh& mesh, MeshWindingOrder windOrder)
-	{
-		if (mesh.WindOrder == windOrder)
-			return;
-
-		mesh.WindOrder = windOrder;
 	}
 
 	void SetMeshLayout(const PackedMeshData& packedData)

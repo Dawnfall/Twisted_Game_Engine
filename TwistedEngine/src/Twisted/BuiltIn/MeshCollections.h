@@ -75,7 +75,7 @@ namespace Twisted::Collections
 		triangleData.AddPosition(Vec3f{ 0.5f, -0.5f, 0.0f });
 		triangleData.AddPosition(Vec3f{ 0.0f,  0.5f, 0.0f });
 
-		triangleData.Indices = { 0,1,2 };
+		triangleData.Indices = { 2,1,0 };
 		return triangleData.Pack();
 	}
 
@@ -98,7 +98,7 @@ namespace Twisted::Collections
 		quadData.AddTexCoord(Vec2f{ 0.0f, 1.0f }); // top-left
 
 		// Indices (two triangles)
-		quadData.Indices = { 0, 1, 2, 2, 3, 0 };
+		quadData.Indices = { 2, 1, 0, 0, 3, 2 };
 
 		return quadData.Pack();
 	}

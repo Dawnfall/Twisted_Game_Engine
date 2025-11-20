@@ -56,32 +56,6 @@ namespace Twisted::Editor
 			Stop();
 			});
 
-		m_editorLayer->SelectedProjectPath.AddListener([this](fs::path path) {
-			if (fs::is_regular_file(path))
-				path = path.parent_path();
-
-			if (m_assetsLayer->GetProject().SetProject(path))
-				m_editorLayer->GetLoadupConfig().AddLatest(path.string());
-			else
-				m_editorLayer->GetLoadupConfig().RemoveEntry(path.string());
-			m_editorLayer->GetLoadupConfig().Save();
-			});
-
-		m_editorLayer->SelectWorldPath.AddListener([this](fs::path path) {
-			auto objects = m_assetsLayer->ImportAssetDirect(path);
-			if (objects.size() == 1)
-			{
-				World* world = dynamic_cast<World*>(objects[0].GetObj());
-				if (world)
-					m_editorLayer->SetWorld(world);
-			}
-			});
-
-		m_editorLayer->SaveWorldPath.AddListener([this](fs::path path) {
-			std::vector<WPtrBase> assetObjects = { WPtrBase(m_editorLayer->GetGameWorld()) };
-			m_assetsLayer->SaveAssetDirect(path, { assetObjects });
-			});
-
 		//layout saving
 		m_assetsLayer->GetProject().ProjectChangeEvent.AddListener([this]() {
 			layoutFilePath = (this->m_assetsLayer->GetProject().GetRootPath() / "EditorLayout.ini").string();
@@ -99,9 +73,6 @@ namespace Twisted::Editor
 			m_assetsLayer->LoadBuiltIn();
 			});
 
-		m_editorLayer->CreateNewAssetPath.AddListener([this](fs::path path) {
-			m_assetsLayer->CreateNewAsset(path);
-			});
 	}
 
 	void EditorApplication::CreateAppWindow()
@@ -110,6 +81,8 @@ namespace Twisted::Editor
 		m_window->CloseWindowEvent.AddListener([this]() { Stop(); });
 		m_window->SetTitle(Constants::EDITOR_WINDOW_TITLE);
 		m_window->Maximize();
-		m_window->SetPosition(EditorLayer::GetInstance().GetConfig().GetWindowPos());
+		m_window->SetPosition(m_editorLayer->GetConfig().GetWindowPos());
+
+		m_renderLayer->Init();
 	}
 }

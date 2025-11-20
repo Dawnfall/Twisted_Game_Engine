@@ -11,5 +11,7 @@ namespace Twisted::Editor
 	private:
 		void RenderDockSpace();
 		void RenderMenuBar(Window* window);
+
+		void SelectProject(std::filesystem::path& path);
 	};
 }

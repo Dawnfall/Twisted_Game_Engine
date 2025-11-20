@@ -11,10 +11,10 @@ namespace Twisted::Editor
 
 		token.DoAutoFocus = false;
 		token.PreLabel = "Name";
-		token.Text = name->GetName();
+		token.Text = name->Name;
 
 		if (Im::InputText(token))
-			name->SetName(token.Text);
+			name->Name = token.Text;
 	}
 }
 

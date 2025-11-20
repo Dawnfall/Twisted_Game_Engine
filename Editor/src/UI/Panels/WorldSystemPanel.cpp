@@ -10,7 +10,7 @@ namespace Twisted::Editor
 	const std::string ADD_SYSTEM_POPUP = "system_popup";
 	void WorldSystemPanel::PaintContent()
 	{
-		auto gameWorld = EditorLayer::GetInstance().GetGameWorld();
+		auto gameWorld = EditorLayer::GetInstance()->GetGameWorld();
 		
 		auto& systems = gameWorld->GetAllSystems();
 		for (auto& sys : systems)

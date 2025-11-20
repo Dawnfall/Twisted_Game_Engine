@@ -5,81 +5,59 @@
 #include "Twisted/Gameing/World.h"
 
 #include "UI/ImguiExtensions.h"
+#include <array>
 
 namespace Twisted::Editor
 {
+	static std::array<const char*,2> options
+	{
+		PERSPECTIVE_PROJ_NAME,
+		ORTHOGRAPHIC_PROJ_NAME
+	};
+
 	void CCameraPainter::Paint(void* obj)
 	{
-		CCamera* camera = static_cast<CCamera*>(obj);
+		CameraComponent* camera = static_cast<CameraComponent*>(obj);
 
 		bool isMainCamera = camera->IsMainCamera();
 		if (Im::DrawToggle("Main camera", isMainCamera))
 		{
 			camera->SetAsMainCamera(isMainCamera);
 		}
-		std::vector<const char*> options;
-		for (int i = 0; i < static_cast<int>(CameraProjectionType::COUNT); ++i)
-		{
-			CameraProjectionType type = static_cast<CameraProjectionType>(i);
-			options.emplace_back(ProjTypeToString(type));
-		}
 
-		int currIndex = static_cast<int>(camera->GetProjectionType());
+		int currIndex = static_cast<int>(camera->ProjectionType);
 		if (ImGui::Combo("Projection Type", &currIndex, options.data(), static_cast<int>(options.size())))
 		{
 			// Convert selected string back to enum
-			camera->SetProjectionType(ProjTypeFromString(options[currIndex]));
+			camera->ProjectionType = ProjTypeFromString(options[currIndex]);
 		}
 
-		switch (camera->GetProjectionType())
+		switch (camera->ProjectionType)
 		{
 		case(CameraProjectionType::PERSPECTIVE):
 		{
-			float fov = camera->GetFovInDeg();
-			if (ImGui::DragFloat("FOV (deg)", &fov, 0.1f, 1.0f, 179.0f))
-				camera->SetFovInDeg(fov);
-
-			float aspect = camera->GetAspectRatio();
-			if (ImGui::DragFloat("Aspect Ratio", &aspect, 0.01f, 0.01f, 10.0f))
-				camera->SetAspectRatio(aspect);
-
-			float nearP = camera->GetNearPlane();
-			if (ImGui::DragFloat("Near Plane", &nearP, 0.001f, 0.001f, camera->GetFarPlane()))
-				camera->SetNearPlane(nearP);
-
-			float farP = camera->GetFarPlane();
-			if (ImGui::DragFloat("Far Plane", &farP, 0.1f, camera->GetNearPlane(), 10000.0f))
-				camera->SetFarPlane(farP);
+			ImGui::DragFloat("FOV (deg)", &camera->FovDeg, 0.1f, 1.0f, 179.0f);
+			ImGui::DragFloat("Aspect Ratio", &camera->AspectRatio, 0.01f, 0.01f, 10.0f);
+			ImGui::DragFloat("Near Plane", &camera->NearPlane, 0.001f, 0.001f, camera->FarPlane);
+			ImGui::DragFloat("Far Plane", &camera->FarPlane, 0.1f, camera->NearPlane, 10000.0f);
 			break;
 		}
 		case(CameraProjectionType::ORTHOGRAPHIC):
 		{
-			float left = camera->GetLeftEdge();
-			if (ImGui::DragFloat("Left", &left, 0.01f))
-				camera->SetLeftEdge(left);
-
-			float right = camera->GetRightEdge();
-			if (ImGui::DragFloat("Right", &right, 0.01f))
-				camera->SetRightEdge(right);
-
-			float bottom = camera->GetBotEdge();
-			if (ImGui::DragFloat("Bottom", &bottom, 0.01f))
-				camera->SetBotEdge(bottom);
-
-			float top = camera->GetTopEdge();
-			if (ImGui::DragFloat("Top", &top, 0.01f))
-				camera->SetTopEdge(top);
+			ImGui::DragFloat("Left", &camera->LeftEdge, 0.01f);
+			ImGui::DragFloat("Right", &camera->RightEdge, 0.01f);
+			ImGui::DragFloat("Bottom", &camera->BotEdge, 0.01f);
+			ImGui::DragFloat("Top", &camera->TopEdge, 0.01f);
 			break;
 		}
 		default:
 			return;
 		}
 
-
-		ImGui::ColorEdit4("Clear Color", (float*)&camera->GetClearParams().clearColor);
+		ImGui::ColorEdit4("Clear Color", (float*)&camera->ClearParams.clearColor);
 
 	}
 }
 
-REGISTER_COMPONENT_PAINTER(CCameraPainter, CCamera)
+REGISTER_COMPONENT_PAINTER(CCameraPainter, CameraComponent)
 

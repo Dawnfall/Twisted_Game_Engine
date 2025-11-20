@@ -16,12 +16,10 @@ namespace Twisted::Editor
 		if (!material)
 			return;
 
-		Shader* shader = material->GetShader();
-		auto newPtr = Im::ObjectDropField<Shader>("Shader", shader);
-		material->SetShader(newPtr);
+		auto newPtr = Im::ObjectDropField<Shader>("Shader", material->Shader);
 
-		if (shader)
-			for (const auto& uniform : shader->Uniforms)
+		if (material->Shader)
+			for (const auto& uniform : material->Shader->Uniforms)
 			{
 				switch (uniform.Type)
 				{

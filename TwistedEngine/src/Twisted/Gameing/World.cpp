@@ -11,18 +11,23 @@
 #include "AppCore.h"
 #include <vector>
 #include "WorldRegistry.h"
+#include <yaml-cpp/node/node.h>
 
 
 
 namespace Twisted
 {
-	World::World(const std::string& name) :TObject(name) {}
+	World::World(const std::string& name) :TObject(name)
+	{
+		for (const auto& entry : WorldRegistry::GetInstance().GetComponentEntries())
+		{
+			entry.second.InitAndDestroyRegisterMethod(*this);
+		}
+	}
 
 	void World::Clear()
 	{
 		m_registry.clear();
-		m_systems.clear();
-		m_rootEntities.clear();
 	}
 	void World::UpdateFrame()
 	{
@@ -30,55 +35,68 @@ namespace Twisted
 			system->Update();
 	}
 
-	YAML::Node World::YamlSerialize()const
+	Entity World::CreateNewEntity()
+	{
+		Entity newEntity{ m_registry.create(),this };
+		AddComponent<CTransform>(newEntity.GetID());
+		AddComponent<CName>(newEntity.GetID());
+
+		return newEntity;
+	}
+
+	YAML::Node YamlSerialize<World>(const World& world)
 	{
 		YAML::Node node;
 
-		auto systemsNode = node[SYSTEMS_SER_KEY];
-		for (auto& system : m_systems)
+		auto managersNode = node[MANAGERS_SER_KEY];
+		for (auto& [managerName, entry] : WorldRegistry::GetInstance().GetManagerEntries())
 		{
-			auto name = system->GetTypeName();
-			const auto entry = WorldRegistry::GetInstance().GetSystemEntry(name);
-			if (entry)
-				systemsNode[name] = entry->YamlSerMethod(*system);
+			managersNode[managerName] = entry.YamlSerMethod(world);
 		}
-
+		auto systemsNode = node[SYSTEMS_SER_KEY];
+		for (auto& [systemName, entry] : WorldRegistry::GetInstance().GetSystemEntries())
+		{
+			systemsNode[systemName] = entry.YamlSerMethod(world);
+		}
 		auto allCompNode = node[COMPONENTS_SER_KEY];
 		for (auto& [compName, entry] : WorldRegistry::GetInstance().GetComponentEntries())
 		{
-			allCompNode[compName] = entry.YamlSerMethod(*this);
+			allCompNode[compName] = entry.YamlSerMethod(world);
 		}
-		node[ROOTS_SER_KEY] = m_rootEntities;
 		return node;
 	}
 
-	void World::YamlDeserialize(const YAML::Node& data)
+	void YamlDeserialize<World>(World& world, const YAML::Node& node)
 	{
-		if (const YAML::Node& systemsNode = data[SYSTEMS_SER_KEY]; systemsNode && systemsNode.IsMap())
+		const auto& allCompNode = node[COMPONENTS_SER_KEY];
+		for (auto& [compName, entry] : WorldRegistry::GetInstance().GetComponentEntries())
 		{
-			for (const auto& sysNode : systemsNode)
-			{
-				std::string sysName = sysNode.first.as<std::string>();
-				const auto entry = WorldRegistry::GetInstance().GetSystemEntry(sysName);
-				if (entry)
-					m_systems.emplace_back(entry->YamlDeserMethod(*this, sysNode.second));
-			}
-		}
-		if (const YAML::Node& allCompNode = data[COMPONENTS_SER_KEY]; allCompNode && allCompNode.IsMap())
-		{
-			for (auto it = allCompNode.begin(); it != allCompNode.end(); ++it)
-			{
-				const std::string compName = it->first.as<std::string>("");
-				const YAML::Node& compNode = it->second;
+			if (!allCompNode[compName])
+				continue;
 
-				auto entry = WorldRegistry::GetInstance().GetComponentEntry(compName);
-				if (entry)
-					entry->YamlDeserMethod(*this, compNode);
-			}
+			const auto& thisCompNode = allCompNode[compName];
+			entry.YamlDeserMethod(world, thisCompNode);
 		}
 
-		if (const auto& roots = data[ROOTS_SER_KEY]; roots && roots.IsSequence())
-			m_rootEntities = roots.as<std::vector<EntityID>>();
+		const auto& allSystemNode = node[SYSTEMS_SER_KEY];
+		for (auto& [systemName, entry] : WorldRegistry::GetInstance().GetSystemEntries())
+		{
+			if (!allSystemNode[systemName])
+				continue;
+
+			const auto& thisSystemNode = allSystemNode[systemName];
+			entry.YamlDeserMethod(world, thisSystemNode);
+		}
+
+		const auto& allManagersNode = node[MANAGERS_SER_KEY];
+		for (auto& [managerName, entry] : WorldRegistry::GetInstance().GetManagerEntries())
+		{
+			if (!allManagersNode[managerName])
+				continue;
+
+			const auto& thisManagerNode = allManagersNode[managerName];
+			entry.YamlDeserMethod(world, thisManagerNode);
+		}
 	}
 }
 

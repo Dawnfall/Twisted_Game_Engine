@@ -47,6 +47,7 @@ namespace Twisted
     }
 
     using PFNWGLCREATECONTEXTATTRIBSARBPROC = HGLRC(WINAPI*)(HDC, HGLRC, const int*);
+    
     static HGLRC createContext(HDC hdc)
     {
         if (!hdc)
@@ -233,13 +234,6 @@ namespace Twisted
         if (wglSwapIntervalEXT)
             wglSwapIntervalEXT(deltaFrames);
     }
-
-    void GraphicsContext::Clear(const Color& color)
-    {
-/*        glClearColor(color.r, color.g, color.b, color.a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)*/;
-    }
-
 }
 
 #endif

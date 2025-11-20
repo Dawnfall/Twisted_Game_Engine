@@ -9,10 +9,15 @@
 #include "EditorData/EditorInput.h"
 
 #include "UI/UIWindow.h"
-#include <Twisted/Gameing/World.h>
+
+namespace Twisted
+{
+	class World;
+}
 
 namespace Twisted::Editor
 {
+	
 	class EditorLayer :public Layer
 	{
 	public:
@@ -24,15 +29,15 @@ namespace Twisted::Editor
 			s_instance = this;
 		}
 
-		static EditorLayer& GetInstance()
+		inline static EditorLayer* GetInstance()
 		{		
-			return *s_instance;
+			return s_instance;
 		}
 
 		void Init();			
 		void Update();
 		void SaveEditor();
-		void SetWorld(World* world);
+		void SetGameWorld(World* world);
 
 		World* GetGameWorld() { return m_gameWorld; }
 		World* GetEditorWorld() { return m_editorWorld; }
@@ -44,13 +49,9 @@ namespace Twisted::Editor
 		UIWindow& GetUIWindow() { return m_uiWindow; }
 
 	public:
+		void InitEditorWorld();
 
 		Event<fs::path> MakeNewFileEvent; //extension
-		Event<fs::path> SelectWorldPath;
-		Event<fs::path> SelectedProjectPath;
-		Event<fs::path> SaveWorldPath;
-		Event<fs::path> CreateNewAssetPath;
-
 		Event<> ConfirmedQuitEvent;
 		Event<> WorldChangeEvent;
 

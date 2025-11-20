@@ -18,7 +18,11 @@ namespace Twisted
 
 		Material* mat = static_cast<Material*>(objects[0].GetObj());
 		YAML::Node buffer = YAML::LoadFile(assetInfo.GetAssetPath().string());
-		mat->YAMLDeserialize(buffer);
+		
+		if (!mat)
+			return;
+		
+		YamlDeserialize<Material>(*mat, buffer);
 
 	}
 
@@ -32,7 +36,10 @@ namespace Twisted
 	void MaterialImporter::CreateNewAsset(const fs::path& path)const
 	{
 		auto material = std::make_unique<Material>(path.stem().string());
-		YAML::Node data = material->YAMLSerialize();
+		if (!material)
+			return;
+
+		YAML::Node data = YamlSerialize<Material>(*material);
 		YamlUtils::saveNode(data, path);
 	}
 
@@ -45,7 +52,7 @@ namespace Twisted
 		if (!mat)
 			return false;
 
-		YAML::Node data = mat->YAMLSerialize();
+		YAML::Node data = YamlSerialize<Material>(*mat);
 		YamlUtils::saveNode(data, assetPath);
 
 		return true;

@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <unordered_map>
 
+
+
 template<typename T>
 constexpr bool is_trivially_copyable_v = std::is_trivially_copyable<T>::value;
 
@@ -203,6 +205,34 @@ namespace Twisted
 		std::vector<char> m_buffer;
 	};
 
+
+	template<typename T>
+	BinSerializer BinSerialize(const T& component) { return BinSerializer{}; }
+	template<typename T>
+	void BinDeserialize(T& component, const BinSerializer& node) {}
 }
 
+//template<typename T>
+//inline void BinSerialize<CRenderer>(const CRenderer& renderer, BinSerializer& buffer)
+//{
+//	auto serMeshInfo = AssetsLayer::GetInstance()->GetObjectAssetInfo(renderer.mesh);
+//	AssetUuid meshUuid = (serMeshInfo) ? serMeshInfo->GetUuid() : AssetUuid::Invalid();
+//	buffer.Write<AssetUuid>(meshUuid, nullptr);
+//
+//	auto serMaterialInfo = AssetsLayer::GetInstance()->GetObjectAssetInfo(renderer.material);
+//	AssetUuid matUuid = (serMaterialInfo) ? serMaterialInfo->GetUuid() : AssetUuid::Invalid();
+//	buffer.Write<AssetUuid>(matUuid, nullptr);
+//}
+//
+//template<typename T>
+//inline void BinDeserialize(CRenderer& renderer, BinSerializer& buffer)
+//{
+//	AssetUuid serMesh = buffer.Read<AssetUuid>(nullptr);
+//	std::string meshName = "";
+//	renderer.mesh = static_cast<Mesh*>(AssetsLayer::GetInstance()->GetAssetObject(serMesh, meshName));
+//
+//	AssetUuid serMaterial = buffer.Read<AssetUuid>(nullptr);
+//	std::string materialName = "";
+//	renderer.material = static_cast<Material*>(AssetsLayer::GetInstance()->GetAssetObject(serMaterial, materialName));
+//}
 

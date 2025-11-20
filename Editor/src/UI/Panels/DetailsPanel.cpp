@@ -16,7 +16,7 @@ namespace Twisted::Editor
 {
 	void DetailsPanel::PaintContent()
 	{
-		auto& selection = EditorLayer::GetInstance().GetSelection();
+		auto& selection = EditorLayer::GetInstance()->GetSelection();
 
 		switch (selection.GetActiveType())
 		{

@@ -10,9 +10,10 @@ namespace Twisted
 	//world yaml keys
 	inline const std::string ROOTS_SER_KEY = "roots";
 	inline const std::string SYSTEMS_SER_KEY = "systems";
+	inline const std::string COMPONENTS_SER_KEY = "components";
+	inline const std::string MANAGERS_SER_KEY = "managers";
 	inline const std::string UUID_SER_KEY = "uuid";
 	inline const std::string NAME_SER_KEY = "name";
-	inline const std::string COMPONENTS_SER_KEY = "components";
 	inline const std::string TRANSFORM_SER_KEY = "transform";
 	inline const std::string LIGHT_SER_KEY = "light";
 	inline const std::string RENDERER_SER_KEY = "renderer";
@@ -20,6 +21,18 @@ namespace Twisted
 	inline const std::string MODEL_MATRIX_NAME = "modelMat";
 	inline const std::string VIEW_MATRIX_NAME = "viewMat";
 	inline const std::string PROJ_MATRIX_NAME = "projMat";
+
+	//lights
+	inline const char* DIR_LIGHT_NAME = "direct";
+	inline const char* POINT_LIGHT_NAME = "point";
+	inline const char* SPOT_LIGHT_NAME = "spot";
+
+	inline const char* YAML_TYPE_FIELD = "type";
+	inline const char* YAML_COLOR_FIELD = "color";
+	inline const char* YAML_INTENSITY_FIELD = "intesity";
+	inline const char* YAML_RANGE_FIELD = "range";
+	inline const char* YAML_INNER_FIELD = "inner";
+	inline const char* YAML_OUTER_FIELD = "outer";
 
 }
 

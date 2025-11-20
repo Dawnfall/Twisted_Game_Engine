@@ -16,7 +16,7 @@ namespace Twisted::Editor
 		if (childCount == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (EditorLayer::GetInstance().GetSelection().GetSelectedPaths().contains(assetPath))
+		if (EditorLayer::GetInstance()->GetSelection().GetSelectedPaths().contains(assetPath))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -30,7 +30,7 @@ namespace Twisted::Editor
 			ImGuiTreeNodeFlags_Leaf |
 			ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-		if (EditorLayer::GetInstance().GetSelection().GetSelectedObjects().contains(obj->GetID()))
+		if (EditorLayer::GetInstance()->GetSelection().GetSelectedObjects().contains(obj->GetID()))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -40,7 +40,7 @@ namespace Twisted::Editor
 
 	static void CheckLeftClickOnAsset(const fs::path& asset)
 	{
-		if (EditorLayer::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (EditorLayer::GetInstance()->GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -49,7 +49,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorLayer::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
+				EditorLayer::GetInstance()->GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -57,14 +57,14 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorLayer::GetInstance().GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
+				EditorLayer::GetInstance()->GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
 
 	static void CheckLeftClickOnObject(TObject* object)
 	{
-		if (EditorLayer::GetInstance().GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (EditorLayer::GetInstance()->GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -73,7 +73,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorLayer::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
+				EditorLayer::GetInstance()->GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -81,7 +81,7 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorLayer::GetInstance().GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
+				EditorLayer::GetInstance()->GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
@@ -91,7 +91,7 @@ namespace Twisted::Editor
 		AssetsLayer::GetInstance()->GetProject().ProjectChangeEvent.AddListener([this]() {
 			currentDir = AssetsLayer::GetInstance()->GetProject().GetAssetsFolder();
 			});
-		EditorLayer::GetInstance().MakeNewFileEvent.AddListener([this](fs::path defaultName) {
+		EditorLayer::GetInstance()->MakeNewFileEvent.AddListener([this](fs::path defaultName) {
 			m_newFileName = Im::InputTextToken{};
 			m_newFileName.value().PostLabel = defaultName.extension().string();
 			m_newFileName.value().Text = defaultName.stem().string();
@@ -213,7 +213,7 @@ namespace Twisted::Editor
 				std::filesystem::path path = currentDir / (m_newFileName->Text + m_newFileName->PostLabel);
 				if (!path.empty() && path.has_filename() && !std::filesystem::exists(path))
 				{
-					EditorLayer::GetInstance().CreateNewAssetPath.Invoke(path);
+					AssetsLayer::GetInstance()->CreateNewAsset(path);
 				}
 				m_newFileName = std::nullopt;
 			}
@@ -231,7 +231,7 @@ namespace Twisted::Editor
 				{
 					if (ImGui::MenuItem(createPath.c_str()))
 					{
-						EditorLayer::GetInstance().MakeNewFileEvent.Invoke(importer->DefaultFileName());
+						EditorLayer::GetInstance()->MakeNewFileEvent.Invoke(importer->DefaultFileName());
 					}
 				}
 			}

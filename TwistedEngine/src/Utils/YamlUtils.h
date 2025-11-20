@@ -1,12 +1,22 @@
-﻿#include "AppCore.h"
+﻿#pragma once
+#include "AppCore.h"
 
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
 
 namespace Twisted
 {
+	template<typename T>
+	YAML::Node YamlSerialize(const T& object) { return YAML::Node{}; }
+	template<typename T>
+	void YamlDeserialize(T& object, const YAML::Node& node) {}
+}
+
+namespace Twisted
+{
 	class TObject;
 }
+
 namespace YamlUtils
 {
 	bool TWISTED_API saveNode(const YAML::Node& node, const std::filesystem::path& path);

@@ -395,12 +395,18 @@ namespace Twisted::Shader_GL
 		glBindTexture(GL_TEXTURE_2D, texID);
 		glUniform1i(locationID, unit);
 	}
-	void SetBuffer(int bufferID, const void* data, size_t size)
+	void SetBuffer(const std::string& name,const Shader& shader, const void* data)
 	{
-		glBindBuffer(GL_UNIFORM_BUFFER, bufferID);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, size, &data);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
+		for (const auto& block : shader.UniformBlocks)
+		{
+			if (block.Name == name)
+			{
+				glBindBuffer(GL_UNIFORM_BUFFER, block.BufferID);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, block.Size, data);
+				glBindBuffer(GL_UNIFORM_BUFFER, 0);
+				return;
+			}
+		}
 	}	
 }
 

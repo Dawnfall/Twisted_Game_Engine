@@ -21,6 +21,7 @@ namespace Twisted
 
 		static RenderLayer* GetInstance() { return s_instance; }
 
+		void Init();
 		void Render();
 
 		void SubmitEntry(RenderContext&& newContext)

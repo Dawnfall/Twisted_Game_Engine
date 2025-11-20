@@ -6,42 +6,27 @@
 #include "Twisted/Gameing/Entity.h"
 #include "yaml-cpp/yaml.h"
 #include "Debug/Logger.h"
-
+#include <stdexcept>
 namespace Twisted
 {
+	template<typename T>
+	void OnCreateComponent(T& component)= delete;
+	template<typename T>
+	void OnDestroyComponent(T& component) = delete;
+
 	class World;
 	class TWISTED_API AComponent
 	{
 	public:
 		AComponent(Entity entity) :
-			m_entity(entity)
-		{
-		}
-		virtual ~AComponent()
+			entity(entity)
 		{
 		}
 
-		virtual void OnInit() {}
-		virtual void OnDestroy() {}
-
-		const Entity& GetEntity()const { return m_entity; }
-		const World* GetWorld()const { return m_entity.GetWorld(); }
-		const EntityID& GetID()const { return m_entity.GetID(); }
-
-		World* GetWorld() { return m_entity.GetWorld(); }
-
-		virtual void Serialize(BinSerializer& buffer) const {}
-		virtual void Deserialize(BinSerializer& buffer) {}
-
-		virtual YAML::Node YamlSerialize() const = 0;
-		virtual void YamlDeserialize(const YAML::Node& node) = 0;
-
-		//virtual void PostSerialize(BinSerializer& buffer)const{}
-		//virtual void PostDeserialize(BinSerializer& buffer, AssetsLayer* assetsLayer) {}
-
-	protected:
-
-		Entity m_entity;
+		const World* GetWorld()const { return entity.GetWorld(); }
+		World* GetWorld() { return entity.GetWorld(); }
+		const EntityID& GetID()const { return entity.GetID(); }
+		Entity entity;
 	};
 }
 

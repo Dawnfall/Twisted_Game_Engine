@@ -23,8 +23,6 @@ namespace Twisted::Editor
 
 	void UIWindow::RenderMenuBar(Window* window)
 	{
-		EditorLayer& editorLayer = EditorLayer::GetInstance();
-
 		// Push style settings
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 15));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15, 15));
@@ -37,7 +35,7 @@ namespace Twisted::Editor
 				{
 					std::filesystem::path selectedPath = Native::OpenFolderDialog(*window);
 					if (selectedPath != "")
-						editorLayer.SelectedProjectPath.Invoke(selectedPath);
+						SelectProject(selectedPath);
 				}
 				if (ImGui::MenuItem("Load Project"))
 				{
@@ -46,17 +44,20 @@ namespace Twisted::Editor
 					};
 					std::filesystem::path selectedPath = Native::OpenFileDialog(*window, filter);
 					if (selectedPath != "")
-						editorLayer.SelectedProjectPath.Invoke(selectedPath);
+						SelectProject(selectedPath);
 				}
 				if (ImGui::BeginMenu("Recent Projects"))
 				{
 					int count = 0;
-					for (const std::string& recentProjPath : editorLayer.GetLoadupConfig().GetRecentProjects())
+					for (const std::string& recentProjPath : EditorLayer::GetInstance()->GetLoadupConfig().GetRecentProjects())
 					{
-						if (count++ >= 5) 
+						if (count++ >= 5)
 							break; // limit to 5 projects
 						if (ImGui::MenuItem(recentProjPath.c_str()))
-							editorLayer.SelectedProjectPath.Invoke(recentProjPath);
+						{
+							fs::path projPath = recentProjPath;
+							SelectProject(projPath);
+						}
 					}
 					ImGui::EndMenu();
 				}
@@ -67,7 +68,7 @@ namespace Twisted::Editor
 				if (ImGui::MenuItem("Exit"))
 				{
 					if (Native::ShowConfirmDialog(*window, L"Are you sure?", L"Exit editor?"))
-						editorLayer.ConfirmedQuitEvent.Invoke();
+						EditorLayer::GetInstance()->ConfirmedQuitEvent.Invoke();
 				}
 				ImGui::EndMenu();
 			}
@@ -75,22 +76,32 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New World"))
 				{
-					editorLayer.SetWorld(nullptr);
+					EditorLayer::GetInstance()->SetGameWorld(nullptr);
 				}
 				if (ImGui::MenuItem("Open World"))
 				{
 					if (fs::path path = Native::OpenFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
-						editorLayer.SelectWorldPath.Invoke(path);
+					{
+						auto objects = AssetsLayer::GetInstance()->ImportAssetDirect(path);
+						if (objects.size() == 1)
+						{
+							World* world = dynamic_cast<World*>(objects[0].GetObj());
+							if (world)
+								EditorLayer::GetInstance()->SetGameWorld(world);
+						}
+					}
+
 				}
 				if (ImGui::MenuItem("Save World As"))
 				{
-					World* gameWorld = editorLayer.GetGameWorld();
+					World* gameWorld = EditorLayer::GetInstance()->GetGameWorld();
 					if (gameWorld)
 					{
 						if (std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
 						{
 							path = path.replace_extension(".world");
-							editorLayer.SaveWorldPath.Invoke(path);
+							std::vector<WPtrBase> assetObjects = { WPtr<World>(gameWorld) };
+							AssetsLayer::GetInstance()->SaveAssetDirect(path, {assetObjects});
 						}
 					}
 				}
@@ -118,7 +129,7 @@ namespace Twisted::Editor
 					std::string createPath = imp->GetCreatePath();
 					if (createPath != "")
 						if (ImGui::MenuItem(createPath.c_str()))
-							editorLayer.MakeNewFileEvent.Invoke(imp->DefaultFileName());
+							EditorLayer::GetInstance()->MakeNewFileEvent.Invoke(imp->DefaultFileName());
 				}
 
 				ImGui::EndMenu();
@@ -182,5 +193,17 @@ namespace Twisted::Editor
 				ImGui::End();
 			}
 		}
+	}
+	void UIWindow::SelectProject(fs::path& path)
+	{
+		if (fs::is_regular_file(path))
+			path = path.parent_path();
+
+		EditorLayer* editorLayer = EditorLayer::GetInstance();
+		if (AssetsLayer::GetInstance()->GetProject().SetProject(path))
+			editorLayer->GetLoadupConfig().AddLatest(path.string());
+		else
+			editorLayer->GetLoadupConfig().RemoveEntry(path.string());
+		editorLayer->GetLoadupConfig().Save();
 	}
 }

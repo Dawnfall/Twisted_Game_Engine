@@ -15,6 +15,40 @@ namespace Twisted
 		ClearParams clearParams;
 	};
 
+	struct DirLightData
+	{
+		Vec4f direction;
+		Vec4f lightColor;
+		float intensity;
+		float _padding[3];
+	};
+	struct PointLightData
+	{
+		Vec4f position;
+		Vec4f direction;
+		Vec4f lightColor;
+		float intensity;
+		float radius;
+		float _padding[2];
+	};
+	struct SpotLightData
+	{
+		Vec4f position;
+		Vec4f direction;
+		Vec4f lightColor;
+		float intensity;
+		float radius;
+		float inner;
+		float outer;
+	};
+
+	struct LightData
+	{
+		std::vector<DirLightData> dirLights;
+		std::vector<PointLightData> pointLights;
+		std::vector<SpotLightData> spotLights;
+	};
+
 	struct ModelData
 	{
 		Mat4x4f modelMatrix;
@@ -26,7 +60,7 @@ namespace Twisted
 	{
 		std::vector<ModelData> modelDatas;
 		std::vector<CameraData> camDatas;
-
+		LightData lightData;
 	};
 
 
