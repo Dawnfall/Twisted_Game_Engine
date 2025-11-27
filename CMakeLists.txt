@@ -41,14 +41,14 @@ if(USE_GLFW)
     find_package(glfw3 CONFIG REQUIRED)
 endif()
 
-set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/TwistedEngine/src")
-set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/Editor/src")
+set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/src/TwistedEngine")
+set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/src/Editor")
 set(IncludeDirs_imgui  "${CMAKE_SOURCE_DIR}/3rd/imgui")
 
 # Add ImGui as a static library (subproject)
 add_subdirectory(3rd/imgui)
-add_subdirectory(TwistedEngine)
-add_subdirectory(Editor)
+add_subdirectory(src/TwistedEngine)
+add_subdirectory(src/Editor)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
