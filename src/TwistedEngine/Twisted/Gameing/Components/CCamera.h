@@ -88,7 +88,7 @@ namespace Twisted
 				return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
 			default:
 				TWISTED_ERROR("Unsupported projection type!");
-				return glm::ortho(LeftEdge, RightEdge, BotEdge, TopEdge, NearPlane, FarPlane);
+				return glm::perspective(GetFovInRad(), AspectRatio, NearPlane, FarPlane);
 			}
 		}
 

@@ -2,3 +2,6 @@
 	path = 3rd/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "3rd/imguizmo"]
+	path = 3rd/imguizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

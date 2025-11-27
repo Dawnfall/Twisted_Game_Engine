@@ -44,9 +44,12 @@ endif()
 set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/src/TwistedEngine")
 set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/src/Editor")
 set(IncludeDirs_imgui  "${CMAKE_SOURCE_DIR}/3rd/imgui")
+set(IncludeDirs_imguizmo  "${CMAKE_SOURCE_DIR}/3rd/imguizmo")
+
 
 # Add ImGui as a static library (subproject)
-add_subdirectory(3rd/imgui)
+include(cmake/ImGui.cmake)
+#include(cmake/ImGuizmo.cmake)
 add_subdirectory(src/TwistedEngine)
 add_subdirectory(src/Editor)
 
