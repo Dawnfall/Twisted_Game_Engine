@@ -44,10 +44,11 @@ namespace Twisted
 	}
 	void Input::UpdateMousePosition(float x, float y)
 	{
-		m_mousePosition[1] = m_mousePosition[0];
+		m_mouseDelta.x = x - m_mousePos.x;
+		m_mouseDelta.y = y - m_mousePos.y;
 
-		m_mousePosition[0].x = x;
-		m_mousePosition[0].y = y;
+		m_mousePos.x = x;
+		m_mousePos.y = y;
 	}
 
 }

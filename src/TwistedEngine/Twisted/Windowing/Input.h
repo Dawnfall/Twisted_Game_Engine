@@ -41,8 +41,9 @@ namespace Twisted
 			return m_pressedKeys.test(static_cast<size_t>(key));
 		}
 
-		const Vec2f& GetMousePosition()const { return m_mousePosition[0]; }
-		const Vec2f GetMouseDelta()const { return m_mousePosition[1] - m_mousePosition[0]; }
+		const Vec2f& GetMousePosition()const { return m_mousePos; }
+		const Vec2f& GetMouseDelta()const { return m_mouseDelta; }
+
 
 		void UpdateKey(Twisted::Key key, bool isDown);
 		void UpdateMouseButton(Twisted::MouseButton button, bool isDown);
@@ -69,7 +70,8 @@ namespace Twisted
 		std::bitset<static_cast<size_t>(Key::Count)> m_justPressedKeys{};
 		std::bitset<static_cast<size_t>(Key::Count)> m_justReleasedKeys{};
 
-		Vec2f m_mousePosition[2]{ {0,0},{0,0} };
+		Vec2f m_mousePos;
+		Vec2f m_mouseDelta;
 
 	private:
 		Input() = default;

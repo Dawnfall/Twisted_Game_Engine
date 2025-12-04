@@ -13,10 +13,6 @@ namespace Twisted::Editor
 
 		m_editorService->GetConfig().LoadConfig();
 
-		m_editorService->EditorWorld = TObject::Create<World>("Editor world"); //TODO...
-		Entity camEnt = m_editorService->EditorWorld->CreateNewEntityWithComponents<Twisted::CameraComponent>();
-		m_editorService->EditorWorld->AddSystem<EditorCameraSystem>();
-
 		m_editorService->ConfirmedQuitEvent.AddListener([this]() {
 			m_app->Stop();
 			});

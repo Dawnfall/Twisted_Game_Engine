@@ -40,8 +40,8 @@ using Mat2x2i = glm::mat<2, 2, int>;
 
 namespace Constants
 {
-	inline constexpr  Vec3f Forward(0.0f, 0.0f, -1.0f);
-	inline constexpr  Vec3f Back(0.0f, 0.0f, 1.0f);
+	inline constexpr  Vec3f Forward(0.0f, 0.0f, 1.0f);
+	inline constexpr  Vec3f Back(0.0f, 0.0f, -1.0f);
 	inline constexpr  Vec3f Right(1.0f, 0.0f, 0.0f);
 	inline constexpr  Vec3f Left(-1.0f, 0.0f, 0.0f);
 	inline constexpr  Vec3f Up(0.0f, 1.0f, 0.0f);

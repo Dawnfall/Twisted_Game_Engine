@@ -185,6 +185,12 @@ namespace Twisted
 			return m_registry.get<T>(id);
 		}
 
+		template<ComponentType... Ts>
+		std::tuple<Ts...> GetComponents(EntityID id)
+		{
+			return m_registry.get<Ts...>(id);
+		}
+
 		template <ComponentType T>
 		const T& GetComponent(EntityID id)const
 		{

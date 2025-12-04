@@ -14,6 +14,9 @@
 #include "Twisted/Windowing/WindowsService.h"
 
 #include "UI/ImguiExtensions.h"
+#include "Twisted/Gameing/Components/CCamera.h"
+#include "Twisted/Gameing/Entity.h"
+#include "EditorWorld/EditorCameraSystem.h"
 
 namespace Twisted
 {
@@ -32,6 +35,10 @@ namespace Twisted::Editor
 			m_loadupConfigData(Constants::LOADUP_CONFIG_PATH.string())
 		{
 			s_instance = this;
+
+			EditorWorld = TObject::Create<World>("Editor world"); //TODO...
+			camEnt = EditorWorld->CreateNewEntityWithComponents<Twisted::CameraComponent>();
+			EditorWorld->AddSystem<EditorCameraSystem>();
 		}
 
 		inline static EditorWorldService* GetInstance()
@@ -53,6 +60,7 @@ namespace Twisted::Editor
 		Event<> ConfirmedQuitEvent;
 
 		World* EditorWorld = nullptr;
+		Entity camEnt = Entity::Invalid();
 		EditorRenderer renderer;
 
 	private:

@@ -34,7 +34,7 @@ namespace Twisted::Windowing
 
 		double x, y;
 		glfwGetCursorPos(static_cast<GLFWwindow*>(window.GetRawPointer()), &x, &y);
-		Input::GetInstance().UpdateMousePosition(float(x), float(y));
+		Input::GetInstance().UpdateMousePosition(float(x), window.GetSize().y - float(y));
 
 	}
 

@@ -20,12 +20,14 @@ target_include_directories(Editor PRIVATE
     ${IncludeDirs_Editor}
     ${IncludeDirs_TwistedEngine}
     ${IncludeDirs_imgui}
+    ${IncludeDirs_imguizmo}
 )
 
 target_link_libraries(Editor PRIVATE
     TwistedEngine
     glm::glm
     imgui
+    imguizmo
     yaml-cpp::yaml-cpp
 
     $<$<BOOL:${USE_GLFW}>:glfw>

@@ -151,13 +151,13 @@ namespace Twisted::Collections
 			cubeData.AddPosition(positions[face.v3]); cubeData.AddNormal(face.normal); cubeData.AddTexCoord(uvs[3]);
 
 			// Two triangles per face
-			cubeData.Indices.push_back(startIndex + 0);
+			cubeData.Indices.push_back(startIndex + 2);
 			cubeData.Indices.push_back(startIndex + 1);
-			cubeData.Indices.push_back(startIndex + 2);
-
-			cubeData.Indices.push_back(startIndex + 2);
-			cubeData.Indices.push_back(startIndex + 3);
 			cubeData.Indices.push_back(startIndex + 0);
+
+			cubeData.Indices.push_back(startIndex + 0);
+			cubeData.Indices.push_back(startIndex + 3);
+			cubeData.Indices.push_back(startIndex + 2);
 		}
 
 		return cubeData.Pack();
