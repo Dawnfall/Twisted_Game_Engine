@@ -1,6 +1,7 @@
 #include "EditorProcessor.h"
 #include "Twisted/Gameing/Components/CCamera.h"
 #include "EditorWorld/EditorCameraSystem.h"
+#include "Twisted/BuiltIn/BuiltInRegistry.h"
 
 namespace Twisted::Editor
 {
@@ -30,7 +31,7 @@ namespace Twisted::Editor
 
 			Im::SetLayoutIniFile(m_assetsService->GetProject().GetLayoutFilePath(), true);
 
-			m_assetsService->LoadBuiltIn();
+			Collections::BuiltInRegistry::GetInstance().ImportAll();
 			m_assetsService->AutoImportAssets();
 			});
 

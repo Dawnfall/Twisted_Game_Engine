@@ -42,22 +42,22 @@ namespace Twisted
         size_t offset = 0;
         if (!Positions.empty())
         {
-            packed.Layout.push_back({ VertexAttribute::Type::POSITION, 3, offset,POSITION_LAYOUT_LOC });
+            packed.Layout.push_back({ VertexAttribute::VertexAttributeType::POSITION, 3, offset,POSITION_LAYOUT_LOC });
             offset += 3;
         }
         if (!Normals.empty())
         {
-            packed.Layout.push_back({ VertexAttribute::Type::NORMAL, 3, offset,NORMAL_LAYOUT_LOC });
+            packed.Layout.push_back({ VertexAttribute::VertexAttributeType::NORMAL, 3, offset,NORMAL_LAYOUT_LOC });
             offset += 3;
         }
         if (!TexCoords.empty())
         {
-            packed.Layout.push_back({ VertexAttribute::Type::TEXCOORD, 2, offset,TEXCOORD_LAYOUT_LOC });
+            packed.Layout.push_back({ VertexAttribute::VertexAttributeType::TEXCOORD, 2, offset,TEXCOORD_LAYOUT_LOC });
             offset += 2;
         }
         if (!Colors.empty())
         {
-            packed.Layout.push_back({ VertexAttribute::Type::COLOR, 4, offset,COLOR_LAYOUT_LOC });
+            packed.Layout.push_back({ VertexAttribute::VertexAttributeType::COLOR, 4, offset,COLOR_LAYOUT_LOC });
             offset += 4;
         }
 

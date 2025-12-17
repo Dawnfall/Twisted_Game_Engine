@@ -112,7 +112,8 @@ namespace Twisted::Mesh_GL
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			packedData.Indices.size() * sizeof(unsigned int),
 			packedData.Indices.data(),
-			DrawTypeToGL(mesh.DrawType));
+			DrawTypeToGL(mesh.DrawType)
+		);
 	}
 
 	void Clear(Mesh& mesh)
@@ -139,7 +140,6 @@ namespace Twisted::Mesh_GL
 
 	void SetMeshLayout(const PackedMeshData& packedData)
 	{
-		// Set layout
 		for (unsigned int i = 0; i < packedData.Layout.size(); ++i)
 		{
 			const auto& attrib = packedData.Layout[i];
@@ -164,7 +164,6 @@ namespace Twisted::Mesh_GL
 			nullptr
 		);
 	}
-
 }
 
 

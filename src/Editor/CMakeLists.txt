@@ -56,7 +56,10 @@ target_compile_definitions(Editor PRIVATE
     $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
 )
 target_compile_options(Editor PRIVATE
+
+if (MSVC)
     $<$<CONFIG:Debug>:/Od /Zi>
     $<$<CONFIG:Release>:/O2 /Zi>
     $<$<CONFIG:Deploy>:/Ox>
+endif()
 )

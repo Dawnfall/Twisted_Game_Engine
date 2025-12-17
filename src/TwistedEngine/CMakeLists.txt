@@ -3,7 +3,7 @@ file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
     "*.h"
     )
 
-source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${TWISTED_ENGINE_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
 
 add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES})
 
@@ -31,6 +31,7 @@ target_link_libraries(TwistedEngine PRIVATE
     spdlog::spdlog
     yaml-cpp::yaml-cpp
     rapidobj::rapidobj
+    ShaderParser
 
     $<$<BOOL:${USE_GLFW}>:glfw>
 )

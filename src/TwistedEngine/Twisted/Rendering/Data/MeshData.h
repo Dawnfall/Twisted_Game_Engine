@@ -18,7 +18,7 @@ namespace Twisted
 
     struct VertexAttribute
     {
-        enum class Type
+        enum class VertexAttributeType
         {
             POSITION,
             NORMAL,
@@ -27,14 +27,14 @@ namespace Twisted
             // extendable
         };
 
-        VertexAttribute(Type type, size_t count, size_t offset, unsigned int loc) :
+        VertexAttribute(VertexAttributeType type, size_t count, size_t offset, unsigned int loc) :
             Type(type),
             Count(count),
             Offset(offset),
             Location(loc)
         {}
 
-        Type Type;
+        VertexAttributeType Type;
         size_t Count;   // number of floats (3 for position/normal, 2 for texcoord, etc.)
         size_t Offset;  // offset in the interleaved buffer in floats
         unsigned int Location; // explicit shader location
@@ -42,11 +42,11 @@ namespace Twisted
 
     struct PackedMeshData
     {
+        size_t Stride = 0;                    // stride in floats
+        MeshPrimitiveType PrimitiveType = MeshPrimitiveType::TRIANGLES;
         std::vector<float> VertexBuffer;      // interleaved vertex data
         std::vector<VertexAttribute> Layout;  // description of attributes
-        size_t Stride = 0;                     // stride in floats
         std::vector<unsigned int> Indices;    // index buffer
-        MeshPrimitiveType PrimitiveType = MeshPrimitiveType::TRIANGLES;
     };
 
 	struct TWISTED_API MeshData

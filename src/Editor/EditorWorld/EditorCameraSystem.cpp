@@ -19,9 +19,6 @@ namespace Twisted::Editor
 
 		float xDelta = input.GetMouseDelta().x;
 		float yDelta = input.GetMouseDelta().y;
-
-		std::string out = "dX: " + std::to_string(xDelta)+"    dY: " + std::to_string(yDelta);
-		TWISTED_INFO(out);
 		
 		if (xDelta != 0 || yDelta != 0)
 		{

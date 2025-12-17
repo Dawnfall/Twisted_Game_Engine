@@ -16,11 +16,9 @@
 #include "Project.h"
 
 #include "Twisted/Rendering/Mesh.h"
-#include "Twisted/BuiltIn/MeshCollections.h"
 #include "Twisted/Rendering/OpenGL/Mesh_OpenGL.h"
 
 #include "Twisted/Rendering/Shader.h"
-#include "Twisted/BuiltIn/ShaderCollections.h"
 #include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
 
 namespace Twisted
@@ -84,51 +82,6 @@ namespace Twisted
 		void SaveAssetDirect(const fs::path& assetPath, const std::vector<WPtrBase>& objects);
 
 		void SaveAssetManaged(FileAssetInfo* info);
-
-		void LoadBuiltIn()
-		{
-			Mesh* triangleMesh = TObject::Create<Mesh>(Collections::triangleMeshName);
-			Mesh_GL::SetData(*triangleMesh, Collections::CreateTrianglePackedData(), MeshDrawType::STATIC);
-
-			Mesh* quadMesh = TObject::Create<Mesh>(Collections::quadMeshName);
-			Mesh_GL::SetData(*quadMesh, Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
-
-			Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName);
-			Mesh_GL::SetData(*cubeMesh, Collections::CreateCubePackedData(), MeshDrawType::STATIC);
-
-			Shader* debugUVsShader = TObject::Create<Shader>(Collections::debugUVsShaderName);
-			ShaderData debugUVsShaderData;
-			debugUVsShaderData.VertShader = Collections::debugUVsVertexShader;
-			debugUVsShaderData.FragShader = Collections::debugUVsFragmentShader;
-			Shader_GL::SetData(*debugUVsShader, debugUVsShaderData);
-
-			Shader* debugNormalsShader = TObject::Create<Shader>(Collections::debugNormalsShaderName);
-			ShaderData debugNormalsShaderData;
-			debugNormalsShaderData.VertShader = Collections::debugNormalsVertexShader;
-			debugNormalsShaderData.FragShader = Collections::debugNormalsFragmentShader;
-			Shader_GL::SetData(*debugNormalsShader, debugNormalsShaderData);
-
-			Shader* defaultShader = TObject::Create<Shader>(Collections::defaultShaderName);
-			ShaderData defaultShaderData;
-			defaultShaderData.VertShader = Collections::defaultVertexShader;
-			defaultShaderData.FragShader = Collections::defaultFragmentShader;
-			Shader_GL::SetData(*defaultShader, defaultShaderData);
-
-			Shader* simpleShader = TObject::Create<Shader>(Collections::simpleShaderName);
-			ShaderData simpleShaderData;
-			simpleShaderData.VertShader = Collections::simpleVertexShader;
-			simpleShaderData.FragShader = Collections::simpleFragmentShader;
-			Shader_GL::SetData(*simpleShader, simpleShaderData);
-
-			AddBuiltIn(Collections::triangleMeshUUID, triangleMesh);
-			AddBuiltIn(Collections::quadMeshUUID, quadMesh);
-			AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
-
-			AddBuiltIn(Collections::debugNormalsShaderUUID, debugNormalsShader);
-			AddBuiltIn(Collections::debugUVsShaderUUID, debugUVsShader);
-			AddBuiltIn(Collections::defaultShaderUUID, defaultShader);
-			AddBuiltIn(Collections::simpleShaderUUID, simpleShader);
-		}
 
 	private:
 
