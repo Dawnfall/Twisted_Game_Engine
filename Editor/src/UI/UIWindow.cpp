@@ -6,6 +6,19 @@
 #include "EditorApp/EditorWorldService.h"
 #include "Twisted/Gameing/GameService.h"
 #include "EditorApp/EditorRegistry.h"
+#include "Twisted/Windowing/Window.h"
+#include "Twisted/AssetsLayer/AssetsService.h"
+#include "Utils/WPtr.h"
+#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+#include "Utils/GlmUtils.h"
+#include "EditorData/EditorConstants.h"
+#include "Twisted/Gameing/World.h"
+#include "Utils/WPtrBase.h"
+#include <filesystem>
+#include <utility>
+#include <vector>
+#include <imgui.h>
+#include <string>
 
 //#include "Twisted/Application/Application.h"
 
@@ -142,7 +155,7 @@ namespace Twisted::Editor
 	void UIWindow::RenderDockSpace()
 	{
 		// Get viewport
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		//const ImGuiViewport* viewport = ImGui::GetMainViewport();
 		float menuBarHeight = ImGui::GetFrameHeight() + 22; // Get the actual height of the menu bar
 
 		ImVec2 displaySize = ImGui::GetIO().DisplaySize;

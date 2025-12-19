@@ -1,11 +1,22 @@
 ﻿#include "WorldViewPanel.h"
 
-#include "Twisted/Application/Application.h"
 #include "EditorApp/EditorRegistry.h"
 
 #include "Twisted/Rendering/OpenGL/FrameBuffer_OpenGL.h"
+#include "Twisted/Gameing/Entity.h"
+#include "Utils/GlmUtils.h"
+#include "UI/EditorPanel.h"
+#include "EditorApp/EditorWorldService.h"
+#include "Twisted/Gameing/Components/CCamera.h"
+
+#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <Utils/GlmUtils.h>
+#include <glm/fwd.hpp>
+
+#include <ImGuizmo.h>
+#include <imgui.h>
+#include <Twisted/Gameing/Components/CTransform.h>
+
 
 namespace Twisted::Editor
 {
@@ -26,7 +37,7 @@ namespace Twisted::Editor
 		if (fb && fb->Tex)
 			ImGui::Image(
 				(void*)(intptr_t)fb->Tex->TexID,
-				ImVec2(Size.x, Size.y),
+				ImVec2((float)Size.x,(float) Size.y),
 				ImVec2(0, 1),  // top-left UV
 				ImVec2(1, 0)   // bottom-right UV (flipped vertically)
 			);

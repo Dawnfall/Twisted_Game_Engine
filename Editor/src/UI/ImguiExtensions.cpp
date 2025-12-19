@@ -1,10 +1,7 @@
 ﻿#include "ImguiExtensions.h"
 
-#include "AppCore.h"
 #include "Debug/Logger.h"
 #include "EditorData/EditorConstants.h"
-
-#include <ImGuizmo.h>
 
 #ifndef GLFW_INCLUDE_NONE
 
@@ -63,6 +60,15 @@ namespace Im
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_glfw.h>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <filesystem>
+#include "Twisted/Windowing/Window.h"
+#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <string>
+#include <vector>
 
 namespace Im
 {
@@ -143,7 +149,7 @@ namespace Im
 			// fetch the buttons (so that we can throw some away if needed)
 			std::vector<std::string> btnList;
 			float totalWidth = 0.0f;
-			for (auto comp : path) {
+			for (auto& comp : path) {
 				std::string section = comp.string();
 				if (section.size() == 1 && (section[0] == '\\' || section[0] == '/'))
 					continue;
@@ -181,7 +187,7 @@ namespace Im
 							newPath += "\\";
 
 					}
-					path = std::filesystem::u8path(newPath);
+					path = std::u8string(newPath.begin(), newPath.end());
 					ret = true;
 				}
 				anyOtherHC |= ImGui::IsItemHovered() | ImGui::IsItemClicked();
@@ -226,7 +232,7 @@ namespace Im
 			if (ImGui::InputTextEx("##pathbox_input", "", pathBuffer, 1024, size_arg, ImGuiInputTextFlags_EnterReturnsTrue)) {
 				std::string tempStr(pathBuffer);
 				if (std::filesystem::exists(tempStr))
-					path = std::filesystem::u8path(tempStr);
+					path = std::u8string(tempStr.begin(), tempStr.end());
 				ret = true;
 			}
 			if (!skipActiveCheck && !ImGui::IsItemActive())
@@ -305,7 +311,7 @@ namespace Im
 		{
 			if (is_mouse_x_over_arrow) {
 				int* p_opened = window->StateStorage.GetIntRef(id, 0);
-				opened = *p_opened = !*p_opened;
+				opened = *p_opened = *p_opened ^ true;
 			}
 			else {
 				clicked = true;
@@ -316,7 +322,7 @@ namespace Im
 		bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
 		if (doubleClick && hovered) {
 			int* p_opened = window->StateStorage.GetIntRef(id, 0);
-			opened = *p_opened = !*p_opened;
+			opened = *p_opened = *p_opened ^ true;
 			clicked = false;
 		}
 		if (hovered || active)

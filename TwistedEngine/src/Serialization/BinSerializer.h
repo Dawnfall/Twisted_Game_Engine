@@ -189,7 +189,7 @@ namespace Twisted
 				return map;
 			}
 			else if constexpr (std::is_trivially_copyable_v<T>) {
-				T obj;
+				T obj{};
 				ReadBytes(&obj, 1,data);
 				return obj;
 			}

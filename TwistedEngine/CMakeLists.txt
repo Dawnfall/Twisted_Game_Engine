@@ -1,3 +1,9 @@
+cmake_minimum_required(VERSION 4.1.1)
+
+# ------------------------------
+# Collect source files
+# ------------------------------
+
 file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
     "*.cpp"
     "*.h"
@@ -5,25 +11,36 @@ file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
 
+# ------------------------------
+# Create shared library
+# ------------------------------
+
 add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES})
 
 set_target_properties(TwistedEngine PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
-
-    OUTPUT_NAME "TwistedEngine$<$<CONFIG:Debug>:_d>"
-    # MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    #OUTPUT_NAME "TwistedEngine$<$<CONFIG:Debug>:_d>"
 )
+
+# ------------------------------
+# Include directories
+# ------------------------------
 
 target_include_directories(TwistedEngine PUBLIC
     ${IncludeDirs_TwistedEngine}
+)
+
+# third party with suppressed warnings
+target_include_directories(TwistedEngine SYSTEM PUBLIC
     ${IncludeDirs_ShaderParser}
     "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
 )
 
-# Create the source groups for source tree with root at CMAKE_CURRENT_SOURCE_DIR.
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
+# ------------------------------
+# Libraries
+# ------------------------------
 
 target_link_libraries(TwistedEngine PRIVATE
     opengl32
@@ -37,27 +54,24 @@ target_link_libraries(TwistedEngine PRIVATE
     $<$<BOOL:${USE_GLFW}>:glfw>
 )
 
+# ------------------------------
+# Compile definitions
+# ------------------------------
+
 target_compile_definitions(TwistedEngine PRIVATE
     TWISTED_ENGINE
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
-    $<$<CONFIG:Release>:TWISTED_RELEASE>
-    $<$<CONFIG:Deploy>:TWISTED_DEPLOY>
-
+    $<$<CONFIG:RelWithDebInfo>:TWISTED_RELEASE>
+    $<$<CONFIG:Release>:TWISTED_DEPLOY>
     $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
     $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
+
+    _CRT_SECURE_NO_WARNINGS  # only affects third-party headers
 )
 
-target_compile_options(TwistedEngine PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic -Werror>
-    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic -Werror>
-)
-
-target_compile_options(TwistedEngine PRIVATE
-    $<$<CONFIG:Debug>:/Od /Zi>
-    $<$<CONFIG:Release>:/O2 /Zi>
-    $<$<CONFIG:Deploy>:/Ox>
-)
+# ------------------------------
+# Compiler options
+# ------------------------------
 
 if(MSVC)
     target_compile_options(TwistedEngine PRIVATE
@@ -66,13 +80,20 @@ if(MSVC)
         /external:W0            # Suppress warnings from external headers
         /experimental:external  # Required for /external:W0 to work
         /analyze-               # Disable full static analysis on this target
+
+        $<$<CONFIG:Debug>:/Od /Zi>
+        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
+        $<$<CONFIG:Release>:/Ox>
+    )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(TwistedEngine PRIVATE
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        -Werror
+
+        $<$<CONFIG:Debug>:-O0 -g>
+        $<$<CONFIG:RelWithDebInfo>:-O2 -g>
+        $<$<CONFIG:Release>:-O3>
     )
 endif()
-
-
-
-target_include_directories(TwistedEngine SYSTEM PUBLIC
-    "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
-)
-
-target_compile_definitions(TwistedEngine PRIVATE _CRT_SECURE_NO_WARNINGS)

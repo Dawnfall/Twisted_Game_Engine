@@ -50,7 +50,7 @@ namespace Twisted::Collections
 
 		for (auto& face : faces)
 		{
-			int startIndex = cubeData.Positions.size();
+			uint32_t startIndex = (uint32_t)cubeData.Positions.size();
 
 			// Add positions, normals, UVs for this face
 			cubeData.AddPosition(positions[face.v0]);  

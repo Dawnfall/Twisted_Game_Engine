@@ -70,7 +70,7 @@ namespace Twisted
 	protected:
 		std::vector<URef<Service>> m_services;
 		std::vector<URef<Processor>> m_processors;
-		TimeService* m_timeService;
+		TimeService* m_timeService = nullptr;
 
 		bool m_isRunning = false;
 	};

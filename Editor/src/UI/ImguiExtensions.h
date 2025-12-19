@@ -19,9 +19,11 @@
 //#include <algorithm>
 #include <string>
 //#include <vector>
-#include <typeindex>
-#include <tuple>
 #include <type_traits>
+#include <utility>
+#include "Twisted/Gameing/AComponent.h"
+#include <algorithm>
+#include <vector>
 
 namespace Im
 {
@@ -73,8 +75,7 @@ namespace Im
 	template<typename T>
 	std::pair<bool, T> DragTarget(const std::string& dropType, T defaultValue)
 	{
-		bool result = false;
-		T returnValue = defaultValue;
+		//T returnValue = defaultValue;
 
 		bool isDraggedOver = ImGui::BeginDragDropTarget();
 		if (!isDraggedOver)

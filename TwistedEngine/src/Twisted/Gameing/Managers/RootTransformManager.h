@@ -3,7 +3,6 @@
 #include "AppCore.h"
 #pragma once
 
-#include "AppCore.h"
 #include "Twisted/Gameing/WorldRegistry.h"
 #include "Twisted/Gameing/ManagerBase.h"
 #include "Twisted/Gameing/Entity.h"

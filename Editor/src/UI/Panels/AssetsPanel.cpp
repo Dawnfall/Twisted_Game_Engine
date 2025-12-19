@@ -1,8 +1,18 @@
 ﻿#include "AssetsPanel.h"
-#include "Twisted/Application/Application.h"
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
 #include "Twisted/AssetsLayer/AssetInfo.h"
+#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+#include "Twisted/TObject.h"
+#include "EditorData/EditorConstants.h"
+#include "EditorApp/EditorWorldService.h"
+#include "Twisted/AssetsLayer/Project.h"
+#include <optional>
+#include <filesystem>
+#include <string>
+#include <Twisted/AssetsLayer/AssetsService.h>
+#include <EditorData/Selection.h>
+#include <imgui.h>
 
 
 namespace Twisted::Editor
@@ -45,7 +55,7 @@ namespace Twisted::Editor
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
 			bool shiftHeld = io.KeyShift; // true if Shift is held
-			bool altHeld = io.KeyAlt; // true if Alt is held
+			//bool altHeld = io.KeyAlt; // true if Alt is held
 
 			if (ctrlHeld)
 			{
@@ -69,7 +79,7 @@ namespace Twisted::Editor
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
 			bool shiftHeld = io.KeyShift; // true if Shift is held
-			bool altHeld = io.KeyAlt; // true if Alt is held
+			//bool altHeld = io.KeyAlt; // true if Alt is held
 
 			if (ctrlHeld)
 			{

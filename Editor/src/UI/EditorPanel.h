@@ -2,6 +2,7 @@
 #include "Utils/Event.h"
 #include "Utils/GlmUtils.h"
 #include "imgui.h"
+#include <string>
 
 namespace Twisted
 {
@@ -15,7 +16,7 @@ namespace Twisted::Editor
 	public:
 		EditorPanel(const std::string& name) : m_panelName(name) {}
 
-		virtual void Init(){}
+		virtual void Init() {}
 		virtual void PaintContent() = 0;
 
 		const std::string& GetName()const { return m_panelName; }
@@ -23,10 +24,10 @@ namespace Twisted::Editor
 		Event<> PanelResizeEvent;
 
 		bool IsShowing = true;
-		ImGuiID DockParentID = -1;
+		ImGuiID DockParentID{ 0 };
 		Vec2i Size = { 10,10 };
 
-		bool IsInit = false;
+		bool IsInit{ false };
 	private:
 		std::string m_panelName;
 	};

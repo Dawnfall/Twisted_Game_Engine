@@ -2,11 +2,15 @@
 #include "Twisted/Rendering/Material.h"
 
 #include "UI/ImguiExtensions.h"
-#include "UI/ComponentPainter.h"
-#include <Twisted/Rendering/Shader.h>
-#include <Utils/WPtr.h>
-#include <Twisted/Rendering/Texture.h>
-#include <Utils/GlmUtils.h>
+#include "Twisted/Rendering/Shader.h"
+#include "Utils/WPtr.h"
+#include "Twisted/Rendering/Texture.h"
+#include "Utils/GlmUtils.h"
+#include "Twisted/AssetsLayer/AssetInfo.h"
+#include "EditorApp/EditorRegistry.h"
+#include "Twisted/AssetsLayer/AssetsService.h"
+
+#include <imgui.h>
 
 namespace Twisted::Editor
 {
@@ -16,7 +20,7 @@ namespace Twisted::Editor
 		if (!material)
 			return;
 
-		auto newPtr = Im::ObjectDropField<Shader>("Shader", material->Shader);
+		//Twisted::Shader* newPtr = Im::ObjectDropField<Shader>("Shader", material->Shader);
 
 		if (material->Shader)
 			for (const auto& uniform : material->Shader->Uniforms)
@@ -28,9 +32,9 @@ namespace Twisted::Editor
 					auto res = material->Get<WPtr<Texture>>(uniform.Name);
 					Texture* tex = res.has_value() ? res.value().get() : nullptr;
 
-					auto newPtr = Im::ObjectDropField<Texture>(uniform.Name, tex);
-					if (newPtr != tex)
-						material->Set<WPtr<Texture>>(uniform.Name, WPtr<Texture>(newPtr));
+					Twisted::Texture* newTexPtr = Im::ObjectDropField<Texture>(uniform.Name, tex);
+					if (newTexPtr != tex)
+						material->Set<WPtr<Texture>>(uniform.Name, WPtr<Texture>(newTexPtr));
 					break;
 				}
 				case ShaderVarType::VEC4_F:

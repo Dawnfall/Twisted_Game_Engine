@@ -1,4 +1,10 @@
 #include "EditorCameraSystem.h"
+#include "Twisted/Windowing/Input.h" // Add this include to resolve 'Input' class/namespace
+#include "Twisted/Gameing/Components/CTransform.h"
+#include "Twisted/Windowing/ButtonCodes.h"
+#include "Utils/GlmUtils.h"
+#include "Twisted/Windowing/KeyCodes.h"
+
 
 namespace Twisted::Editor
 {

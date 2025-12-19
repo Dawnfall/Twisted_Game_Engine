@@ -2,7 +2,7 @@
 #include "Twisted/Gameing/SystemBase.h"
 #include "Twisted/Gameing/Components/CCamera.h"
 #include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Windowing/Input.h"
+#include "Twisted/Gameing/World.h"
 
 
 namespace Twisted::Editor
@@ -19,8 +19,8 @@ namespace Twisted::Editor
 				return;
 			TransformComponent& transform = m_world->GetComponent<TransformComponent>(camera->GetID());
 
-			float moveSpeed = 1;
-			float rotateSpeed = 0.005;
+			float moveSpeed{ 1.0f };
+			float rotateSpeed{ 0.005f };
 
 			FreeFlyCamera(transform, moveSpeed, rotateSpeed, deltaTime);
 		}

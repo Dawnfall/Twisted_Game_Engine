@@ -1,7 +1,16 @@
 #include "EditorProcessor.h"
-#include "Twisted/Gameing/Components/CCamera.h"
-#include "EditorWorld/EditorCameraSystem.h"
 #include "Twisted/BuiltIn/BuiltInRegistry.h"
+#include "UI/ImguiExtensions.h"
+#include "Twisted/Gameing/GameService.h"
+#include "Data/Color.h"
+#include "Twisted/Gameing/World.h"
+#include "EditorData/EditorConstants.h"
+#include "Twisted/Windowing/WindowsService.h"
+#include "UI/UIService.h"
+#include "Twisted/Windowing/WindowCoreAPI.h"
+#include "Twisted/AssetsLayer/AssetsService.h"
+#include "Twisted/AssetsLayer/Project.h"
+#include "EditorWorldService.h"
 
 namespace Twisted::Editor
 {
@@ -17,15 +26,14 @@ namespace Twisted::Editor
 		m_editorService->ConfirmedQuitEvent.AddListener([this]() {
 			m_app->Stop();
 			});
-
 	}
 	void EditorProcessor::OnBeforeRun()
 	{
-		m_app->GetService<GameService>()->WorldChangeEvent.AddListener([this](World* world) {
+		m_app->GetService<GameService>()->WorldChangeEvent.AddListener([this]([[maybe_unused]] World* world) {
 			m_editorService->GetSelection().ClearEntities();
 			});
 
-		m_assetsService->GetProject().ProjectChangeEvent.AddListener([this](const Project& project) {
+		m_assetsService->GetProject().ProjectChangeEvent.AddListener([this]([[maybe_unused]] const Project& project) {
 			m_app->GetService<WindowsService>()->GetWindow()->
 				SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + m_assetsService->GetProject().GetName());
 
@@ -43,7 +51,7 @@ namespace Twisted::Editor
 	{
 		if (m_windowsService->GetWindow())
 		{
-			Color clearColor; //TODO... move this
+			Color clearColor{}; //TODO... move this
 			m_windowsService->GetWindow()->GetContext()->Clear(clearColor);
 			Windowing::PollEvents(*m_windowsService->GetWindow());
 		}

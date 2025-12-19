@@ -11,7 +11,7 @@ namespace Twisted
 {
 	struct TWISTED_API DirectionalLightComponent :public AComponent
 	{
-		DirectionalLightComponent(Entity entity):AComponent(entity){}
+		DirectionalLightComponent(Entity entity):AComponent(entity),color(0.0f,0.0f,0.0f,0.0f) {}
 
 		Vec4f color;
 		float intensity = 1.0f;

@@ -243,10 +243,10 @@ namespace Twisted
 		T* FindFirstOfType()
 		{
 			auto view = m_registry.view<T>();
-			for (auto entity : view)
-				return &view.get<T>(entity); // Return pointer to first one
+			if (!view.empty())
+				return &view.get<T>(*view.begin());
 
-			return nullptr; // None found
+			return nullptr;
 		}
 
 		template<RemovableComponentType T>

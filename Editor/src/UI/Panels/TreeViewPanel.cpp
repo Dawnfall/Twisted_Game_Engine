@@ -10,6 +10,13 @@
 #include "UI/ImguiExtensions.h"
 
 #include "Twisted/Gameing/GameService.h"
+#include "EditorData/Selection.h"
+#include "EditorData/EditorConstants.h"
+#include "Twisted/Gameing/Managers/RootTransformManager.h"
+
+#include <imgui.h>
+#include <string>
+#include <cstdint>
 
 namespace Twisted::Editor
 {
@@ -33,12 +40,13 @@ namespace Twisted::Editor
 
 	static void CheckLeftClickOnNode(TreeViewToken& token, Entity entity)
 	{
+		(void)token;
 		if (EditorWorldService::GetInstance()->GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
 			bool shiftHeld = io.KeyShift; // true if Shift is held
-			bool altHeld = io.KeyAlt; // true if Alt is held
+			//bool altHeld = io.KeyAlt; // true if Alt is held
 
 			if (ctrlHeld)
 			{
@@ -125,7 +133,7 @@ namespace Twisted::Editor
 
 	void TreeViewPanel::PaintContent()
 	{
-		auto editor = EditorWorldService::GetInstance();
+		//auto editor = EditorWorldService::GetInstance();
 		auto gameWorld = GameService::GetInstance()->GameWorld;
 
 		if (!gameWorld)
@@ -155,7 +163,7 @@ namespace Twisted::Editor
 
 		bool IsSelected = EditorWorldService::GetInstance()->GetSelection().GetSelectedEntities().contains(entity);
 		bool isOpened = ImGui::TreeNodeEx(nodeID.c_str(), flags);
-		bool isHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+		//bool isHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
 		// drag soruce
 		Im::DragSource<Entity>(Constants::ENTITY_DRAG_TYPE, entity, name.Name.c_str());

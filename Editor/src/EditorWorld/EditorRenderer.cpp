@@ -5,11 +5,16 @@
 #include "Twisted/Gameing/Components/SpotLightComponent.h"
 #include "Twisted/Gameing/Components/DirectionalLightComponent.h"
 #include "Twisted/Gameing/Components/PointLightComponent.h"
+#include <vector>
+#include "Twisted/Rendering/Data/RenderContext.h"
+#include "Twisted/Gameing/World.h"
+#include "Utils/GlmUtils.h"
 
 namespace Twisted::Editor
 {
 	std::vector<CameraData> EditorRenderer::CollectCameraData(World& editorWorld, World& gameWorld)const
 	{
+		(void)gameWorld;
 		std::vector<CameraData> camData;
 
 		auto camera = editorWorld.FindFirstOfType<CameraComponent>();
@@ -28,6 +33,8 @@ namespace Twisted::Editor
 
 	std::vector<ModelData> EditorRenderer::CollectModelData(World& editorWorld, World& gameWorld)const
 	{
+		(void)editorWorld;
+
 		std::vector<ModelData> modelData;
 
 		auto renderers = gameWorld.GetGroup<RendererComponent, TransformComponent>();
@@ -50,13 +57,15 @@ namespace Twisted::Editor
 
 	LightData EditorRenderer::CollectLightData(World& editorWorld, World& gameWorld)const
 	{
+		(void)editorWorld;
+
 		LightData lightData;
 
 		auto dirLights = gameWorld.GetGroup<DirectionalLightComponent, TransformComponent>();
 		lightData.dirLights.reserve(dirLights.size());
 		for (auto&& [ent, l, t] : dirLights.each())
 		{
-			DirLightData dirLightData;
+			DirLightData dirLightData{};
 
 			dirLightData.direction = Vec4f(t.GetWorldForward(), 0.0f);
 			dirLightData.lightColor = l.color;
@@ -69,7 +78,7 @@ namespace Twisted::Editor
 		lightData.spotLights.reserve(spotLights.size());
 		for (auto&& [ent, l, t] : spotLights.each())
 		{
-			SpotLightData spotLightData;
+			SpotLightData spotLightData{};
 
 			spotLightData.direction = Vec4f(t.GetWorldForward(), 0.0f);
 			spotLightData.position = Vec4f(t.GetWorldPosition(), 1.0f);
@@ -85,7 +94,7 @@ namespace Twisted::Editor
 		lightData.pointLights.reserve(pointLights.size());
 		for (auto&& [ent, l, t] : pointLights.each())
 		{
-			PointLightData pointLightData;
+			PointLightData pointLightData{};
 
 			pointLightData.direction = Vec4f(t.GetWorldForward(), 0.0f);
 			pointLightData.position = Vec4f(t.GetWorldPosition(), 1.0f);

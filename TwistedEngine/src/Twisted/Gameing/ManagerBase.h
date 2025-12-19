@@ -1,9 +1,11 @@
+#include "AppCore.h"
+
 #pragma once
 
 namespace Twisted
 {
 	class World;
-	class ManagerBase
+	class TWISTED_API ManagerBase
 	{
 	public:
 		ManagerBase(World* world) :

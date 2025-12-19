@@ -1,38 +1,34 @@
 {
   "version": 4,
-  "configurePresets": 
-  [
+  "configurePresets": [
     {
       "name": "vs2026",
       "hidden": false,
       "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/build/vs2026",
-      "cacheVariables": 
-      {
+      "cacheVariables": {
         "CMAKE_GENERATOR_PLATFORM": "x64",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;Deploy"
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
       }
     }
   ],
-
-  "buildPresets": 
-  [
+  "buildPresets": [
     {
-      "name": "vs2026-Debug",
+      "name": "Debug",
       "configurePreset": "vs2026",
       "configuration": "Debug"
     },
     {
-      "name": "vs2026-Release",
+      "name": "RelWithDebInfo",
       "configurePreset": "vs2026",
-      "configuration": "Release"
+      "configuration": "RelWithDebInfo"
     },
     {
-      "name": "vs2026-Deploy",
+      "name": "Release",
       "configurePreset": "vs2026",
-      "configuration": "Deploy"
+      "configuration": "Release"
     }
   ]
 }
