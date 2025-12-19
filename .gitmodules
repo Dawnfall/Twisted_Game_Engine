@@ -5,3 +5,6 @@
 [submodule "3rd/imguizmo"]
 	path = 3rd/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "3rd/ShaderParser"]
+	path = 3rd/ShaderParser
+	url = https://github.com/Dawnfall/Shader-Parser.git

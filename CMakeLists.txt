@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.1.1)
 project(TwistedEngine LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -41,48 +41,21 @@ if(USE_GLFW)
     find_package(glfw3 CONFIG REQUIRED)
 endif()
 
-set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/src/TwistedEngine")
-set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/src/Editor")
+set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/TwistedEngine/src")
+set(IncludeDirs_Editor "${CMAKE_SOURCE_DIR}/Editor/src")
 set(IncludeDirs_imgui "${CMAKE_SOURCE_DIR}/3rd/imgui")
 set(IncludeDirs_imguizmo "${CMAKE_SOURCE_DIR}/3rd/imguizmo")
-
+set(IncludeDirs_ShaderParser "${CMAKE_SOURCE_DIR}/3rd/ShaderParser/ShaderParser/src")
 
 # Add ImGui as a static library (subproject)
 include(cmake/ImGui.cmake)
 include(cmake/ImGuizmo.cmake)
-add_subdirectory(src/TwistedEngine)
-add_subdirectory(src/Editor)
+add_subdirectory(3rd/ShaderParser/ShaderParser)
+add_subdirectory(TwistedEngine)
+add_subdirectory(Editor)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Define allowed configurations (optional, helps IDEs)
 set(CMAKE_CONFIGURATION_TYPES Debug Release Deploy CACHE STRING "" FORCE)
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
-
-
-
-
-
-
-
-
-
-
-
-## default is debug
-#if(NOT CMAKE_BUILD_TYPE)
-#    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
-#endif()
-
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FS")
-
-## include dirs
-## set(IncludeDirs_Standalone "${CMAKE_SOURCE_DIR}/Standalone/src")
-
-## 
-#
-
-## add_subdirectory(Standalone)
-#  
-
-

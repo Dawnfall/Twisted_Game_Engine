@@ -46,11 +46,21 @@ cmake --build .
 # ScreenShots
 
 # Plan
+-Assets:
+
+ - model loading
+ 
+-Graphics:
+
+-Editor:
+   --nicer UI
+
+-Dedicated website
 
 # Acknowledgments
 
  - [Cherno Hazel] Engine
- - [Benny Box](TODO) youtube chanel for inspiring me to learn Game Engine development
+ - [Benny Box](https://www.youtube.com/@thebennybox) youtube chanel for inspiring me to learn Game Engine development
  - Other game engine [Unity](TODO) / [Unreal](TODO) / [Godot](TODO)
  - ChatGpt and Github copilot for assistence
 
