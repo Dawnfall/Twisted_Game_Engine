@@ -58,22 +58,11 @@ if(USE_GLFW)
 endif()
 
 # ------------------------------
-# Project include directories
-# ------------------------------
-
-set(IncludeDirs_TwistedEngine "${CMAKE_SOURCE_DIR}/TwistedEngine/src")
-set(IncludeDirs_Editor        "${CMAKE_SOURCE_DIR}/Editor/src")
-set(IncludeDirs_imgui         "${CMAKE_SOURCE_DIR}/3rd/imgui")
-set(IncludeDirs_imguizmo      "${CMAKE_SOURCE_DIR}/3rd/imguizmo")
-set(IncludeDirs_ShaderParser  "${CMAKE_SOURCE_DIR}/3rd/ShaderParser/ShaderParser/src")
-
-# ------------------------------
 # Third-party subprojects
 # ------------------------------
 
 include(cmake/ImGui.cmake)
 include(cmake/ImGuizmo.cmake)
-
 add_subdirectory(3rd/ShaderParser/ShaderParser)
 add_subdirectory(TwistedEngine)
 add_subdirectory(Editor)

@@ -1,4 +1,7 @@
-﻿#include "TObject.h"
+﻿#include "Twisted/TObject.h"
+#include <cstdint>
+#include <AppCore.h>
+#include <vector>
 
 namespace Twisted
 {

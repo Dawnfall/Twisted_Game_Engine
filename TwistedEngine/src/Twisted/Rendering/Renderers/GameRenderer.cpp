@@ -1,4 +1,4 @@
-#include "GameRenderer.h"
+#include "Twisted/Rendering/Renderers/GameRenderer.h"
 
 #include "Twisted/Gameing/Components/CRenderer.h"
 #include "Twisted/Gameing/Components/CCamera.h"

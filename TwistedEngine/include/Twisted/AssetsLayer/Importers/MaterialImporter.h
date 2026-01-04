@@ -2,7 +2,11 @@
 
 #include "AppCore.h"
 #include "Twisted/AssetsLayer/AssetImporter.h"
-#include "Utils/Utils.h"
+#include "Twisted/AssetsLayer/AssetInfo.h"
+
+#include <vector>
+#include <yaml-cpp/node/node.h>
+#include <filesystem>
 
 
 namespace Twisted

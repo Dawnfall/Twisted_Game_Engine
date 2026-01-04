@@ -1,27 +1,25 @@
 cmake_minimum_required(VERSION 4.1.1)
 
+
 # ------------------------------
 # Collect source files
 # ------------------------------
 
-file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS
-    "*.cpp"
-    "*.h"
-    )
+file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE TWISTED_ENGINE_HEADERS CONFIGURE_DEPENDS "include/*.h")
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES} ${TWISTED_ENGINE_HEADERS})
 
 # ------------------------------
 # Create shared library
 # ------------------------------
 
-add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES})
+add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES} ${TWISTED_ENGINE_HEADERS})
 
 set_target_properties(TwistedEngine PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
-    #OUTPUT_NAME "TwistedEngine$<$<CONFIG:Debug>:_d>"
 )
 
 # ------------------------------
@@ -29,14 +27,15 @@ set_target_properties(TwistedEngine PROPERTIES
 # ------------------------------
 
 target_include_directories(TwistedEngine PUBLIC
-    ${IncludeDirs_TwistedEngine}
+    "${CMAKE_SOURCE_DIR}/TwistedEngine/include"
+    "${CMAKE_SOURCE_DIR}/3rd/ShaderParser/ShaderParser/src"
 )
 
 # third party with suppressed warnings
-target_include_directories(TwistedEngine SYSTEM PUBLIC
-    ${IncludeDirs_ShaderParser}
-    "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
-)
+#target_include_directories(TwistedEngine SYSTEM PUBLIC
+#    
+#    "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
+#)
 
 # ------------------------------
 # Libraries

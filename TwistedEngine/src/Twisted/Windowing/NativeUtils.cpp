@@ -1,10 +1,10 @@
-﻿#include "NativeUtils.h"
+﻿#include "Twisted/Windowing/NativeUtils.h"
+#include "Twisted/Windowing/Window.h"
 
 #include <cstdlib>
 #include <Windows.h>
 #include <shtypes.h>
 #include <filesystem>
-#include "Window.h"
 #include <vector>
 #include <utility>
 #include <string>

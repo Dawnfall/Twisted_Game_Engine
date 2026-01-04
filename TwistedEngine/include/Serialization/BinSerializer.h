@@ -12,8 +12,6 @@
 #include <type_traits>
 #include <unordered_map>
 
-
-
 template<typename T>
 constexpr bool is_trivially_copyable_v = std::is_trivially_copyable<T>::value;
 

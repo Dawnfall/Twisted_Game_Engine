@@ -1,6 +1,6 @@
-﻿#include "Entity.h"
+﻿#include "Twisted/Gameing/Entity.h"
 
-#include "World.h"
+#include "Twisted/Gameing/World.h"
 
 namespace Twisted
 {

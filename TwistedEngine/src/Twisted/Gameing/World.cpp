@@ -1,18 +1,18 @@
-﻿#include "World.h"
-#include "SystemBase.h"
+﻿#include "Twisted/Gameing/World.h"
+#include "Twisted/Gameing/SystemBase.h"
 
 #include "Twisted/Gameing/Components/CTransform.h"
 #include "Twisted/Gameing/Components/CName.h"
 
-//#include "ComponentRegistry.h"
+#include "Twisted/Gameing/WorldRegistry.h"
+#include "Twisted/Constants.h"
+#include "Twisted/Gameing/Entity.h"
+#include "Twisted/TObject.h"
 
-#include "Twisted/AssetsLayer/AssetsService.h"
-#include "AppCore.h"
-#include <vector>
-#include "WorldRegistry.h"
 #include <yaml-cpp/node/node.h>
-
-
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace Twisted
 {

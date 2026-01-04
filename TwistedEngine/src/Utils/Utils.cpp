@@ -1,11 +1,11 @@
-﻿#include "Utils.h"
-#include "FileUtils.h"
+﻿#include "Utils/Utils.h"
+#include "Utils/FileUtils.h"
+#include "Debug/Logger.h"
 
 #include <regex>
 #include <windows.h>
 #include <objbase.h>
 
-#include "Debug/Logger.h"
 #include <string.h>
 #include <vector>
 #include <corecrt.h>

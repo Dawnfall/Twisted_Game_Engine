@@ -1,4 +1,9 @@
-﻿#include "BinSerializer.h"
+﻿#include "Serialization/BinSerializer.h"
+
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <fstream>
 
 namespace Twisted
 {

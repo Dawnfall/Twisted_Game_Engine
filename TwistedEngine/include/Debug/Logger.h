@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include <memory>
-#include <string>
 #include "AppCore.h"
 #include "Utils/Utils.h"
+
+#include <memory>
+#include <string>
 
 namespace spdlog
 {

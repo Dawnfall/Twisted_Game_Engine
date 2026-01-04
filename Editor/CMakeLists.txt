@@ -29,10 +29,10 @@ set_target_properties(Editor PROPERTIES
 # ------------------------------
 
 target_include_directories(Editor PRIVATE
-    ${IncludeDirs_Editor}          # Your engine/editor code
-    ${IncludeDirs_TwistedEngine}   # Engine headers
-    ${IncludeDirs_imgui}
-    ${IncludeDirs_imguizmo}
+    "${CMAKE_SOURCE_DIR}/Editor/src"              # Your engine/editor code
+    "${CMAKE_SOURCE_DIR}/TwistedEngine/include"   # Engine headers
+    "${CMAKE_SOURCE_DIR}/3rd/imgui"
+    "${CMAKE_SOURCE_DIR}/3rd/imguizmo"
 )
 
 # Third-party includes (suppress warnings)

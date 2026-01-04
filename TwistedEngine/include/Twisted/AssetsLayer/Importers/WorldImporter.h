@@ -1,5 +1,12 @@
 ﻿#pragma once
+#include "AppCore.h"
 #include "Twisted/AssetsLayer/AssetImporter.h"
+#include "Utils/WPtrBase.h"
+#include "Twisted/AssetsLayer/AssetInfo.h"
+
+#include <string>
+#include <yaml-cpp/node/node.h>
+#include <vector>
 
 namespace Twisted
 {

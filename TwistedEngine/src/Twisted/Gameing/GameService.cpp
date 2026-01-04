@@ -1,4 +1,6 @@
-#include "GameService.h"
+#include "Twisted/Gameing/GameService.h"
+#include "Twisted/TObject.h"
+#include "Twisted/Gameing/World.h"
 
 namespace Twisted
 {
