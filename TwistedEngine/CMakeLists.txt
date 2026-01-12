@@ -28,7 +28,7 @@ set_target_properties(TwistedEngine PROPERTIES
 
 target_include_directories(TwistedEngine PUBLIC
     "${CMAKE_SOURCE_DIR}/TwistedEngine/include"
-    "${CMAKE_SOURCE_DIR}/3rd/ShaderParser/ShaderParser/src"
+    #"${CMAKE_SOURCE_DIR}/3rd/ShaderParser/ShaderParser/src"
 )
 
 # third party with suppressed warnings
@@ -48,7 +48,7 @@ target_link_libraries(TwistedEngine PRIVATE
     spdlog::spdlog
     yaml-cpp::yaml-cpp
     rapidobj::rapidobj
-    ShaderParser
+    #ShaderParser
 
     $<$<BOOL:${USE_GLFW}>:glfw>
 )

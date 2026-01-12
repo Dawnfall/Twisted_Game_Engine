@@ -63,7 +63,7 @@ endif()
 
 include(cmake/ImGui.cmake)
 include(cmake/ImGuizmo.cmake)
-add_subdirectory(3rd/ShaderParser/ShaderParser)
+#add_subdirectory(3rd/ShaderParser/ShaderParser)
 add_subdirectory(TwistedEngine)
 add_subdirectory(Editor)
 

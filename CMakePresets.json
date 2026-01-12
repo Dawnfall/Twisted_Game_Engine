@@ -8,7 +8,7 @@
       "binaryDir": "${sourceDir}/build/vs2026",
       "cacheVariables": {
         "CMAKE_GENERATOR_PLATFORM": "x64",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_R}/scripts/buildsystems/vcpkg.cmake",//"D:/Programiranje/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake", 
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
       }
