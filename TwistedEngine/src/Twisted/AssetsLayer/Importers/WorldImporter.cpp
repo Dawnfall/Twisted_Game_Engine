@@ -61,7 +61,7 @@ namespace Twisted
 			return;
 
 		YAML::Node data = YamlSerialize<World>(*world.get());
-		YamlUtils::saveNode(data, assetPath);
+		YamlUtils::saveNode(data, assetPath,"Failed to create world asset!");
 	}
 
 	bool WorldImporter::SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const
@@ -74,7 +74,7 @@ namespace Twisted
 			return false;
 
 		YAML::Node data = YamlSerialize<World>(*world);
-		YamlUtils::saveNode(data, assetPath);
+		YamlUtils::saveNode(data, assetPath,"Failed to save world asset");
 
 		return true;
 	}

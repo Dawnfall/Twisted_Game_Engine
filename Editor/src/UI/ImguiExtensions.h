@@ -10,7 +10,7 @@
 //#include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Entity.h"
 #include "Twisted/Windowing/Window.h"
-#include "EditorData/EditorConstants.h"
+#include "EditorConstants.h"
 
 #include "Twisted/AssetsLayer/AssetInfo.h"
 #include "Twisted/AssetsLayer/AssetsService.h"

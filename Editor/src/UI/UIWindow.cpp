@@ -11,7 +11,7 @@
 #include "Utils/WPtr.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 #include "Utils/GlmUtils.h"
-#include "EditorData/EditorConstants.h"
+#include "EditorConstants.h"
 #include "Twisted/Gameing/World.h"
 #include "Utils/WPtrBase.h"
 #include <filesystem>
@@ -19,8 +19,6 @@
 #include <vector>
 #include <imgui.h>
 #include <string>
-
-//#include "Twisted/Application/Application.h"
 
 namespace Twisted::Editor
 {
@@ -206,6 +204,7 @@ namespace Twisted::Editor
 			}
 		}
 	}
+
 	void UIWindow::SelectProject(fs::path& path)
 	{
 		if (fs::is_regular_file(path))

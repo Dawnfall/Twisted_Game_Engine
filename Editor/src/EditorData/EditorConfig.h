@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Utils/GlmUtils.h"
 #include "Utils/FileUtils.h"
+#include "Utils/YamlUtils.h"
+
 #include "Debug/Logger.h"
 
 #include "EditorConstants.h"
@@ -17,22 +19,12 @@ namespace Twisted::Editor
 
 		void LoadConfig()
 		{
-			if (Utils::IsExisting(Constants::CONFIG_FILE_PATH))
-				m_rootNode = YAML::LoadFile(Constants::CONFIG_FILE_PATH.string());
+			YamlUtils::loadNode(Constants::CONFIG_FILE_PATH.string(), m_rootNode, "Cannot load editor config!");
 		}
 
 		void SaveConfig()
 		{
-			try
-			{
-				std::ofstream fout(Constants::CONFIG_FILE_PATH);
-				fout << m_rootNode;
-				fout.close();
-			}
-			catch (...)
-			{
-				TWISTED_WARN("Error writing Config File!");
-			}
+			YamlUtils::saveNode(m_rootNode, Constants::CONFIG_FILE_PATH, "Error writing Config File!");
 		}
 
 		Vec2i GetWindowSize()

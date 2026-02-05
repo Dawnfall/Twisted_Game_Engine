@@ -5,7 +5,7 @@
 
 namespace YamlUtils
 {
-	bool saveNode(const YAML::Node& node, const std::filesystem::path& path)
+	bool saveNode(const YAML::Node& node, const std::filesystem::path& path, const std::string& errorMsg)
 	{
 		try
 		{
@@ -16,9 +16,25 @@ namespace YamlUtils
 		}
 		catch (...)
 		{
+			TWISTED_WARN(errorMsg);
 			return false;
 		}
 	}
+
+	bool loadNode(const std::filesystem::path& path, YAML::Node& node, const std::string& errorMsg)
+	{
+		try
+		{
+			node = YAML::LoadFile(path.string());
+			return true;
+		}
+		catch (...)
+		{
+			TWISTED_ERROR(errorMsg);
+			return false;
+		}
+	}
+
 
 	YAML::Node encodeTObject(const Twisted::TObject* obj)
 	{

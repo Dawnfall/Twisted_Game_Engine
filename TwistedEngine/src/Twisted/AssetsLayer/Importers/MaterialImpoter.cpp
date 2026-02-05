@@ -53,7 +53,7 @@ namespace Twisted
 			return;
 
 		YAML::Node data = YamlSerialize<Material>(*material);
-		YamlUtils::saveNode(data, path);
+		YamlUtils::saveNode(data, path,"Failed to create material asset!");
 	}
 
 	bool MaterialImporter::SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const
@@ -66,7 +66,7 @@ namespace Twisted
 			return false;
 
 		YAML::Node data = YamlSerialize<Material>(*mat);
-		YamlUtils::saveNode(data, assetPath);
+		YamlUtils::saveNode(data, assetPath, "Cannot save material");
 
 		return true;
 	}

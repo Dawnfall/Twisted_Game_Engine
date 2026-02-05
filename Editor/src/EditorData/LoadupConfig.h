@@ -41,13 +41,13 @@ namespace Twisted::Editor
 		{
 			auto recentProjects = GetRecentProjects();
 			Utils::RemoveElement<std::string>(recentProjects, entry);
-			recentProjects.erase(std::find(recentProjects.begin(), recentProjects.end(), entry));
+			//recentProjects.erase(std::find(recentProjects.begin(), recentProjects.end(), entry));
 			Node["recent"] = recentProjects;
 		}
 
 		void Save()
 		{
-			YamlUtils::saveNode(Node,ConfigPath.string());
+			YamlUtils::saveNode(Node,ConfigPath.string(),"Failed to save editor config!");
 		}
 
 		fs::path ConfigPath;

@@ -1,14 +1,13 @@
 
-set(IMGUIZMO_DIR ${CMAKE_SOURCE_DIR}/3rd/imguizmo)
-set(IMGUIZMO_SOURCES
-    ${CMAKE_SOURCE_DIR}/3rd/imguizmo/ImGuizmo.cpp
-)
+set(IMGUI_DIR "${CMAKE_CURRENT_LIST_DIR}/../3rd/imgui")
+set(IMGUIZMO_DIR "${CMAKE_CURRENT_LIST_DIR}/../3rd/imguizmo")
+set(IMGUIZMO_SOURCES "${IMGUIZMO_DIR}/ImGuizmo.cpp")
 
-add_library(imguizmo STATIC ${IMGUIZMO_SOURCES})
+add_library(imguizmo STATIC "${IMGUIZMO_SOURCES}")
 
 target_include_directories(imguizmo PUBLIC
-    ${CMAKE_SOURCE_DIR}/3rd/imguizmo
-    ${CMAKE_SOURCE_DIR}/3rd/imgui   # required because ImGuizmo includes imgui.h
+    "${IMGUIZMO_DIR}"
+    "${IMGUI_DIR}"   # required because ImGuizmo includes imgui.h
 )
 
 # Required for ImGuizmo — defines extra math ops in imgui_internal.h

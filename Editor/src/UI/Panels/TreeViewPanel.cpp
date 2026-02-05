@@ -11,7 +11,7 @@
 
 #include "Twisted/Gameing/GameService.h"
 #include "EditorData/Selection.h"
-#include "EditorData/EditorConstants.h"
+#include "EditorConstants.h"
 #include "Twisted/Gameing/Managers/RootTransformManager.h"
 
 #include <imgui.h>

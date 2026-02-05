@@ -30,22 +30,12 @@ namespace Twisted::Editor
 	{
 	public:
 
-		EditorWorldService(Application* app) :
-			Service(app),
-			m_loadupConfigData(Constants::LOADUP_CONFIG_PATH.string())
-		{
-			s_instance = this;
-
-			EditorWorld = TObject::Create<World>("Editor world"); //TODO...
-			camEnt = EditorWorld->CreateNewEntityWithComponents<Twisted::CameraComponent>();
-			EditorWorld->AddSystem<EditorCameraSystem>();
-		}
+		EditorWorldService(Application* app);
 
 		inline static EditorWorldService* GetInstance()
 		{
 			return s_instance;
 		}
-
 
 		void SaveEditor(Window* window);
 

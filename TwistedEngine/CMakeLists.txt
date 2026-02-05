@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 4.1.1)
-
+cmake_minimum_required(VERSION 3.28)
 
 # ------------------------------
 # Collect source files
@@ -8,26 +7,31 @@ cmake_minimum_required(VERSION 4.1.1)
 file(GLOB_RECURSE TWISTED_ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE TWISTED_ENGINE_HEADERS CONFIGURE_DEPENDS "include/*.h")
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TWISTED_ENGINE_SOURCES} ${TWISTED_ENGINE_HEADERS})
+source_group(
+    TREE ${CMAKE_CURRENT_SOURCE_DIR} 
+    FILES ${TWISTED_ENGINE_SOURCES} ${TWISTED_ENGINE_HEADERS})
 
 # ------------------------------
 # Create shared library
 # ------------------------------
 
-add_library(TwistedEngine SHARED ${TWISTED_ENGINE_SOURCES} ${TWISTED_ENGINE_HEADERS})
-
-set_target_properties(TwistedEngine PROPERTIES
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
+add_library(TwistedEngine SHARED 
+    ${TWISTED_ENGINE_SOURCES} 
+    ${TWISTED_ENGINE_HEADERS}
 )
 
+set_target_properties(TwistedEngine PROPERTIES
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+    POSITION_INDEPENDENT_CODE ON
+)
+target_compile_features(TwistedEngine PUBLIC cxx_std_23)
 # ------------------------------
 # Include directories
 # ------------------------------
 
 target_include_directories(TwistedEngine PUBLIC
-    "${CMAKE_SOURCE_DIR}/TwistedEngine/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
     #"${CMAKE_SOURCE_DIR}/3rd/ShaderParser/ShaderParser/src"
 )
 
@@ -40,9 +44,24 @@ target_include_directories(TwistedEngine PUBLIC
 # ------------------------------
 # Libraries
 # ------------------------------
+option(USE_GLFW "Use GLFW" ON)
+
+find_package(OpenGL REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(entt CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
+find_package(rapidobj CONFIG REQUIRED)
+
+if(USE_GLFW)
+    message(STATUS "Building with GLFW")
+    find_package(glfw3 CONFIG REQUIRED)
+endif()
 
 target_link_libraries(TwistedEngine PRIVATE
-    opengl32
+    OpenGL::GL
+    EnTT::EnTT
     glm::glm
     glad::glad
     spdlog::spdlog
@@ -64,35 +83,35 @@ target_compile_definitions(TwistedEngine PRIVATE
     $<$<CONFIG:Release>:TWISTED_DEPLOY>
     $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
     $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
-
-    _CRT_SECURE_NO_WARNINGS  # only affects third-party headers
 )
+
+if(MSVC)
+  target_compile_definitions(TwistedEngine PRIVATE 
+    _CRT_SECURE_NO_WARNINGS)
+endif()
 
 # ------------------------------
 # Compiler options
 # ------------------------------
+option(TWISTED_WERROR "Treat warnings as errors" OFF)
 
 if(MSVC)
-    target_compile_options(TwistedEngine PRIVATE
-        /W4                     # Warning level 4
-        /WX                     # Treat warnings as errors (engine code only)
-        /external:W0            # Suppress warnings from external headers
-        /experimental:external  # Required for /external:W0 to work
-        /analyze-               # Disable full static analysis on this target
-
-        $<$<CONFIG:Debug>:/Od /Zi>
-        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
-        $<$<CONFIG:Release>:/Ox>
-    )
+  target_compile_options(TwistedEngine PRIVATE
+    /W4
+    /external:W0
+    /experimental:external
+    /analyze-
+  )
+  if(TWISTED_WERROR)
+    target_compile_options(TwistedEngine PRIVATE /WX)
+  endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(TwistedEngine PRIVATE
-        -Wall 
-        -Wextra 
-        -Wpedantic 
-        -Werror
-
-        $<$<CONFIG:Debug>:-O0 -g>
-        $<$<CONFIG:RelWithDebInfo>:-O2 -g>
-        $<$<CONFIG:Release>:-O3>
-    )
+  target_compile_options(TwistedEngine PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+  )
+  if(TWISTED_WERROR)
+    target_compile_options(TwistedEngine PRIVATE -Werror)
+  endif()
 endif()

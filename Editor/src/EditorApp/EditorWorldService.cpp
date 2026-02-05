@@ -14,6 +14,17 @@
 
 namespace Twisted::Editor
 {
+	EditorWorldService::EditorWorldService(Application* app) :
+		Service(app),
+		m_loadupConfigData(Constants::LOADUP_CONFIG_PATH.string())
+	{
+		s_instance = this;
+
+		EditorWorld = TObject::Create<World>("Editor world"); //TODO...
+		camEnt = EditorWorld->CreateNewEntityWithComponents<Twisted::CameraComponent>();
+		EditorWorld->AddSystem<EditorCameraSystem>();
+	}
+
 	void EditorWorldService::SaveEditor(Window* window)
 	{
 		GetConfig().SetWindowPos(window->GetPosition());

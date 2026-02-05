@@ -1,7 +1,7 @@
 ﻿#include "ImguiExtensions.h"
 
 #include "Debug/Logger.h"
-#include "EditorData/EditorConstants.h"
+#include "EditorConstants.h"
 
 #ifndef GLFW_INCLUDE_NONE
 

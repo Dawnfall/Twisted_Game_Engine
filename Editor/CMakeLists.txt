@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 4.1.1)
+cmake_minimum_required(VERSION 3.28)
 
 # ------------------------------
 # Collect source files
 # ------------------------------
 
-file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS 
     "*.cpp"
     "*.h"
 )
@@ -21,6 +21,7 @@ set_target_properties(Editor PROPERTIES
     CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
+
     #OUTPUT_NAME "Editor$<$<CONFIG:Debug>:_d>"
 )
 
@@ -29,20 +30,29 @@ set_target_properties(Editor PROPERTIES
 # ------------------------------
 
 target_include_directories(Editor PRIVATE
-    "${CMAKE_SOURCE_DIR}/Editor/src"              # Your engine/editor code
-    "${CMAKE_SOURCE_DIR}/TwistedEngine/include"   # Engine headers
-    "${CMAKE_SOURCE_DIR}/3rd/imgui"
-    "${CMAKE_SOURCE_DIR}/3rd/imguizmo"
-)
-
-# Third-party includes (suppress warnings)
-target_include_directories(Editor SYSTEM PRIVATE
-    "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"              # Your engine/editor code
+    "${CMAKE_CURRENT_SOURCE_DIR}/../TwistedEngine/include"   # Engine headers
+    #"${CMAKE_CURRENT_SOURCE_DIR}/../3rd/imgui"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/../3rd/imguizmo"
 )
 
 # ------------------------------
 # Link libraries
 # ------------------------------
+
+find_package(glm CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
+
+if(USE_GLFW)
+    find_package(glfw3 CONFIG REQUIRED)
+  if(TARGET glfw3::glfw)
+    set(TW_GLFW_TARGET glfw3::glfw)
+  elseif(TARGET glfw)
+    set(TW_GLFW_TARGET glfw)
+  else()
+    message(FATAL_ERROR "glfw3 found but no target (glfw3::glfw or glfw) exported")
+  endif()
+endif()
 
 target_link_libraries(Editor PRIVATE
     TwistedEngine
@@ -50,39 +60,41 @@ target_link_libraries(Editor PRIVATE
     imgui
     imguizmo
     yaml-cpp::yaml-cpp
-    $<$<BOOL:${USE_GLFW}>:glfw>
+
+    $<$<BOOL:${USE_GLFW}>:${TW_GLFW_TARGET}>
 )
 
 # ------------------------------
 # Backend sources depending on GLFW usage
 # ------------------------------
-if(USE_GLFW)
-    target_sources(Editor PRIVATE
-        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_glfw.cpp
-        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_opengl3.cpp
-    )
-else()
-    target_sources(Editor PRIVATE
-        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_win32.cpp
-        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_opengl3.cpp
-    )
-endif()
+#if(USE_GLFW)
+#    target_sources(Editor PRIVATE
+#        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_glfw.cpp
+#        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_opengl3.cpp
+#    )
+#else()
+#    target_sources(Editor PRIVATE
+#        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_win32.cpp
+#        ${CMAKE_SOURCE_DIR}/3rd/imgui/backends/imgui_impl_opengl3.cpp
+#    )
+#endif()
 
 # ------------------------------
 # Compile definitions
 # ------------------------------
 
-add_compile_definitions(PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}")
-
 target_compile_definitions(Editor PRIVATE
+    PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}"
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:RelWithDebInfo>:TWISTED_RELEASE>
     $<$<CONFIG:Release>:TWISTED_DEPLOY>
     $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
     $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
-
-    _CRT_SECURE_NO_WARNINGS  # only affects 3rd-party headers
 )
+
+if(MSVC)
+  target_compile_definitions(Editor PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
 
 # ------------------------------
 # Compiler options
@@ -97,10 +109,6 @@ if(MSVC)
         /analyze-               # Disable full static analysis
         /wd4251
         /wd26495
-
-        $<$<CONFIG:Debug>:/Od /Zi>
-        $<$<CONFIG:RelWithDebInfo>:/O2 /Zi>
-        $<$<CONFIG:Release>:/Ox>
     )
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(Editor PRIVATE
@@ -108,9 +116,5 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
         -Wextra
         -Wpedantic
         -Werror
-
-        $<$<CONFIG:Debug>:-O0 -g>
-        $<$<CONFIG:RelWithDebInfo>:-O2 -g>
-        $<$<CONFIG:Release>:-O3>
     )
 endif()

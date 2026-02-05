@@ -22,6 +22,7 @@ namespace Twisted::Editor
 		void OnTerminate()override;
 
 	private:
+
 		void CreateAppWindow();
 
 		UIService* m_uiService = nullptr;

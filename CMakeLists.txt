@@ -1,9 +1,31 @@
-cmake_minimum_required(VERSION 4.1.1)
-project(TwistedEngine LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.28)
+
+# ------------------------------
+# Check vcpkg environment
+# ------------------------------
+
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    if(DEFINED ENV{VCPKG_R})
+        if(EXISTS "$ENV{VCPKG_R}/scripts/buildsystems/vcpkg.cmake")
+            set( CMAKE_TOOLCHAIN_FILE 
+            "$ENV{VCPKG_R}/scripts/buildsystems/vcpkg.cmake" 
+            CACHE FILEPATH "")
+        else()
+            message(FATAL_ERROR "Invalid VCPKG_R path")
+        endif()
+    else()
+        message("Please set VCPKG_R variable as root VCPKG folder")
+    endif()
+endif()
+    
+
 
 # ------------------------------
 # C++ standard
 # ------------------------------
+
+project(TwistedEngine LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -17,45 +39,34 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 # ------------------------------
-# Default build type
+# Default build type (single-config generators only)
 # ------------------------------
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
+get_property(_isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT _isMultiConfig)
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
+    endif()
 endif()
 
 # ------------------------------
-# Check vcpkg environment
+# Output directories (organized by config + platform + arch)
 # ------------------------------
 
-if(NOT DEFINED ENV{VCPKG_ROOT})
-    message(FATAL_ERROR "Please set VCPKG_ROOT to your vcpkg installation")
+set(_platform "${CMAKE_SYSTEM_NAME}")
+
+# Normalize common architecture strings
+set(_arch "${CMAKE_SYSTEM_PROCESSOR}")
+if(_arch STREQUAL "AMD64")
+    set(_arch "x86_64")
+elseif(_arch STREQUAL "x64")
+    set(_arch "x86_64")
 endif()
 
-# ------------------------------
-# Output directories (organized by build type and platform)
-# ------------------------------
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-Windows-x64)
-
-# ------------------------------
-# External dependencies (vcpkg)
-# ------------------------------
-
-find_package(glm CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
-find_package(entt CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
-find_package(RapidObj CONFIG REQUIRED)
-
-option(USE_GLFW "Use GLFW" ON)
-if(USE_GLFW)
-    message(STATUS "Building with GLFW")
-    find_package(glfw3 CONFIG REQUIRED)
-endif()
+set(_outdir "${CMAKE_BINARY_DIR}/bin/$<CONFIG>-${_platform}-${_arch}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${_outdir}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${_outdir}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${_outdir}")
 
 # ------------------------------
 # Third-party subprojects
@@ -72,9 +83,16 @@ add_subdirectory(Editor)
 # ------------------------------
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
+
+# Visual Studio-only startup project setting
+if(MSVC)
+    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT Editor)
+endif()
 
 # ------------------------------
 # Define allowed configurations (optional, helps IDEs)
 # ------------------------------
-set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE STRING "" FORCE)
+
+if(_isMultiConfig)
+    set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE STRING "" FORCE)
+endif()

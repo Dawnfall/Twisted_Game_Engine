@@ -18,7 +18,7 @@ namespace Twisted
 			TWISTED_WARN(std::format("projectFolder must exist {}", projectFolder.string()));
 			return false;
 		}
-		if (Utils::IsEmptyDirectory(projectFolder) || !Utils::IsExisting(projectFolder / PROJECT_FILE))
+		if (!Utils::IsEmptyDirectory(projectFolder) && !Utils::IsExisting(projectFolder / PROJECT_FILE))
 		{
 			TWISTED_WARN(std::format("Project path must be empty directory or have twisted.editor file: {}" , projectFolder.string()));
 			return false;

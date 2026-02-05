@@ -20,7 +20,7 @@ namespace Twisted
 
 	void FileAssetInfo::SaveInfo()const
 	{
-		YamlUtils::saveNode(m_infoData, GetInfoPath());
+		YamlUtils::saveNode(m_infoData, GetInfoPath(),"Failed to save asset!");
 	}
 
 	void FileAssetInfo::LoadInfo()

@@ -4,7 +4,7 @@
 #include "Twisted/AssetsLayer/AssetInfo.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 #include "Twisted/TObject.h"
-#include "EditorData/EditorConstants.h"
+#include "EditorConstants.h"
 #include "EditorApp/EditorWorldService.h"
 #include "Twisted/AssetsLayer/Project.h"
 #include <optional>

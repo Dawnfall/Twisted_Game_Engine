@@ -2,32 +2,72 @@
   "version": 4,
   "configurePresets": [
     {
-      "name": "vs2026",
-      "hidden": false,
-      "generator": "Visual Studio 18 2026",
-      "binaryDir": "${sourceDir}/build/vs2026",
+      "name": "base",
+      "hidden": true,
       "cacheVariables": {
-        "CMAKE_GENERATOR_PLATFORM": "x64",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_R}/scripts/buildsystems/vcpkg.cmake",//"D:/Programiranje/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake", 
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_R}/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
+      }
+    },
+    {
+      "name": "vs",
+      "displayName": "Windows (Visual Studio)",
+      "inherits": "base",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build/windows-vs",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "CMAKE_GENERATOR_PLATFORM": "x64"
+      }
+    },
+    {
+      "name": "linux",
+      "displayName": "Linux (Ninja Multi-Config)",
+      "inherits": "base",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/linux",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "Debug",
-      "configurePreset": "vs2026",
+      "name": "Debug-vs",
+      "configurePreset": "vs",
       "configuration": "Debug"
     },
     {
-      "name": "RelWithDebInfo",
-      "configurePreset": "vs2026",
+      "name": "RelWithDebInfo-vs",
+      "configurePreset": "vs",
       "configuration": "RelWithDebInfo"
     },
     {
-      "name": "Release",
-      "configurePreset": "vs2026",
+      "name": "Release-vs",
+      "configurePreset": "vs",
+      "configuration": "Release"
+    },
+
+    {
+      "name": "Debug-linux",
+      "configurePreset": "linux",
+      "configuration": "Debug"
+    },
+    {
+      "name": "RelWithDebInfo-linux",
+      "configurePreset": "linux",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "Release-linux",
+      "configurePreset": "linux",
       "configuration": "Release"
     }
   ]

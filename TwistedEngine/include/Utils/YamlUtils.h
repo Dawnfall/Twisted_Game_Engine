@@ -19,8 +19,8 @@ namespace Twisted
 
 namespace YamlUtils
 {
-	bool TWISTED_API saveNode(const YAML::Node& node, const std::filesystem::path& path);
-
+	bool TWISTED_API saveNode(const YAML::Node& node, const std::filesystem::path& path, const std::string& errorMsg);
+	bool TWISTED_API loadNode(const std::filesystem::path& path, YAML::Node& node, const std::string& errorMsg);
 	TWISTED_API YAML::Node encodeTObject(const Twisted::TObject* obj);
 	TWISTED_API Twisted::TObject* decodeTObject(const YAML::Node& node);
 }

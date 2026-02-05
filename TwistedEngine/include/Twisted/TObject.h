@@ -128,9 +128,9 @@ namespace Twisted
 
 
 	private:
-		static std::vector<URef<TObject>> s_objects;
-		static std::vector<uint32_t> s_generation;
-		static std::vector<uint32_t> s_freeIndices;
+		inline static std::vector<URef<TObject>> s_objects;
+		inline static std::vector<uint32_t> s_generation;
+		inline static std::vector<uint32_t> s_freeIndices;
 	};
 }
 

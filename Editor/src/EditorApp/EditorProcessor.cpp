@@ -4,7 +4,7 @@
 #include "Twisted/Gameing/GameService.h"
 #include "Data/Color.h"
 #include "Twisted/Gameing/World.h"
-#include "EditorData/EditorConstants.h"
+#include "EditorConstants.h"
 #include "Twisted/Windowing/WindowsService.h"
 #include "UI/UIService.h"
 #include "Twisted/Windowing/WindowCoreAPI.h"
@@ -89,4 +89,6 @@ namespace Twisted::Editor
 		m_windowsService->GetWindow()->Maximize();
 		m_windowsService->GetWindow()->SetPosition(m_editorService->GetConfig().GetWindowPos());
 	}
+
+
 }
