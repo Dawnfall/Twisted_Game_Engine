@@ -1,61 +1,76 @@
-﻿
+﻿#ifndef TWISTED_D3D
+
 #include "Twisted/Rendering/OpenGL/FrameBuffer_OpenGL.h"
 #include "Twisted/Rendering/FrameBuffer.h"
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+#include "Debug/Logger.h"
 
 #include <glad/glad.h>
 #include <string>
-#include "Debug/Logger.h"
-
-#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
-
-
 namespace Twisted
 {
 	FrameBuffer::FrameBuffer(const std::string& name, Vec2i size) :
-		TObject(name),
-		Size(size)
+		TObject(name)//,
+		//Size(size)
 	{
+		(void)size;
 	}
+	
 
 	void FrameBuffer::OnCreate()
 	{
-		FrameBuffer_GL::Init(*this);
+		//Init();
 	}
 
 	void FrameBuffer::OnDestroy()
 	{
-		FrameBuffer_GL::Destroy(*this);
+		//FrameBuffer_OpenGL::Destroy(*this);
+	}
+
+	void FrameBuffer::SetSize(const Vec2i& size)
+	{
+		//if (framebuffer.Tex && framebuffer.Tex->IsValid())
+		//{
+		//	if (framebuffer.Size != size)
+		//	{
+		//		framebuffer.Size = size;
+		//		framebuffer.Tex->Resize(framebuffer.Size);
+		//		framebuffer.IsDirty = true;
+		//	}
+		//}
+		//else
+		//	TWISTED_WARN("Cannot resize framebuffer with invalid texture");
 	}
 }
 
-namespace Twisted::FrameBuffer_GL
+namespace Twisted::GL
 {
-	void Init(FrameBuffer& framebuffer)
+	FrameBuffer_OpenGL::FrameBuffer_OpenGL()
 	{
-		framebuffer.Tex = TObject::Create<Texture>("_mainTex");
-		Texture_GL::Resize(*framebuffer.Tex, framebuffer.Size);
+		Tex = std::make_unique<Texture_OpenGL>();
+		Tex->Resize(Size);
 
-		if (!framebuffer.Tex || !framebuffer.Tex->IsValid())
+		if (!Tex || !Tex->IsValid())
 		{
-			TWISTED_WARN("Framebuffer without texture: {}", framebuffer.GetName());
+			//TWISTED_WARN("Framebuffer without texture: {}", GetName());
 			return;
 		}
 
-		glGenFramebuffers(1, &framebuffer.Id);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.Id);
+		glGenFramebuffers(1, &Id);
+		glBindFramebuffer(GL_FRAMEBUFFER, Id);
 
 		glFramebufferTexture2D(
 			GL_FRAMEBUFFER,
 			GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D,
-			framebuffer.Tex->TexID,
+			Tex->TexID,
 			0
 		);
 
-		glGenRenderbuffers(1, &framebuffer.Rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.Rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebuffer.Tex->Width, framebuffer.Tex->Height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer.Rbo);
+		glGenRenderbuffers(1, &Rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, Rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Tex->Width, Tex->Height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Rbo);
 
 		GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 		glDrawBuffers(1, drawBuffers);
@@ -68,52 +83,51 @@ namespace Twisted::FrameBuffer_GL
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		framebuffer.IsDirty = true;
+		IsDirty = true;
 
-		TWISTED_INFO("Framebuffer '{}' created successfully ({}x{})", framebuffer.GetName(), framebuffer.Size.x, framebuffer.Size.y);
-	}
-	void Destroy(FrameBuffer& framebuffer)
-	{
-		glDeleteFramebuffers(1, &framebuffer.Id);
-		glDeleteRenderbuffers(1, &framebuffer.Rbo);
-
-		TObject::Destroy(framebuffer.Tex.GetObj());
-		framebuffer.Rbo = framebuffer.Id = 0;
-		framebuffer.IsDirty = true;
+		//TWISTED_INFO("Framebuffer '{}' created successfully ({}x{})", GetName(), Size.x, Size.y);
 	}
 
-
-	void Bind(FrameBuffer& framebuffer)
+	FrameBuffer_OpenGL::~FrameBuffer_OpenGL()
 	{
-		if (!framebuffer.IsValid())
+		glDeleteFramebuffers(1, &Id);
+		glDeleteRenderbuffers(1, &Rbo);
+
+		Rbo = Id = 0;
+		IsDirty = true;
+	}
+
+	void FrameBuffer_OpenGL::Bind()
+	{
+		if (!IsValid())
 			return; // nothing to bind
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.Id);
+		glBindFramebuffer(GL_FRAMEBUFFER, Id);
 
-		if (framebuffer.IsDirty)
+		if (IsDirty)
 		{
-			FrameBuffer_GL::Update(framebuffer);
+			Update();
 		}
 
-		glViewport(0, 0, framebuffer.Tex->Width, framebuffer.Tex->Height);
+		glViewport(0, 0, Tex->Width, Tex->Height);
 	}
 
-	void UnBind()
+	void FrameBuffer_OpenGL::UnBind()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void Update(FrameBuffer& framebuffer)
+	void FrameBuffer_OpenGL::Update()
 	{
-		if (framebuffer.Tex)
+		if (Tex)
 		{
-			glBindTexture(GL_TEXTURE_2D, framebuffer.Tex->TexID);
+			glBindTexture(GL_TEXTURE_2D, Tex->TexID);
 			glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
 				GL_RGBA8,
-				framebuffer.Tex->Width,
-				framebuffer.Tex->Height,
+				Tex->Width,
+				Tex->Height,
 				0,
 				GL_RGBA,
 				GL_UNSIGNED_BYTE,
@@ -121,23 +135,31 @@ namespace Twisted::FrameBuffer_GL
 			);
 		}
 
-		if (framebuffer.Rbo)
+		if (Rbo)
 		{
-			glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.Rbo);
+			glBindRenderbuffer(GL_RENDERBUFFER, Rbo);
 			glRenderbufferStorage(
 				GL_RENDERBUFFER,
 				GL_DEPTH24_STENCIL8,
-				framebuffer.Tex->Width,
-				framebuffer.Tex->Height
+				Tex->Width,
+				Tex->Height
 			);
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		framebuffer.IsDirty = false;
+		IsDirty = false;
 	}
 
-	void Blit(FrameBuffer& framebuffer, unsigned int destID) //TODO... may be improved
+
+
+
+
+	
+
+
+
+	void Blit(FrameBuffer_OpenGL& framebuffer, unsigned int destID) //TODO... may be improved
 	{
 		if (!framebuffer.IsValid())
 			return;
@@ -157,20 +179,7 @@ namespace Twisted::FrameBuffer_GL
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-	void SetSize(FrameBuffer& framebuffer, const Vec2i& size)
-	{
-		if (framebuffer.Tex && framebuffer.Tex->IsValid())
-		{
-			if (framebuffer.Size != size)
-			{
-				framebuffer.Size = size;
-				Texture_GL::Resize(*framebuffer.Tex, framebuffer.Size);
-				framebuffer.IsDirty = true;
-			}
-		}
-		else
-			TWISTED_WARN("Cannot resize framebuffer with invalid texture");
-	}
+
 
 	void ClearBuffer(const ClearParams& clearParams) //assumes bound buffer
 	{
@@ -199,6 +208,6 @@ namespace Twisted::FrameBuffer_GL
 		if (clearBits != 0)
 			glClear(clearBits);
 	}
-
 }
 
+#endif

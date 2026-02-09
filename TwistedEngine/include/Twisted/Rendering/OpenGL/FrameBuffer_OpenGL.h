@@ -1,20 +1,42 @@
+#ifndef TWISTED_D3D
 #pragma once
 #include "AppCore.h"
 
 #include "Twisted/Rendering/FrameBuffer.h"
 #include "Twisted/Rendering/Data/ClearParams.h"
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
 #include <Utils/GlmUtils.h>
+#include "Utils/WPtr.h"
 
-namespace Twisted::FrameBuffer_GL
+
+namespace Twisted::GL
 {
-	void TWISTED_API Init(FrameBuffer& framebuffer);
-	void TWISTED_API Destroy(FrameBuffer& framebuffer);
+	class FrameBuffer_OpenGL
+	{
+	public:
+		FrameBuffer_OpenGL();
+		~FrameBuffer_OpenGL();
 
-	void TWISTED_API Bind(FrameBuffer& frameBuffer);
-	void TWISTED_API UnBind();
-	void TWISTED_API Update(FrameBuffer& framebuffer);
-	void TWISTED_API Blit(FrameBuffer& framebuffer, unsigned int destID);
-	void TWISTED_API SetSize(FrameBuffer& framebuffer, const Vec2i& size);
+		bool IsValid()const
+		{
+			return Id != 0 && Tex && Tex->IsValid();
+		}
 
+		void Bind();
+		void UnBind();
+
+		void Update();
+
+		unsigned int Id = 0;
+		unsigned int Rbo = 0;
+		Vec2i Size{ 0,0 };
+		bool IsDirty = true;
+		URef<Texture_OpenGL> Tex;
+	private:
+	};
+
+	void TWISTED_API Blit(FrameBuffer_OpenGL& framebuffer, unsigned int destID);
 	void TWISTED_API ClearBuffer(const ClearParams& clearParams); //assumes bound buffer
 }
+
+#endif

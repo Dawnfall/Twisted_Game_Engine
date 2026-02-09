@@ -63,7 +63,4 @@ namespace Twisted
 		std::vector<CameraData> camDatas;
 		LightData lightData;
 	};
-
-
-
 }

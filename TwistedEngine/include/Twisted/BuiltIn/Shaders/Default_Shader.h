@@ -37,7 +37,7 @@ namespace Twisted::Collections
 		ShaderData defaultShaderData;
 		defaultShaderData.VertShader = Collections::defaultVertexShader;
 		defaultShaderData.FragShader = Collections::defaultFragmentShader;
-		Shader_GL::SetData(*defaultShader, defaultShaderData);
+		defaultShader->SetData(defaultShaderData);
 
 		AssetsService::GetInstance()->AddBuiltIn(Collections::defaultShaderUUID, defaultShader);
 

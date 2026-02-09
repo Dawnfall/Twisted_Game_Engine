@@ -9,6 +9,19 @@ namespace Twisted
     constexpr unsigned int TEXCOORD_LAYOUT_LOC = 2;
     constexpr unsigned int COLOR_LAYOUT_LOC = 3;
 
+    enum class MeshDrawType
+    {
+        DYNAMIC,
+        STREAM,
+        STATIC
+    };
+
+    enum class MeshWindingOrder
+    {
+        CLOCKWISE,
+        COUNTER_CLOCKWISE
+    };
+
     enum class MeshPrimitiveType
     {
         POINTS,

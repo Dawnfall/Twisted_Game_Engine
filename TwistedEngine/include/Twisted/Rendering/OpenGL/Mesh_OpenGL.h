@@ -6,8 +6,28 @@
 
 #include <glad/glad.h>
 
-namespace Twisted::Mesh_GL
+namespace Twisted::GL
 {
+	class Mesh_OpenGL:public TObject
+	{
+	public:
+
+		void ApplyBuffers(const PackedMeshData& packedData);
+		void Clear();
+		void Bind()const;
+		void UnBind()const;
+
+		MeshWindingOrder WindOrder = MeshWindingOrder::CLOCKWISE;
+		MeshDrawType DrawType = MeshDrawType::STATIC;
+
+		unsigned int Vao = 0;
+		unsigned int Vbo = 0;
+		unsigned int Ebo = 0;
+		size_t IndexCount = 0;
+
+	private:
+	};
+
 	[[nodiscard]] GLenum TWISTED_API MeshTypeToGL(MeshPrimitiveType type);
 
 	[[nodiscard]] GLenum TWISTED_API PrimitiveTypeToGL(MeshPrimitiveType primitveType);
@@ -16,19 +36,7 @@ namespace Twisted::Mesh_GL
 
 	[[nodiscard]] size_t TWISTED_API CalcNumberPrimitives(MeshPrimitiveType primitiveType, size_t indexCount);
 
-	void TWISTED_API SetData(Mesh& mesh, const PackedMeshData& packedData, MeshDrawType drawType);
-
-	void TWISTED_API ApplyBuffers(const Mesh& mesh, const PackedMeshData& packedData);
-
-	void TWISTED_API Clear(Mesh& mesh);
-
-	void TWISTED_API Bind(const Mesh& mesh);
-
-	void TWISTED_API UnBind();
-
-	void TWISTED_API SetWindingOrder(Mesh& mesh, MeshWindingOrder windOrder);
-
 	void TWISTED_API SetMeshLayout(const PackedMeshData& packedData);
 
-	void TWISTED_API RenderMesh(const Mesh& mesh);
+
 }

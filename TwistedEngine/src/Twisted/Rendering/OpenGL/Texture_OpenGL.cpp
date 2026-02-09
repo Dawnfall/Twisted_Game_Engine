@@ -1,6 +1,8 @@
-﻿#include "Twisted/Rendering/Texture.h"
-#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+﻿#ifndef TWISTED_D3D
 
+#include "Twisted/Rendering/Texture.h"
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+#include "Twisted/Rendering/Data/TextureData.h"
 #include "Debug/Logger.h"
 #include <string>
 
@@ -10,21 +12,116 @@ namespace Twisted
 		TObject(name)
 	{
 	}
-	Texture::Texture(const std::string& name, const TextureParams& params) :
-		TObject(name),
-		Params(params)
-	{
-	}
+
+	//Texture::Texture(const std::string& name, const TextureParams& params) :
+	//	TObject(name),
+	//	//Params(params)
+	//{
+	//}
 
 	void Texture::OnDestroy()
 	{
-		Texture_GL::Clear(*this);
+		//Clear();
+	}
+
+	void Texture::SetData(const TextureData& data)
+	{
+		(void)data;
+
+		/*tex.Clear();
+
+		tex.Width = data.Width;
+		tex.Height = data.Height;
+		tex.Channels = data.Channels;
+
+		glGenTextures(1, &tex.TexID);
+		glBindTexture(GL_TEXTURE_2D, tex.TexID);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGBA8,
+			tex.Width,
+			tex.Height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			data.Data);
+
+		GL::ApplyParams(tex.Params);
+
+		glBindTexture(GL_TEXTURE_2D, 0);*/
+
+		//currently input must always be RGBA;4 channels
 	}
 }
 
 
-namespace Twisted::Texture_GL
+namespace Twisted::GL
 {
+
+
+
+
+
+	void Texture_OpenGL::Bind(unsigned int slot)
+	{
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, TexID);
+	}
+
+
+	void Texture_OpenGL::UnBind()
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void Texture_OpenGL::Clear()
+	{
+		if (!IsValid())
+			return;
+
+		glDeleteTextures(1, &TexID);
+		TexID = 0;
+		Width = Height = Channels = 0;
+	}
+
+	void Texture_OpenGL::Resize(const Vec2i& newSize)
+	{
+		if (newSize.x <= 0 || newSize.y <= 0)
+			return; // dont allow zero or negative sizes
+
+		if (Width == newSize.x && Height == newSize.y && IsValid())
+			return; // already correct size
+
+		Width = newSize.x;
+		Height = newSize.y;
+
+		if (!IsValid())
+		{
+			glGenTextures(1, &TexID);
+		}
+
+		UnBind();//TODO...
+
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0, //mipamap
+			GL_RGBA, //format
+			Width,
+			Height,
+			0,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			nullptr
+		);
+
+		GL::ApplyParams(Params);
+
+		UnBind();
+	}
+
+
+
 	GLenum WrapToGL(TextureWrap wrap)
 	{
 		switch (wrap)
@@ -79,80 +176,9 @@ namespace Twisted::Texture_GL
 		}
 	}
 
-	void Clear(Texture& tex)
-	{
-		if (!tex.IsValid())
-			return;
 
-		glDeleteTextures(1, &tex.TexID);
-		tex.TexID = 0;
-		tex.Width = tex.Height = tex.Channels = 0;
-	}
 
-	void SetData(Texture& tex, TextureData& data)
-	{
-		Texture_GL::Clear(tex);
-
-		tex.Width = data.Width;
-		tex.Height = data.Height;
-		tex.Channels = data.Channels;
-
-		glGenTextures(1, &tex.TexID);
-		glBindTexture(GL_TEXTURE_2D, tex.TexID);
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA8,
-			tex.Width,
-			tex.Height,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			data.Data);
-
-		Texture_GL::ApplyParams(tex.Params);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		//currently input must always be RGBA;4 channels
-	}
-
-	void Resize(Texture& tex, const Vec2i& newSize)
-	{
-		if (newSize.x <= 0 || newSize.y <= 0)
-			return; // dont allow zero or negative sizes
-
-		if (tex.Width == newSize.x && tex.Height == newSize.y && tex.IsValid())
-			return; // already correct size
-
-		tex.Width = newSize.x;
-		tex.Height = newSize.y;
-
-		if (!tex.IsValid())
-		{
-			glGenTextures(1, &tex.TexID);
-		}
-
-		Texture_GL::Bind(tex, 0);//TODO...
-
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0, //mipamap
-			GL_RGBA, //format
-			tex.Width,
-			tex.Height,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			nullptr
-		);
-
-		Texture_GL::ApplyParams(tex.Params);
-
-		Texture_GL::UnBind();
-	}
-
-	void SetMagFilter(Texture tex, TextureMagFilter magFilter)
+	void SetMagFilter(Texture_OpenGL tex, TextureMagFilter magFilter)
 	{
 		if (tex.Params.MagFilter == magFilter)
 			return;
@@ -162,24 +188,24 @@ namespace Twisted::Texture_GL
 		if (!tex.IsValid())
 			return;
 
-		Texture_GL::Bind(tex, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Texture_GL::MagFilterToGL(tex.Params.MagFilter));
-		Texture_GL::UnBind();
+		tex.UnBind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL::MagFilterToGL(tex.Params.MagFilter));
+		tex.UnBind();
 	}
 
-	void SetParams(Texture& tex, const TextureParams& params)
+	void SetParams(Texture_OpenGL& tex, const TextureParams& params)
 	{
 		tex.Params = params;
 
 		if (!tex.IsValid())
 			return;
 
-		Texture_GL::Bind(tex, 0); //TODO:... not sure
-		Texture_GL::ApplyParams(tex.Params);
-		Texture_GL::UnBind();
+		tex.UnBind();
+		GL::ApplyParams(tex.Params);
+		tex.UnBind();
 	}
 
-	void SetMinFilter(Texture& tex, TextureMinFilter minFilter)
+	void SetMinFilter(Texture_OpenGL& tex, TextureMinFilter minFilter)
 	{
 		if (tex.Params.MinFilter == minFilter)
 			return;
@@ -189,14 +215,14 @@ namespace Twisted::Texture_GL
 		if (!tex.IsValid())
 			return;
 
-		Texture_GL::Bind(tex, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Texture_GL::MinFilterToGL(tex.Params.MinFilter));
+		tex.UnBind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL::MinFilterToGL(tex.Params.MinFilter));
 		if (tex.Params.DoMipMaps)
 			glGenerateMipmap(GL_TEXTURE_2D);
-		Texture_GL::UnBind();
+		tex.UnBind();
 	}
 
-	void SetWrapType(Texture& tex, TextureWrap wrapType)
+	void SetWrapType(Texture_OpenGL& tex, TextureWrap wrapType)
 	{
 		if (tex.Params.Wrap == wrapType)
 			return;
@@ -206,10 +232,10 @@ namespace Twisted::Texture_GL
 		if (!tex.IsValid())
 			return;
 
-		Texture_GL::Bind(tex, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Texture_GL::WrapToGL(tex.Params.Wrap));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Texture_GL::WrapToGL(tex.Params.Wrap));
-		Texture_GL::UnBind();
+		tex.UnBind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL::WrapToGL(tex.Params.Wrap));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL::WrapToGL(tex.Params.Wrap));
+		tex.UnBind();
 	}
 
 	void ApplyParams(const TextureParams& params) //assumes bound and valid
@@ -222,17 +248,7 @@ namespace Twisted::Texture_GL
 		if (params.DoMipMaps)
 			glGenerateMipmap(GL_TEXTURE_2D);
 	}
-
-	void Bind(const Texture& tex, unsigned int slot)
-	{
-		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, tex.TexID);
-	}
-
-	void UnBind()
-	{
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
 }
 
 
+#endif

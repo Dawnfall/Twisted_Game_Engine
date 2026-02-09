@@ -42,7 +42,7 @@ namespace Twisted::Collections
 	void ImportQuadMesh()
 	{
 		Mesh* quadMesh = TObject::Create<Mesh>(Collections::quadMeshName);
-		Mesh_GL::SetData(*quadMesh, Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
+		quadMesh->SetData(Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
 
 		AssetsService::GetInstance()->AddBuiltIn(Collections::quadMeshUUID, quadMesh);
 

@@ -53,7 +53,7 @@ namespace Twisted::Collections
 		ShaderData debugUVsShaderData;
 		debugUVsShaderData.VertShader = Collections::debugUVsVertexShader;
 		debugUVsShaderData.FragShader = Collections::debugUVsFragmentShader;
-		Shader_GL::SetData(*debugUVsShader, debugUVsShaderData);
+		debugUVsShader->SetData(debugUVsShaderData);
 
 		AssetsService::GetInstance()->AddBuiltIn(Collections::debugUVsShaderUUID, debugUVsShader);
 

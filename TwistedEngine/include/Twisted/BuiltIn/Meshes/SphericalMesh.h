@@ -85,7 +85,7 @@ namespace Twisted::Collections
     void ImportSphericalSphereMesh()
     {
         Mesh* sphereMesh = TObject::Create<Mesh>(Collections::sphericalSphereMeshName);
-        Mesh_GL::SetData(*sphereMesh, Collections::CreateSphericalSpherePackedData(), MeshDrawType::STATIC);
+        sphereMesh->SetData(Collections::CreateSphericalSpherePackedData(), MeshDrawType::STATIC);
 
         AssetsService::GetInstance()->AddBuiltIn(Collections::quadMeshUUID, sphereMesh);
     }

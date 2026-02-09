@@ -13,6 +13,8 @@ namespace Twisted
 	{
 		RendererComponent(Entity entity) :AComponent(entity) {}
 
+
+
 		Material* material = nullptr;
 		Mesh* mesh = nullptr;
 	};
@@ -21,6 +23,9 @@ namespace Twisted
 	inline YAML::Node YamlSerialize<RendererComponent>(const RendererComponent& renderer)
 	{
 		YAML::Node node;
+
+		//node["wind"] = YamlUtils::encodeTObject(renderer.WindOrder);
+		//node["drawType"] = YamlUtils::encodeTObject(renderer.DrawType);
 
 		node["mesh"] = YamlUtils::encodeTObject(renderer.mesh);
 		node["mat"] = YamlUtils::encodeTObject(renderer.material);
@@ -31,6 +36,9 @@ namespace Twisted
 	template<>
 	inline void YamlDeserialize<RendererComponent>(RendererComponent& renderer, const YAML::Node& node)
 	{
+		//renderer.WindOrder = static_cast<Mesh*>(YamlUtils::decodeTObject(node["wind"]));
+		//renderer.DrawType = static_cast<Mesh*>(YamlUtils::decodeTObject(node["drawType"]));
+
 		renderer.mesh = static_cast<Mesh*>(YamlUtils::decodeTObject(node["mesh"]));
 		renderer.material = static_cast<Material*>(YamlUtils::decodeTObject(node["mat"]));
 	}

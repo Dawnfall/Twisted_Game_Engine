@@ -24,9 +24,7 @@ namespace Twisted::Collections
 	void ImportTriangleMesh()
 	{
 		Mesh* triangleMesh = TObject::Create<Mesh>(Collections::triangleMeshName);
-		Mesh_GL::SetData(*triangleMesh, Collections::CreateTrianglePackedData(), MeshDrawType::STATIC);
-
+		triangleMesh->SetData(Collections::CreateTrianglePackedData(), MeshDrawType::STATIC);
 		AssetsService::GetInstance()->AddBuiltIn(Collections::triangleMeshUUID, triangleMesh);
-
 	}
 }

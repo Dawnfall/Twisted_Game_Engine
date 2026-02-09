@@ -18,7 +18,6 @@
 
 namespace Twisted
 {
-
 	static ShaderData LoadData(const fs::path& assetPath)
 	{
 		ShaderData shaderData;
@@ -44,7 +43,7 @@ namespace Twisted
 		ShaderData shaderData = LoadData(assetInfo.GetAssetPath());
 
 		WPtr<Shader> shader(TObject::Create<Shader>(assetInfo.GetAssetName()));
-		Shader_GL::SetData(*shader,shaderData);
+		shader->SetData(shaderData);
 
 		objects.emplace_back(shader);
 	}

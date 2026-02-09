@@ -6,12 +6,13 @@
 #include "Utils/glmUtils.h"
 #include "Utils/WPtr.h"
 #include "Twisted/Rendering/Texture.h"
-#include "Shader.h"
+#include "Twisted/Rendering/Shader.h"
 #include <yaml-cpp/node/node.h>
 #include <tuple>
 #include "Utils/YamlUtils.h"
 
 #include "Debug/Logger.h"
+
 
 
 using MaterialValue = std::variant<
@@ -69,20 +70,19 @@ namespace Twisted
 		void Clear()
 		{
 			Properties.clear();
-			Shader = nullptr;
+			Shad = nullptr;
 		}
 
-		void ApplyUniforms();
 
 		std::unordered_map<std::string, MaterialValue> Properties;
-		Shader* Shader = nullptr;
+		Shader* Shad = nullptr;
 	};
 
 	template<>
 	inline YAML::Node YamlSerialize<Material>(const Material& material)
 	{
 		YAML::Node node;
-		node[SHADER_KEY] = YamlUtils::encodeTObject(material.Shader);
+		node[SHADER_KEY] = YamlUtils::encodeTObject(material.Shad);
 
 		YAML::Node props = node[PROPERTIES_KEY];
 		for (const auto& [name, value] : material.Properties)
@@ -179,7 +179,7 @@ namespace Twisted
 		}
 		if (node[SHADER_KEY])
 		{
-			material.Shader = static_cast<Shader*>(YamlUtils::decodeTObject(node[SHADER_KEY]));
+			material.Shad = static_cast<Shader*>(YamlUtils::decodeTObject(node[SHADER_KEY]));
 		}
 	}
 }

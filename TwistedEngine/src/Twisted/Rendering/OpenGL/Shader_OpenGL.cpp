@@ -1,6 +1,8 @@
-﻿#include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
-#include "Twisted/Rendering/Shader.h"
+﻿#ifndef TWISTED_D3D
 
+#include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
+#include "Twisted/Rendering/Shader.h"
+#include "Twisted/Rendering/Data/ShaderData.h"
 #include "Debug/Logger.h"
 
 #include <glad/glad.h>
@@ -10,21 +12,93 @@
 #include "Twisted/TObject.h"
 #include "Utils/GlmUtils.h"
 
+#include "Twisted/Rendering/Material.h"
+
 namespace Twisted
 {
 	Shader::Shader(const std::string& name) :
 		TObject(name)
 	{
+
 	}
+
 	void Shader::OnDestroy()
 	{
-		Shader_GL::Clear(*this);
+		//Clear();
+	}
+
+	void Shader::ApplyUniforms(const Twisted::Material* material)
+	{
+		/*if (!material.Shader)
+			return;
+
+		for (auto& uniform : Uniforms)
+		{
+			auto it = material.Properties.find(uniform.Name);
+			if (it == material.Properties.end())
+				continue;
+
+			switch (uniform.Type)
+			{
+			case ShaderVarType::BOOL:
+				GL::SetVar(uniform.UniformID, material.Get<bool>(uniform.Name, false));
+				break;
+			case ShaderVarType::INT:
+				GL::SetVar(uniform.UniformID, material.Get<int>(uniform.Name, 0));
+				break;
+			case ShaderVarType::FLOAT:
+				GL::SetVar(uniform.UniformID, material.Get<float>(uniform.Name, 0.0f));
+				break;
+			case ShaderVarType::VEC2_F:
+				GL::SetVar(uniform.UniformID, material.Get<Vec2f>(uniform.Name, Vec3f{ 1.0f,1.0f,1.0f }));
+				break;
+			case ShaderVarType::VEC3_F:
+				GL::SetVar(uniform.UniformID, material.Get<Vec3f>(uniform.Name, Vec3f{ 1.0f,1.0f,1.0f }));
+				break;
+			case ShaderVarType::VEC4_F:
+				GL::SetVar(uniform.UniformID, material.Get<Vec4f>(uniform.Name, Vec4f{ 1.0f,1.0f,1.0f,1.0f }));
+				break;
+			case ShaderVarType::MAT4x4_F:
+				GL::SetVar(uniform.UniformID, material.Get<Mat4x4f>(uniform.Name, Mat4x4f{ 1.0f }));
+				break;
+			case ShaderVarType::SAMPLER2D:
+			{
+				auto tex = material.Get<WPtr<material.Texture>>(uniform.Name, nullptr);
+				if (tex)
+					GL::SetTex(uniform.UniformID, uniform.TextureUnit, tex->TexID);
+				else
+					GL::SetTex(uniform.UniformID, uniform.TextureUnit, 0);
+				break;
+			}
+			}
+		}*/
+	}
+
+	void Shader::SetData(const ShaderData& data)
+	{
+		//TODO...
 	}
 }
 
-namespace Twisted::Shader_GL
+namespace Twisted::GL
 {
-	ShaderVarType FromGLShaderType(GLenum glShaderVarType)
+
+	void Shader_OpenGL::Clear()
+	{
+		if (ProgramID == 0)
+			return;
+
+		glDeleteProgram(ProgramID);
+		ProgramID = 0;
+		Uniforms.clear();
+	}
+
+	void Shader_OpenGL::Bind()const
+	{
+		glUseProgram(ProgramID);
+	}
+
+	Twisted::ShaderVarType FromGLShaderType(GLenum glShaderVarType)
 	{
 		switch (glShaderVarType)
 		{
@@ -82,7 +156,7 @@ namespace Twisted::Shader_GL
 		}
 	}
 
-	GLenum ToGlShaderType(ShaderVarType shaderVarType)
+	GLenum ToGlShaderType(Twisted::ShaderVarType shaderVarType)
 	{
 		switch (shaderVarType)
 		{
@@ -219,51 +293,9 @@ namespace Twisted::Shader_GL
 	}
 
 
-	void SetData(Shader& shader, const ShaderData& shaderData)
-	{
-		if (shaderData.VertShader == "")
-		{
-			TWISTED_ERROR("Shader compilation failed: missing vertex shader");
-			return;
-		}
-		if (shaderData.FragShader == "")
-		{
-			TWISTED_ERROR("Shader compilation failed: missing fragment shader");
-			return;
-		}
+	
 
-		GLuint vertexID = Shader_GL::CompileShaderCode(GL_VERTEX_SHADER, "Vertex", shaderData.VertShader.c_str());
-		GLuint fragmentID = Shader_GL::CompileShaderCode(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShader.c_str());
-		GLuint geometryID = 0;
-		if (shaderData.GeoShader != "")
-			geometryID = Shader_GL::CompileShaderCode(GL_GEOMETRY_SHADER, "Geometry", shaderData.GeoShader.c_str());
 
-		shader.ProgramID = Shader_GL::LinkProgram(vertexID, fragmentID, geometryID);
-		glDeleteShader(vertexID);
-		glDeleteShader(fragmentID);
-		glDeleteShader(geometryID);
-
-		if (shader.IsValid())
-		{
-			shader.Uniforms = Shader_GL::detectShaderUniformVars(shader.ProgramID);
-			shader.UniformBlocks = Shader_GL::detectShaderUniformBlocks(shader.ProgramID);
-		}
-	}
-
-	void Clear(Shader& shader)
-	{
-		if (shader.ProgramID == 0)
-			return;
-
-		glDeleteProgram(shader.ProgramID);
-		shader.ProgramID = 0;
-		shader.Uniforms.clear();
-	}
-
-	void Bind(const Shader& shader)
-	{
-		glUseProgram(shader.ProgramID);
-	}
 
 	void UnBind()
 	{
@@ -398,7 +430,7 @@ namespace Twisted::Shader_GL
 		glBindTexture(GL_TEXTURE_2D, texID);
 		glUniform1i(locationID, unit);
 	}
-	void SetBuffer(const std::string& name,const Shader& shader, const void* data)
+	void SetBuffer(const std::string& name,const Shader_OpenGL& shader, const void* data)
 	{
 		for (const auto& block : shader.UniformBlocks)
 		{
@@ -411,5 +443,9 @@ namespace Twisted::Shader_GL
 			}
 		}
 	}	
+	
+
 }
+
+#endif
 

@@ -10,23 +10,14 @@
 
 namespace Twisted
 {
-	class TWISTED_API FrameBuffer :public TObject
+	struct TWISTED_API FrameBuffer :public TObject
 	{
-	public:
 		FrameBuffer(const std::string& name, Vec2i size);
 		void OnCreate() override;
 		void OnDestroy() override;
 
-		bool IsValid()const
-		{
-			return Id != 0 && Tex && Tex->IsValid();
-		}
+		void SetSize(const Vec2i& size);
 
-		Vec2i Size;
-		WPtr<Texture> Tex;
-		unsigned int Id = 0;
-		unsigned int Rbo = 0;
-		bool IsDirty = true;
 	};
 }
 

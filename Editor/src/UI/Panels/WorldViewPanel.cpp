@@ -25,7 +25,7 @@ namespace Twisted::Editor
 		this->PanelResizeEvent.AddListener([this]() {
 			auto fb = EditorWorldService::GetInstance()->renderer.EditorFrameBuffer;
 			if (fb)
-				FrameBuffer_GL::SetSize(*fb, Size);
+				fb->SetSize(Size);
 			}
 		);
 
@@ -33,14 +33,14 @@ namespace Twisted::Editor
 
 	void WorldViewPanel::PaintContent()
 	{
-		auto fb = EditorWorldService::GetInstance()->renderer.EditorFrameBuffer;
-		if (fb && fb->Tex)
-			ImGui::Image(
-				(void*)(intptr_t)fb->Tex->TexID,
-				ImVec2((float)Size.x,(float) Size.y),
-				ImVec2(0, 1),  // top-left UV
-				ImVec2(1, 0)   // bottom-right UV (flipped vertically)
-			);
+		//auto fb = EditorWorldService::GetInstance()->renderer.EditorFrameBuffer;
+		//if (fb && fb->Tex)
+		//	ImGui::Image(
+		//		(void*)(intptr_t)fb->Tex->TexID,
+		//		ImVec2((float)Size.x,(float) Size.y),
+		//		ImVec2(0, 1),  // top-left UV
+		//		ImVec2(1, 0)   // bottom-right UV (flipped vertically)
+		//	);
 
 		DrawViewportGizmo(m_editorWorld->camEnt);
 	}

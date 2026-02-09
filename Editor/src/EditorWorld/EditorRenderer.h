@@ -4,7 +4,6 @@
 #include "Twisted/Gameing/World.h"
 #include "Twisted/Rendering/Data/ClearParams.h"
 #include "Twisted/Rendering/Data/RenderContext.h"
-#include "Twisted/Rendering/RenderAPI.h"
 #include <vector>
 
 namespace Twisted::Editor
@@ -15,7 +14,7 @@ namespace Twisted::Editor
 		void Render(World& editorWorld, World& gameWorld)const
 		{
 			RenderContext context = ExtractContext(editorWorld, gameWorld);
-			RenderAPI::ForwardRender(context);
+			//RenderAPI::ForwardRender(context);
 		}
 
 		RenderContext ExtractContext(World& editorWorld, World& gameWorld)const

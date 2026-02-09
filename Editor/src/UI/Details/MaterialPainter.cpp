@@ -22,8 +22,8 @@ namespace Twisted::Editor
 
 		//Twisted::Shader* newPtr = Im::ObjectDropField<Shader>("Shader", material->Shader);
 
-		if (material->Shader)
-			for (const auto& uniform : material->Shader->Uniforms)
+		/*if (material->Shad)
+			for (const auto& uniform : material->Shad->Uniforms)
 			{
 				switch (uniform.Type)
 				{
@@ -47,7 +47,7 @@ namespace Twisted::Editor
 					break;
 				}
 				}
-			}
+			}*/
 		if (ImGui::Button("Save"))
 		{
 			auto assetsLayer = AssetsService::GetInstance();

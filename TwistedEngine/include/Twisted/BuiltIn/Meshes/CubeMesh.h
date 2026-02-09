@@ -84,7 +84,7 @@ namespace Twisted::Collections
 	void ImportCubeMesh()
 	{
 		Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName);
-		Mesh_GL::SetData(*cubeMesh, Collections::CreateCubePackedData(), MeshDrawType::STATIC);
+		cubeMesh->SetData(Collections::CreateCubePackedData(), MeshDrawType::STATIC);
 		AssetsService::GetInstance()->AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
 	
 	}

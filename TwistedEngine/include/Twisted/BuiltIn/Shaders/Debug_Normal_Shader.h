@@ -59,7 +59,7 @@ namespace Twisted::Collections
 		ShaderData debugNormalsShaderData;
 		debugNormalsShaderData.VertShader = Collections::debugNormalsVertexShader;
 		debugNormalsShaderData.FragShader = Collections::debugNormalsFragmentShader;
-		Shader_GL::SetData(*debugNormalsShader, debugNormalsShaderData);
+		debugNormalsShader->SetData(debugNormalsShaderData);
 
 		AssetsService::GetInstance()->AddBuiltIn(Collections::debugNormalsShaderUUID, debugNormalsShader);
 	}

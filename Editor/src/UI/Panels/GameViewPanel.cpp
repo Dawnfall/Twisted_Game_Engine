@@ -17,7 +17,7 @@ namespace Twisted::Editor
 		this->PanelResizeEvent.AddListener([this]() {
 			auto fb = GameService::GetInstance()->renderer.GameFrameBuffer;
 			if (fb)
-				FrameBuffer_GL::SetSize(*fb, Size);
+				fb->SetSize(Size);
 			}
 		);
 	}
@@ -28,14 +28,14 @@ namespace Twisted::Editor
 	}
 	void GameViewPanel::PaintContent()
 	{
-		auto fb = GameService::GetInstance()->renderer.GameFrameBuffer;
-		if (fb && fb->Tex)
-			ImGui::Image(
-				(void*)(intptr_t)fb->Tex->TexID,
-				ImVec2((float)Size.x, (float)Size.y),
-				ImVec2(0, 1),  // top-left UV
-				ImVec2(1, 0)   // bottom-right UV (flipped vertically)
-			);
+		//auto fb = GameService::GetInstance()->renderer.GameFrameBuffer;
+		//if (fb && fb->Tex)
+		//	ImGui::Image(
+		//		(void*)(intptr_t)fb->Tex->TexID,
+		//		ImVec2((float)Size.x, (float)Size.y),
+		//		ImVec2(0, 1),  // top-left UV
+		//		ImVec2(1, 0)   // bottom-right UV (flipped vertically)
+		//	);
 	}
 }
 

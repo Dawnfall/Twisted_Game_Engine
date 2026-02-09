@@ -1,12 +1,46 @@
-#pragma once 
+#ifndef TWISTED_D3D
 
-#include "Twisted/Rendering/Shader.h"
+#pragma once 
+#include "AppCore.h"
+#include "Twisted/TObject.h"
+#include "Utils/GlmUtils.h"
+#include "Twisted/Rendering/Data/ShaderData.h"
 
 #include <glad/glad.h>
 #include <vector>
 
-namespace Twisted::Shader_GL
+namespace Twisted::GL
 {
+	struct TWISTED_API ShaderUniformVar
+	{
+		std::string Name = "";
+		Twisted::ShaderVarType Type = Twisted::ShaderVarType::UNKNOWN;
+		int TextureUnit = 0;
+		int UniformID = 0;
+	};
+
+	struct TWISTED_API ShaderUniformBlock
+	{
+		std::string Name = "";
+		unsigned int Index = 0;       // block index inside the shader
+		unsigned int Binding = 0;     // binding point we assign
+		unsigned int BufferID = 0;    // the generated UBO
+		int Size = 0;       // block size in bytes
+	};
+
+	class TWISTED_API Shader_OpenGL
+	{
+	public:
+		bool IsValid()const { return ProgramID != 0; }
+		void Clear();
+
+		void Bind()const;
+
+		std::vector<ShaderUniformVar> Uniforms;
+		std::vector<ShaderUniformBlock> UniformBlocks;
+		GLuint ProgramID = 0;
+	};
+
 	ShaderVarType TWISTED_API FromGLShaderType(GLenum glShaderVarType);
 	GLenum TWISTED_API ToGlShaderType(ShaderVarType shaderVarType);
 	bool TWISTED_API ValidateShader(GLuint id, const std::string& name, GLenum shaderType);
@@ -16,9 +50,7 @@ namespace Twisted::Shader_GL
 	std::vector<ShaderUniformBlock> TWISTED_API detectShaderUniformBlocks(GLuint shaderProgram);
 	std::vector<ShaderUniformVar> TWISTED_API detectShaderUniformVars(GLuint shaderProgram);
 
-	void TWISTED_API SetData(Shader& shader, const ShaderData& shaderData);
-	void TWISTED_API Clear(Shader& shader);
-	void TWISTED_API Bind(const Shader& shader);
+
 	void TWISTED_API UnBind();
 
 	void TWISTED_API SetVar(int locationID, bool value);
@@ -42,5 +74,7 @@ namespace Twisted::Shader_GL
 	void TWISTED_API SetVar(int locationID, const Mat3x3d& value);
 	void TWISTED_API SetVar(int locationID, const Mat2x2d& value);
 	void TWISTED_API SetTex(int locationID, int unit, unsigned int texID);
-	void TWISTED_API SetBuffer(const std::string& name, const Shader& shader, const void* data);
+	void TWISTED_API SetBuffer(const std::string& name, const Shader_OpenGL& shader, const void* data);
 }
+
+#endif

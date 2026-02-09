@@ -45,7 +45,7 @@ namespace Twisted
 			data.material = r.material;
 			data.mesh = r.mesh;
 
-			if (!data.material || !data.mesh || !data.material->Shader)
+			if (!data.material || !data.mesh || !data.material->Shad)
 				continue;
 
 			data.modelMatrix = t.GetWorldModelMatrix();

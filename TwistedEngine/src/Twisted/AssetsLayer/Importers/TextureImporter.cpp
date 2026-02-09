@@ -35,8 +35,8 @@ namespace Twisted
 		if (!texData.Data)
 			return;
 
-		WPtr<Texture> texture(TObject::Create<Texture>(assetInfo.GetAssetName(), TextureParams{}));
-		Texture_GL::SetData(*texture.get(), texData);
+		WPtr<Texture> texture(TObject::Create<Texture>(assetInfo.GetAssetName()));
+		texture->SetData(texData);
 
 		objects.emplace_back(texture);
 		stbi_image_free(texData.Data);

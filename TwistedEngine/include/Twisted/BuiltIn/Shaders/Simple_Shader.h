@@ -63,7 +63,7 @@ namespace Twisted::Collections
 		ShaderData simpleShaderData;
 		simpleShaderData.VertShader = Collections::simpleVertexShader;
 		simpleShaderData.FragShader = Collections::simpleFragmentShader;
-		Shader_GL::SetData(*simpleShader, simpleShaderData);
+		simpleShader->SetData(simpleShaderData);
 
 		AssetsService::GetInstance()->AddBuiltIn(Collections::simpleShaderUUID, simpleShader);
 	}

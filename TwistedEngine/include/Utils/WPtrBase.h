@@ -31,7 +31,7 @@ namespace Twisted
 		}
 
 	protected:
-		TObject* m_ptr = nullptr;
+		TObject* m_ptr = nullptr; //TODO.. probably remove this since useless
 		ObjectID m_id= ObjectID::Invalid();
 	};
 }

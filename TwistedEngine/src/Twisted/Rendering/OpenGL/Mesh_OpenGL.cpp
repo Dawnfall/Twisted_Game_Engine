@@ -1,5 +1,6 @@
 ﻿#include "Twisted/Rendering/Mesh.h"
 #include "Twisted/Rendering/OpenGL/Mesh_OpenGL.h"
+#include "Twisted/Rendering/Data/MeshData.h"
 
 #include "Debug/Logger.h"
 
@@ -16,12 +17,41 @@ namespace Twisted
 
 	void Mesh::OnDestroy()
 	{
-		Mesh_GL::Clear(*this);
+		//Clear();
+	}
+
+	void Mesh::SetData(const PackedMeshData& packedData, MeshDrawType drawType)
+	{
+		(void)packedData;
+		(void)drawType;
+
+		//Clear();
+
+		//if (packedData.VertexBuffer.empty() || packedData.Indices.empty())
+		//	return;
+
+		//DrawType = drawType;
+		//IndexCount = packedData.Indices.size();
+
+		//glGenVertexArrays(1, &Vao);
+		//glGenBuffers(1, &Vbo);
+		//glGenBuffers(1, &Ebo);
+
+		//glBindVertexArray(Vao);
+
+		//ApplyBuffers(packedData);
+		//SetMeshLayout(packedData);
+
+		//glBindVertexArray(0);
 	}
 }
 
-namespace Twisted::Mesh_GL
+namespace Twisted::GL
 {
+
+
+
+
 	GLenum MeshTypeToGL(MeshPrimitiveType type)
 	{
 		switch (type)
@@ -78,63 +108,41 @@ namespace Twisted::Mesh_GL
 		}
 	}
 
-	void SetData(Mesh& mesh, const PackedMeshData& packedData, MeshDrawType drawType)
+	void Mesh_OpenGL::ApplyBuffers(const PackedMeshData& packedData)
 	{
-		Clear(mesh);
-
-		if (packedData.VertexBuffer.empty() || packedData.Indices.empty())
-			return;
-
-		mesh.DrawType = drawType;
-		mesh.IndexCount = packedData.Indices.size();
-
-		glGenVertexArrays(1, &mesh.Vao);
-		glGenBuffers(1, &mesh.Vbo);
-		glGenBuffers(1, &mesh.Ebo);
-
-		glBindVertexArray(mesh.Vao);
-
-		ApplyBuffers(mesh, packedData);
-		SetMeshLayout(packedData);
-
-		glBindVertexArray(0);
-	}
-
-	void ApplyBuffers(const Mesh& mesh, const PackedMeshData& packedData)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.Vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, Vbo);
 		glBufferData(GL_ARRAY_BUFFER,
 			packedData.VertexBuffer.size() * sizeof(float),
 			packedData.VertexBuffer.data(),
-			DrawTypeToGL(mesh.DrawType)
+			DrawTypeToGL(DrawType)
 		);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.Ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			packedData.Indices.size() * sizeof(unsigned int),
 			packedData.Indices.data(),
-			DrawTypeToGL(mesh.DrawType)
+			DrawTypeToGL(DrawType)
 		);
 	}
 
-	void Clear(Mesh& mesh)
+	void Mesh_OpenGL::Clear()
 	{
-		glDeleteVertexArrays(1, &mesh.Vao);
-		glDeleteBuffers(1, &mesh.Vbo);
-		glDeleteBuffers(1, &mesh.Ebo);
+		glDeleteVertexArrays(1, &Vao);
+		glDeleteBuffers(1, &Vbo);
+		glDeleteBuffers(1, &Ebo);
 
-		mesh.Vbo = mesh.Ebo = mesh.Vao = 0;
+		Vbo = Ebo = Vao = 0;
 	}
 
-	void Bind(const Mesh& mesh)
+	void Mesh_OpenGL::Bind()const
 	{
 		glEnable(GL_CULL_FACE);
-		glFrontFace(mesh.WindOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
+		glFrontFace(WindOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
 		glCullFace(GL_BACK);
-		glBindVertexArray(mesh.Vao);
+		glBindVertexArray(Vao);
 	}
 
-	void UnBind()
+	void Mesh_OpenGL::UnBind()const
 	{
 		glBindVertexArray(0);
 	}
@@ -156,15 +164,6 @@ namespace Twisted::Mesh_GL
 		}
 	}
 
-	void RenderMesh(const Mesh& mesh)
-	{
-		glDrawElements(
-			GL_TRIANGLES,                 //TODO... should be set on mesh
-			static_cast<GLsizei>(mesh.IndexCount),
-			GL_UNSIGNED_INT,                  
-			nullptr
-		);
-	}
 }
 
 
