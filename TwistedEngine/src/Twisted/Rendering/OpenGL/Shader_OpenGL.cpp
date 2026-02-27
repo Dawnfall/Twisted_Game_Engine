@@ -1,274 +1,127 @@
 ﻿#ifndef TWISTED_D3D
 
-#include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
 #include "Twisted/Rendering/Shader.h"
+#include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
+#include "Twisted/Rendering/OpenGL/ShaderReflection_OpenGL.h"
 #include "Twisted/Rendering/Data/ShaderData.h"
+
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+#include "Twisted/Rendering/Texture.h"
+
+#include "Twisted/TObject.h"
+#include "Utils/GlmUtils.h"
 #include "Debug/Logger.h"
 
 #include <glad/glad.h>
 #include <string>
 #include <vector>
 #include <cassert>
-#include "Twisted/TObject.h"
-#include "Utils/GlmUtils.h"
-
-#include "Twisted/Rendering/Material.h"
+#include <variant>
 
 namespace Twisted
 {
 	Shader::Shader(const std::string& name) :
-		TObject(name)
+		TObject(name),
+		m_backend(new ShaderBackend())
 	{
+	}
 
+	Shader::~Shader()
+	{
+		Clear();
+		delete m_backend;
+	}
+
+	void Shader::Clear()
+	{
+		if (m_backend->ProgramID == 0)
+			return;
+
+		glDeleteProgram(m_backend->ProgramID);
+		m_backend->ProgramID = 0;
+		m_backend->m_reflection = {};
+		m_backend->m_bindings = {};
 	}
 
 	void Shader::OnDestroy()
 	{
-		//Clear();
+		m_backend = nullptr;
 	}
 
-	void Shader::ApplyUniforms(const Twisted::Material* material)
+	void Shader::SetData(const ShaderData& shaderData)
 	{
-		/*if (!material.Shader)
-			return;
+		Clear();
+		GLuint shaderID = GL::CompileProgram(shaderData);
 
-		for (auto& uniform : Uniforms)
+		if (shaderID != 0)
 		{
-			auto it = material.Properties.find(uniform.Name);
-			if (it == material.Properties.end())
-				continue;
+			if (m_backend->ProgramID)
+				return;
 
-			switch (uniform.Type)
-			{
-			case ShaderVarType::BOOL:
-				GL::SetVar(uniform.UniformID, material.Get<bool>(uniform.Name, false));
-				break;
-			case ShaderVarType::INT:
-				GL::SetVar(uniform.UniformID, material.Get<int>(uniform.Name, 0));
-				break;
-			case ShaderVarType::FLOAT:
-				GL::SetVar(uniform.UniformID, material.Get<float>(uniform.Name, 0.0f));
-				break;
-			case ShaderVarType::VEC2_F:
-				GL::SetVar(uniform.UniformID, material.Get<Vec2f>(uniform.Name, Vec3f{ 1.0f,1.0f,1.0f }));
-				break;
-			case ShaderVarType::VEC3_F:
-				GL::SetVar(uniform.UniformID, material.Get<Vec3f>(uniform.Name, Vec3f{ 1.0f,1.0f,1.0f }));
-				break;
-			case ShaderVarType::VEC4_F:
-				GL::SetVar(uniform.UniformID, material.Get<Vec4f>(uniform.Name, Vec4f{ 1.0f,1.0f,1.0f,1.0f }));
-				break;
-			case ShaderVarType::MAT4x4_F:
-				GL::SetVar(uniform.UniformID, material.Get<Mat4x4f>(uniform.Name, Mat4x4f{ 1.0f }));
-				break;
-			case ShaderVarType::SAMPLER2D:
-			{
-				auto tex = material.Get<WPtr<material.Texture>>(uniform.Name, nullptr);
-				if (tex)
-					GL::SetTex(uniform.UniformID, uniform.TextureUnit, tex->TexID);
-				else
-					GL::SetTex(uniform.UniformID, uniform.TextureUnit, 0);
-				break;
-			}
-			}
-		}*/
+			m_backend->m_reflection = GL::ReflectProgramGL(shaderID);
+			m_backend->m_bindings = GL::BuildGLProgramBindings(shaderID, m_backend->m_reflection);
+		}
 	}
 
-	void Shader::SetData(const ShaderData& data)
+	void Shader::SetBool(bool val, size_t reflectionIndex)
 	{
-		//TODO...
+		glUniform1i(m_backend->m_bindings.values[reflectionIndex].location, val ? 1 : 0);
+	}
+	void Shader::SetInt(int val, size_t reflectionIndex)
+	{
+		glUniform1i(m_backend->m_bindings.values[reflectionIndex].location, val);
+	}
+	void Shader::SetFloat(float val, size_t reflectionIndex)
+	{
+		glUniform1f(m_backend->m_bindings.values[reflectionIndex].location, val);
+	}
+	void Shader::SetVec3(const Vec3f& val, size_t reflectionIndex)
+	{
+		glUniform3f(m_backend->m_bindings.values[reflectionIndex].location, val[0], val[1], val[2]);
+	}
+	void Shader::SetVec4(const Vec4f& val, size_t reflectionIndex)
+	{
+		glUniform4f(m_backend->m_bindings.values[reflectionIndex].location, val[0], val[1], val[2], val[3]);
+	}
+	void Shader::SetMat4(const Mat4x4f& val, size_t reflectionIndex)
+	{
+		glUniformMatrix4fv(m_backend->m_bindings.values[reflectionIndex].location, 1, GL_FALSE, &val[0][0]);
+	}
+	void Shader::SetTexture(const Texture* tex, size_t reflectionIndex)
+	{
+		glActiveTexture(GL_TEXTURE0 + m_backend->m_bindings.textures[reflectionIndex].unit);
+		glBindTexture(GL_TEXTURE_2D, tex->GetBackend()->TexID);
+		glUniform1i(m_backend->m_bindings.textures[reflectionIndex].location, m_backend->m_bindings.textures[reflectionIndex].unit);
 	}
 }
 
 namespace Twisted::GL
 {
-
-	void Shader_OpenGL::Clear()
+	GLuint CompileProgram(const ShaderData& shaderData)
 	{
-		if (ProgramID == 0)
-			return;
-
-		glDeleteProgram(ProgramID);
-		ProgramID = 0;
-		Uniforms.clear();
-	}
-
-	void Shader_OpenGL::Bind()const
-	{
-		glUseProgram(ProgramID);
-	}
-
-	Twisted::ShaderVarType FromGLShaderType(GLenum glShaderVarType)
-	{
-		switch (glShaderVarType)
+		if (shaderData.VertShader == "")
 		{
-		case GL_UNSIGNED_INT:
-			return ShaderVarType::UNSIGNED_INT;
-		case GL_INT:
-			return ShaderVarType::INT;
-		case GL_FLOAT:
-			return ShaderVarType::FLOAT;
-		case GL_BOOL:
-			return ShaderVarType::BOOL;
-		case GL_FLOAT_VEC2:
-			return ShaderVarType::VEC2_F;
-		case GL_FLOAT_VEC3:
-			return ShaderVarType::VEC3_F;
-		case GL_FLOAT_VEC4:
-			return ShaderVarType::VEC4_F;
-		case GL_DOUBLE_VEC2:
-			return ShaderVarType::VEC2_D;
-		case GL_DOUBLE_VEC3:
-			return ShaderVarType::VEC3_D;
-		case GL_DOUBLE_VEC4:
-			return ShaderVarType::VEC4_D;
-		case GL_INT_VEC2:
-			return ShaderVarType::VEC2_I;
-		case GL_INT_VEC3:
-			return ShaderVarType::VEC3_I;
-		case GL_INT_VEC4:
-			return ShaderVarType::VEC4_I;
-		case GL_UNSIGNED_INT_VEC2:
-			return ShaderVarType::VEC2_U;
-		case GL_UNSIGNED_INT_VEC3:
-			return ShaderVarType::VEC3_U;
-		case GL_UNSIGNED_INT_VEC4:
-			return ShaderVarType::VEC4_U;
-		case GL_FLOAT_MAT4:
-			return ShaderVarType::MAT4x4_F;
-		case GL_FLOAT_MAT3:
-			return ShaderVarType::MAT3x3_F;
-		case GL_FLOAT_MAT2:
-			return ShaderVarType::MAT2x2_F;
-		case GL_DOUBLE_MAT4:
-			return ShaderVarType::MAT4x4_D;
-		case GL_DOUBLE_MAT3:
-			return ShaderVarType::MAT3x3_D;
-		case GL_DOUBLE_MAT2:
-			return ShaderVarType::MAT2x2_D;
-		case GL_SAMPLER_2D:
-			return ShaderVarType::SAMPLER2D;
-
-		default:
-			TWISTED_WARN("Unknown shader type");
-			assert(false);
-			return ShaderVarType::UNKNOWN;
-		}
-	}
-
-	GLenum ToGlShaderType(Twisted::ShaderVarType shaderVarType)
-	{
-		switch (shaderVarType)
-		{
-		case ShaderVarType::INT:
-			return GL_INT;
-		case ShaderVarType::FLOAT:
-			return GL_FLOAT;
-		case ShaderVarType::BOOL:
-			return GL_BOOL;
-		case ShaderVarType::VEC2_F:
-			return GL_FLOAT_VEC2;
-		case ShaderVarType::VEC3_F:
-			return GL_FLOAT_VEC3;
-		case ShaderVarType::VEC4_F:
-			return GL_FLOAT_VEC4;
-		case ShaderVarType::VEC2_D:
-			return GL_DOUBLE_VEC2;
-		case ShaderVarType::VEC3_D:
-			return GL_DOUBLE_VEC3;
-		case ShaderVarType::VEC4_D:
-			return GL_DOUBLE_VEC4;
-		case ShaderVarType::VEC2_I:
-			return GL_INT_VEC2;
-		case ShaderVarType::VEC3_I:
-			return GL_INT_VEC3;
-		case ShaderVarType::VEC4_I:
-			return GL_INT_VEC4;
-		case ShaderVarType::VEC2_U:
-			return GL_UNSIGNED_INT_VEC2;
-		case ShaderVarType::VEC3_U:
-			return GL_UNSIGNED_INT_VEC3;
-		case ShaderVarType::VEC4_U:
-			return GL_UNSIGNED_INT_VEC4;
-		case ShaderVarType::MAT2x2_F:
-			return GL_FLOAT_MAT2;
-		case ShaderVarType::MAT3x3_F:
-			return GL_FLOAT_MAT3;
-		case ShaderVarType::MAT4x4_F:
-			return GL_FLOAT_MAT4;
-		case ShaderVarType::MAT2x2_D:
-			return GL_DOUBLE_MAT2;
-		case ShaderVarType::MAT3x3_D:
-			return GL_DOUBLE_MAT3;
-		case ShaderVarType::MAT4x4_D:
-			return GL_DOUBLE_MAT4;
-		case ShaderVarType::SAMPLER2D:
-			return GL_SAMPLER_2D;
-		default:
-			TWISTED_WARN("Unknown shader type");
-			assert(false);
+			TWISTED_ERROR("Shader compilation failed: missing vertex shader");
 			return 0;
 		}
-	}
-
-	bool ValidateShader(GLuint id, [[maybe_unused]] const std::string& name,[[maybe_unused]] GLenum shaderType)
-	{
-		GLint success;
-		glGetShaderiv(id, GL_COMPILE_STATUS, &success);
-
-		GLint logLength = 0;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
-
-		if (logLength > 0)
+		if (shaderData.FragShader == "")
 		{
-			std::string infoLog(logLength, '\0');
-			glGetShaderInfoLog(id, logLength, NULL, infoLog.data());
-
-			if (success != GL_TRUE)
-			{
-				TWISTED_ERROR(std::string("Error: Failed to compile shader: ") + std::to_string((unsigned int)shaderType) + " ; " + name + " Log: " + infoLog);
-				return false;
-			}
-			else
-			{
-				TWISTED_WARN(std::string("Shader compiled with warnings: ") + std::to_string((unsigned int)shaderType) + " ; " + name + "Log: " + infoLog);
-			}
+			TWISTED_ERROR("Shader compilation failed: missing fragment shader");
+			return 0;
 		}
-		else
-		{
-			TWISTED_INFO("Shader compile success: " + name);
-		}
-		return true;
-	}
 
-	bool ValidateProgram(GLuint id, [[maybe_unused]] const std::string& name)
-	{
-		GLint success;
-		glGetProgramiv(id, GL_LINK_STATUS, &success);
+		GLuint vertexID = GL::CompileShaderCode(GL_VERTEX_SHADER, "Vertex", shaderData.VertShader.c_str());
+		GLuint fragmentID = GL::CompileShaderCode(GL_FRAGMENT_SHADER, "Fragment", shaderData.FragShader.c_str());
+		GLuint geometryID = 0;
+		if (shaderData.GeoShader != "")
+			geometryID = GL::CompileShaderCode(GL_GEOMETRY_SHADER, "Geometry", shaderData.GeoShader.c_str());
 
-		GLint logLength = 0;
-		glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logLength);
+		GLuint shaderID = GL::LinkProgram(vertexID, fragmentID, geometryID);
+		glDeleteShader(vertexID);
+		glDeleteShader(fragmentID);
+		glDeleteShader(geometryID);
 
-		if (logLength > 0)
-		{
-			std::string infoLog(logLength, '\0');
-			glGetProgramInfoLog(id, logLength, NULL, infoLog.data());
-
-			if (success != GL_TRUE)
-			{
-				TWISTED_ERROR(std::string("Error: Failed to compile shader program: ") + name + " Log: " + infoLog);
-				return false;
-			}
-			else
-			{
-				TWISTED_WARN(std::string("Shader program compiled with warnings: ") + name + " Log: " + infoLog);
-			}
-		}
-		else
-		{
-			TWISTED_INFO("Shader program compile success: " + name);
-		}
-		return true;
+		return shaderID;
 	}
 
 	GLuint CompileShaderCode(GLenum shaderType, const char* shaderName, const char* shaderCode)
@@ -284,7 +137,36 @@ namespace Twisted::GL
 		glShaderSource(shaderID, 1, &shaderCode, NULL);
 		glCompileShader(shaderID);
 
-		if (!ValidateShader(shaderID, shaderName, GL_COMPILE_STATUS))
+		auto validateShader = [](GLuint id, const std::string& name, GLenum shaderType)->bool {
+			GLint success;
+			glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+
+			GLint logLength = 0;
+			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &logLength);
+
+			if (logLength > 0)
+			{
+				std::string infoLog(logLength, '\0');
+				glGetShaderInfoLog(id, logLength, NULL, infoLog.data());
+
+				if (success != GL_TRUE)
+				{
+					TWISTED_ERROR("Error: Failed to compile shader: {} ; {} ; Log: {}", shaderType, name, infoLog);
+					return false;
+				}
+				else
+				{
+					TWISTED_WARN("Shader compiled with warnings: {} ; {} ; Log: {}", shaderType, name, infoLog);
+				}
+			}
+			else
+			{
+				TWISTED_INFO("Shader compile success: {}", name);
+			}
+			return true;
+			};
+
+		if (!validateShader(shaderID, shaderName, GL_COMPILE_STATUS))
 		{
 			glDeleteShader(shaderID);
 			shaderID = 0;
@@ -292,99 +174,7 @@ namespace Twisted::GL
 		return shaderID;
 	}
 
-
-	
-
-
-
-	void UnBind()
-	{
-		glUseProgram(0);
-	}
-
-
-	std::vector<ShaderUniformBlock> detectShaderUniformBlocks(GLuint shaderProgram)
-	{
-		std::vector<ShaderUniformBlock> uniformBlocks;
-
-		//block uniforms
-		GLint blockCount = 0;
-		glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_BLOCKS, &blockCount);
-
-		GLuint nextBindingPoint = 0;
-		for (GLuint i = 0; i < (GLuint)blockCount; ++i)
-		{
-
-			char name[256];
-			GLsizei length = 0;
-			glGetActiveUniformBlockName(shaderProgram, i, sizeof(name), &length, name);
-
-			GLint blockSize = 0;
-			glGetActiveUniformBlockiv(shaderProgram, i, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
-
-			// store block name, size, and index
-			ShaderUniformBlock blockInfo;
-			blockInfo.Name = std::string(name, length);
-			blockInfo.Index = i;
-			blockInfo.Size = blockSize;
-
-			// ---------------------------
-			// Create UBO buffer
-			// ---------------------------
-			glGenBuffers(1, &blockInfo.BufferID);
-			glBindBuffer(GL_UNIFORM_BUFFER, blockInfo.BufferID);
-			glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-			// ---------------------------
-			// Assign binding point
-			// ---------------------------
-			blockInfo.Binding = nextBindingPoint++;
-			glUniformBlockBinding(shaderProgram, blockInfo.Index, blockInfo.Binding);
-
-			// ---------------------------
-			// Bind UBO object to binding point
-			// ---------------------------
-			glBindBufferBase(GL_UNIFORM_BUFFER, blockInfo.Binding, blockInfo.BufferID);
-
-			uniformBlocks.push_back(blockInfo);
-		}
-		return uniformBlocks;
-	}
-
-	std::vector<ShaderUniformVar> detectShaderUniformVars(GLuint shaderProgram)
-	{
-		std::vector<ShaderUniformVar> uniforms;
-
-		GLint count = 0;
-		GLint varSize;
-		GLenum varType;
-
-		GLint maxNameLength = 0;
-		glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
-		std::vector<GLchar> nameBuffer(maxNameLength);
-
-		glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &count);
-		GLint textureUnit = 0;
-		for (int i = 0; i < count; i++)
-		{
-			GLsizei nameLength;
-			glGetActiveUniform(shaderProgram, (GLuint)i, maxNameLength, &nameLength, &varSize, &varType, nameBuffer.data());
-			GLint uniformID = glGetUniformLocation(shaderProgram, nameBuffer.data());
-
-			ShaderUniformVar uniformVar;
-			uniformVar.Name = nameBuffer.data();
-			uniformVar.Type = FromGLShaderType(varType);
-			uniformVar.UniformID = uniformID;
-			if (varType == GL_SAMPLER_2D)
-				uniformVar.TextureUnit = textureUnit++;
-
-			uniforms.emplace_back(uniformVar);
-		}
-		return uniforms;
-	}
-
-	[[nodiscard]] GLuint LinkProgram(GLuint vertexID, GLuint fragmentID, GLuint geometryID)
+	GLuint LinkProgram(GLuint vertexID, GLuint fragmentID, GLuint geometryID)
 	{
 		if (vertexID == 0 || fragmentID == 0)
 			return 0;
@@ -396,56 +186,120 @@ namespace Twisted::GL
 			glAttachShader(program, geometryID);
 
 		glLinkProgram(program);
-		if (!ValidateProgram(program, "Shader program"))
+
+		auto validateProgram = [](GLuint id, [[maybe_unused]] const std::string& name)->bool {
+			GLint success;
+			glGetProgramiv(id, GL_LINK_STATUS, &success);
+
+			GLint logLength = 0;
+			glGetProgramiv(id, GL_INFO_LOG_LENGTH, &logLength);
+
+			if (logLength > 0)
+			{
+				std::string infoLog(logLength, '\0');
+				glGetProgramInfoLog(id, logLength, NULL, infoLog.data());
+
+				if (success != GL_TRUE)
+				{
+					TWISTED_ERROR("Error: Failed to compile shader program: {} ; Log: {}", name, infoLog);
+					return false;
+				}
+				else
+				{
+					TWISTED_WARN("Shader program compiled with warnings: {} ; Log: {}", name, infoLog);
+				}
+			}
+			else
+			{
+				TWISTED_INFO("Shader program compile success: {}", name);
+			}
+			return true;
+			};
+
+		if (!validateProgram(program, "Shader program"))
 		{
 			glDeleteProgram(program);
 			program = 0;
 		}
 		return program;
 	}
-
-	void SetVar(int locationID, bool value) { glUniform1i(locationID, static_cast<int>(value)); }
-	void SetVar(int locationID, int value) { glUniform1i(locationID, value); }
-	void SetVar(int locationID, float value) { glUniform1f(locationID, value); }
-	void SetVar(int locationID, double value) { glUniform1d(locationID, value); }
-	void SetVar(int locationID, unsigned int value) { glUniform1ui(locationID, value); }
-	void SetVar(int locationID, const Vec4f& value) { glUniform4f(locationID, value[0], value[1], value[2], value[3]); }
-	void SetVar(int locationID, const Vec3f& value) { glUniform3f(locationID, value[0], value[1], value[2]); }
-	void SetVar(int locationID, const Vec2f& value) { glUniform2f(locationID, value[0], value[1]); }
-	void SetVar(int locationID, const Vec4d& value) { glUniform4d(locationID, value[0], value[1], value[2], value[3]); }
-	void SetVar(int locationID, const Vec3d& value) { glUniform3d(locationID, value[0], value[1], value[2]); }
-	void SetVar(int locationID, const Vec2d& value) { glUniform2d(locationID, value[0], value[1]); }
-	void SetVar(int locationID, const Vec4i& value) { glUniform4i(locationID, value[0], value[1], value[2], value[3]); }
-	void SetVar(int locationID, const Vec3i& value) { glUniform3i(locationID, value[0], value[1], value[2]); }
-	void SetVar(int locationID, const Vec2i& value) { glUniform2i(locationID, value[0], value[1]); }
-	void SetVar(int locationID, const Mat4x4f& value) { glUniformMatrix4fv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void SetVar(int locationID, const Mat3x3f& value) { glUniformMatrix3fv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void SetVar(int locationID, const Mat2x2f& value) { glUniformMatrix2fv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void SetVar(int locationID, const Mat4x4d& value) { glUniformMatrix4dv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void SetVar(int locationID, const Mat3x3d& value) { glUniformMatrix3dv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void SetVar(int locationID, const Mat2x2d& value) { glUniformMatrix2dv(locationID, 1, GL_FALSE, &value[0][0]); }
-	void SetTex(int locationID, int unit, unsigned int texID)
-	{
-		glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(GL_TEXTURE_2D, texID);
-		glUniform1i(locationID, unit);
-	}
-	void SetBuffer(const std::string& name,const Shader_OpenGL& shader, const void* data)
-	{
-		for (const auto& block : shader.UniformBlocks)
-		{
-			if (block.Name == name)
-			{
-				glBindBuffer(GL_UNIFORM_BUFFER, block.BufferID);
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, block.Size, data);
-				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-				return;
-			}
-		}
-	}	
-	
-
 }
 
 #endif
+
+
+//TODO:... create buffer
+
+//// ---------------------------
+//// Create UBO buffer
+//// ---------------------------
+//glGenBuffers(1, &blockInfo.BufferID);
+//glBindBuffer(GL_UNIFORM_BUFFER, blockInfo.BufferID);
+//glBufferData(GL_UNIFORM_BUFFER, blockSize, nullptr, GL_DYNAMIC_DRAW);
+//glBindBuffer(GL_UNIFORM_BUFFER, 0);
+//
+//// ---------------------------
+//// Assign binding point
+//// ---------------------------
+//blockInfo.Binding = nextBindingPoint++;
+//glUniformBlockBinding(shaderProgram, blockInfo.Index, blockInfo.Binding);
+//
+//// ---------------------------
+//// Bind UBO object to binding point
+//// ---------------------------
+//glBindBufferBase(GL_UNIFORM_BUFFER, blockInfo.Binding, blockInfo.BufferID);
+
+
+
+
+	//void Shader::ApplyUniforms(const std::vector<ActiveValueUniform>& activeUniforms)
+	//{
+	//	ShaderBackend* gl = GetBackend();
+
+	//	for (const auto& u : activeUniforms)
+	//	{
+	//		std::visit([&u,&gl](const auto& value)
+	//			{
+	//				using T = std::decay_t<decltype(value)>;
+
+	//				if constexpr (std::is_same_v<T, TextureValue>)
+	//				{			
+	//					glActiveTexture(GL_TEXTURE0 + gl->m_bindings.textures[u.valueIndex].unit);
+	//					glBindTexture(GL_TEXTURE_2D, value.tex->GetBackend()->TexID);
+	//					glUniform1i(gl->m_bindings.textures[u.valueIndex].location, gl->m_bindings.textures[u.valueIndex].unit);
+	//				}
+	//				else if constexpr (std::is_same_v<T, bool>);
+	//				else if constexpr (std::is_same_v<T, int>) glUniform1i(gl->m_bindings.values[u.valueIndex].location, value);
+	//				else if constexpr (std::is_same_v<T, unsigned int>) glUniform1ui(gl->m_bindings.values[u.valueIndex].location, value);
+	//				else if constexpr (std::is_same_v<T, float>) glUniform1f(gl->m_bindings.values[u.valueIndex].location, value);
+	//				else if constexpr (std::is_same_v<T, double>) glUniform1d(gl->m_bindings.values[u.valueIndex].location, value);
+
+	//				else if constexpr (std::is_same_v<T, Vec2f>) glUniform2f(gl->m_bindings.values[u.valueIndex].location, value[0], value[1]);
+	//				else if constexpr (std::is_same_v<T, Vec3f>) glUniform3f(gl->m_bindings.values[u.valueIndex].location, value[0], value[1], value[2]);
+	//				else if constexpr (std::is_same_v<T, Vec4f>) glUniform4f(gl->m_bindings.values[u.valueIndex].location, value[0], value[1], value[2], value[3]);
+
+	//				else if constexpr (std::is_same_v<T, Vec2d>) glUniform2d(gl->m_bindings.values[u.valueIndex].location, value[0], value[1]);
+	//				else if constexpr (std::is_same_v<T, Vec3d>) glUniform3d(gl->m_bindings.values[u.valueIndex].location, value[0], value[1], value[2]);
+	//				else if constexpr (std::is_same_v<T, Vec4d>) glUniform4d(gl->m_bindings.values[u.valueIndex].location, value[0], value[1], value[2], value[3]);
+
+	//				else if constexpr (std::is_same_v<T, Vec2i>) glUniform2i(gl->m_bindings.values[u.valueIndex].location, value[0], value[1]);
+	//				else if constexpr (std::is_same_v<T, Vec3i>) glUniform3i(gl->m_bindings.values[u.valueIndex].location, value[0], value[1], value[2]);
+	//				else if constexpr (std::is_same_v<T, Vec4i>) glUniform4i(gl->m_bindings.values[u.valueIndex].location, value[0], value[1], value[2], value[3]);
+
+	//				else if constexpr (std::is_same_v<T, Mat4x4f>) glUniformMatrix4fv(gl->m_bindings.values[u.valueIndex].location, 1, GL_FALSE, &value[0][0]);
+	//				else if constexpr (std::is_same_v<T, Mat3x3f>) glUniformMatrix3fv(gl->m_bindings.values[u.valueIndex].location, 1, GL_FALSE, &value[0][0]);
+	//				else if constexpr (std::is_same_v<T, Mat2x2f>) glUniformMatrix2fv(gl->m_bindings.values[u.valueIndex].location, 1, GL_FALSE, &value[0][0]);
+
+	//				else if constexpr (std::is_same_v<T, Mat4x4d>) glUniformMatrix4dv(gl->m_bindings.values[u.valueIndex].location, 1, GL_FALSE, &value[0][0]);
+	//				else if constexpr (std::is_same_v<T, Mat3x3d>) glUniformMatrix3dv(gl->m_bindings.values[u.valueIndex].location, 1, GL_FALSE, &value[0][0]);
+	//				else if constexpr (std::is_same_v<T, Mat2x2d>) glUniformMatrix2dv(gl->m_bindings.values[u.valueIndex].location, 1, GL_FALSE, &value[0][0]);
+
+	//				else if constexpr (std::is_same_v<T, Mat4x4i>) { /* no GL integer matrix uniform */ }
+	//				else static_assert(!sizeof(T), "Unhandled MaterialValueType alternative");
+	//			}, u.val);
+	//	}
+	//}
+
+
+
 

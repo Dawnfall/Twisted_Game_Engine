@@ -7,7 +7,6 @@
 #include "Twisted/TObject.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 
-#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
 #include <filesystem>
 #include <Twisted/AssetsLayer/AssetInfo.h>
 #include <string>
@@ -36,7 +35,7 @@ namespace Twisted
 			return;
 
 		WPtr<Texture> texture(TObject::Create<Texture>(assetInfo.GetAssetName()));
-		texture->SetData(texData);
+		texture->SetData(texData, {});
 
 		objects.emplace_back(texture);
 		stbi_image_free(texData.Data);

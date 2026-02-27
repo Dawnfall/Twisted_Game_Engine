@@ -94,11 +94,13 @@ namespace Twisted::Editor
 			}
 			m_activeType = SelectionType::ASSET;
 		}
+
 		void DeselectPaths(const std::vector<fs::path>& selected)
 		{
 			for (auto& path : selected)
 				m_selectedPaths.erase(path);
 		}
+
 		void ClearPaths()
 		{
 			m_selectedPaths.clear();

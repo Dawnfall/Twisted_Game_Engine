@@ -75,11 +75,13 @@ namespace Twisted::Utils
 
 	// Helper to build a string from variadic arguments
 	template<typename... Args>
-	std::string buildString(Args&&... args)
+	std::string buildString(std::string_view fmt, Args&&... args)
 	{
-		std::ostringstream oss;
-		(oss << ... << args); // fold expression: simple concatenation
-		return oss.str();
+		return std::vformat(fmt, std::make_format_args(args...)); // C++20
+
+		//std::ostringstream oss;
+		//(oss << ... << args); // fold expression: simple concatenation
+		//return oss.str();
 	}
 }
 

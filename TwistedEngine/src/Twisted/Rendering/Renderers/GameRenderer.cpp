@@ -22,7 +22,7 @@ namespace Twisted
 				continue;
 
 			CameraData data{};
-			data.framebuffer = GameFrameBuffer;
+			data.framebuffer = cam.Fb.get();
 			data.viewMatrix = cam.GetViewMatrix();
 			data.projectionMatrix = cam.GetProjectionMatrix();
 			data.clearParams = cam.clearParams;
@@ -45,7 +45,7 @@ namespace Twisted
 			data.material = r.material;
 			data.mesh = r.mesh;
 
-			if (!data.material || !data.mesh || !data.material->Shad)
+			if (!data.material || !data.mesh || !data.material->GetShader())
 				continue;
 
 			data.modelMatrix = t.GetWorldModelMatrix();

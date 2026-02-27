@@ -38,8 +38,8 @@ namespace Twisted
 
 	public:
 
-		FrameBuffer* GameFrameBuffer = nullptr;
 		RenderContext GameContext;
 		ClearParams GameClearParams;
+
 	};
 }

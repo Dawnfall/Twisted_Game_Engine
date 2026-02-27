@@ -15,7 +15,6 @@ namespace Twisted::Editor
 		void Init() override
 		{		
 			m_editorWorld = EditorWorldService::GetInstance();
-			m_editorWorld->renderer.EditorFrameBuffer = TObject::Create<FrameBuffer>("World framebuffer",Size);
 		}
 
 		virtual void PaintContent()override;

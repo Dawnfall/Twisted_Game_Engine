@@ -31,6 +31,4 @@ namespace Twisted::Editor
 		GetConfig().SetWindowSize(window->GetSize());
 		GetConfig().SaveConfig();
 	}
-
-
 }

@@ -60,11 +60,11 @@ namespace Twisted
 }
 
 #if TWISTED_DEBUG
-#define LOGGER_INIT() Twisted::Logger::Init()
-#define TWISTED_TRACE(...) Twisted::Logger::GetInstance().Trace(__VA_ARGS__)
-#define TWISTED_INFO(...)  Twisted::Logger::GetInstance().Info(__VA_ARGS__)
-#define TWISTED_WARN(...)  Twisted::Logger::GetInstance().Warn(__VA_ARGS__)
-#define TWISTED_ERROR(...) Twisted::Logger::GetInstance().Error(__VA_ARGS__)
+#define LOGGER_INIT() ::Twisted::Logger::Init()
+#define TWISTED_TRACE(...) ::Twisted::Logger::GetInstance().Trace(__VA_ARGS__)
+#define TWISTED_INFO(...)  ::Twisted::Logger::GetInstance().Info(__VA_ARGS__)
+#define TWISTED_WARN(...)  ::Twisted::Logger::GetInstance().Warn(__VA_ARGS__)
+#define TWISTED_ERROR(...) ::Twisted::Logger::GetInstance().Error(__VA_ARGS__)
 #else
 #define LOGGER_INIT()
 #define TWISTED_TRACE(...)

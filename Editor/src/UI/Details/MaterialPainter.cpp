@@ -20,34 +20,44 @@ namespace Twisted::Editor
 		if (!material)
 			return;
 
-		//Twisted::Shader* newPtr = Im::ObjectDropField<Shader>("Shader", material->Shader);
+		material->SetShader(Im::ObjectDropField<Shader>("Shader", material->GetShader()));
 
-		/*if (material->Shad)
-			for (const auto& uniform : material->Shad->Uniforms)
-			{
-				switch (uniform.Type)
-				{
-				case ShaderVarType::SAMPLER2D:
-				{
-					auto res = material->Get<WPtr<Texture>>(uniform.Name);
-					Texture* tex = res.has_value() ? res.value().get() : nullptr;
+		if (!material)
+			return;
+		for (auto& uniVar : material->GetValues())
+		{
+			(void)uniVar;
+			std::visit([&material, &uniVar](auto& val) {
+				using T = std::decay_t<decltype(val)>;
 
-					Twisted::Texture* newTexPtr = Im::ObjectDropField<Texture>(uniform.Name, tex);
+				if constexpr (std::is_same_v<T, bool>) {
+					ImGui::Checkbox(uniVar.name.data(), &val);
+				}
+				else if constexpr (std::is_same_v<T, float>) {
+					ImGui::InputFloat(uniVar.name.data(), &val);
+				}
+				else if constexpr (std::is_same_v<T, int>) {
+					ImGui::InputInt(uniVar.name.data(), &val);
+				}
+				else if constexpr (std::is_same_v<T, Vec3f>) {
+					ImGui::InputFloat3(uniVar.name.data(), &val[0]);
+				}
+				else if constexpr (std::is_same_v<T, Vec4f>) {
+					ImGui::InputFloat4(uniVar.name.data(), &val[0]);
+				}
+				else if constexpr (std::is_same_v<T, TextureValue>) {
+					Texture* tex = val.tex.get();
+					Twisted::Texture* newTexPtr = Im::ObjectDropField<Texture>(uniVar.name, tex);
 					if (newTexPtr != tex)
-						material->Set<WPtr<Texture>>(uniform.Name, WPtr<Texture>(newTexPtr));
-					break;
+						val.tex = newTexPtr;
 				}
-				case ShaderVarType::VEC4_F:
-				{
-					auto res = material->Get<Vec4f>(uniform.Name);
+				else {
+					TWISTED_ERROR("Unsupported material uniform type to assign to shader!");
+				}
+				}, uniVar.val);
 
-					Vec4f vec = res.has_value() ? res.value() : Vec4f{};
-					if (ImGui::InputFloat4(uniform.Name.c_str(), &vec.x))
-						material->Set<Vec4f>(uniform.Name, vec);
-					break;
-				}
-				}
-			}*/
+		}
+
 		if (ImGui::Button("Save"))
 		{
 			auto assetsLayer = AssetsService::GetInstance();

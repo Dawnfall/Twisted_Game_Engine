@@ -7,16 +7,13 @@
 
 namespace Twisted::GL
 {
+	void TWISTED_API ForwardRender(const RenderContext& context);
+
 	void TWISTED_API Init();
 
 	void TWISTED_API EnableDepthTest(bool doTest);
 
 	void TWISTED_API EnableStencilTest(bool doTest);
-
-	void TWISTED_API ForwardRender(const RenderContext& context);
-
-	void TWISTED_API RenderMesh(const Mesh_OpenGL& mesh);
-
 }
 
 #endif

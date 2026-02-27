@@ -9,7 +9,7 @@
 
 namespace Twisted::Editor
 {
-	static std::array<const char*,2> options
+	static std::array<const char*, 2> options
 	{
 		PERSPECTIVE_PROJ_NAME,
 		ORTHOGRAPHIC_PROJ_NAME
@@ -22,7 +22,7 @@ namespace Twisted::Editor
 		bool isMainCamera = camera->IsMainCamera();
 		if (Im::DrawToggle("Main camera", isMainCamera))
 		{
-			camera->SetAsMainCamera(isMainCamera);
+			camera->CamManager->SetAsMainCamera((isMainCamera) ? camera : nullptr);
 		}
 
 		int currIndex = static_cast<int>(camera->ProjectionType);

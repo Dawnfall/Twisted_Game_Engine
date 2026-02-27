@@ -8,22 +8,23 @@
 #include <vector>
 namespace Twisted
 {
-	struct CameraData
+	struct TWISTED_API CameraData
 	{
 		Mat4x4f viewMatrix;
 		Mat4x4f projectionMatrix;
-		FrameBuffer* framebuffer;
+		Framebuffer* framebuffer=nullptr;
 		ClearParams clearParams;
 	};
 
-	struct DirLightData
+	struct TWISTED_API DirLightData
 	{
 		Vec4f direction;
 		Vec4f lightColor;
 		float intensity;
 		float _padding[3];
 	};
-	struct PointLightData
+
+	struct TWISTED_API PointLightData
 	{
 		Vec4f position;
 		Vec4f direction;
@@ -32,7 +33,7 @@ namespace Twisted
 		float radius;
 		float _padding[2];
 	};
-	struct SpotLightData
+	struct TWISTED_API SpotLightData
 	{
 		Vec4f position;
 		Vec4f direction;
@@ -43,21 +44,21 @@ namespace Twisted
 		float outer;
 	};
 
-	struct LightData
+	struct TWISTED_API LightData
 	{
 		std::vector<DirLightData> dirLights;
 		std::vector<PointLightData> pointLights;
 		std::vector<SpotLightData> spotLights;
 	};
 
-	struct ModelData
+	struct TWISTED_API ModelData
 	{
 		Mat4x4f modelMatrix;
 		Mesh* mesh;
 		Material* material;
 	};
 
-	struct RenderContext
+	struct TWISTED_API RenderContext
 	{
 		std::vector<ModelData> modelDatas;
 		std::vector<CameraData> camDatas;

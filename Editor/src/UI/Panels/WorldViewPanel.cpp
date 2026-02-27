@@ -23,7 +23,10 @@ namespace Twisted::Editor
 	WorldViewPanel::WorldViewPanel() :EditorPanel("World View")
 	{
 		this->PanelResizeEvent.AddListener([this]() {
-			auto fb = EditorWorldService::GetInstance()->renderer.EditorFrameBuffer;
+			auto camera = EditorWorldService::GetInstance()->EditorWorld->GetManager<CameraManager>()->GetMainCamera();
+			if (!camera)
+				return;
+			auto fb = camera->Fb.get();
 			if (fb)
 				fb->SetSize(Size);
 			}
@@ -33,16 +36,21 @@ namespace Twisted::Editor
 
 	void WorldViewPanel::PaintContent()
 	{
-		//auto fb = EditorWorldService::GetInstance()->renderer.EditorFrameBuffer;
-		//if (fb && fb->Tex)
-		//	ImGui::Image(
-		//		(void*)(intptr_t)fb->Tex->TexID,
-		//		ImVec2((float)Size.x,(float) Size.y),
-		//		ImVec2(0, 1),  // top-left UV
-		//		ImVec2(1, 0)   // bottom-right UV (flipped vertically)
-		//	);
+		this->PanelResizeEvent.AddListener([this]() {
+			auto camera = EditorWorldService::GetInstance()->EditorWorld->GetManager<CameraManager>()->GetMainCamera();
+			if (!camera)
+				return;
+			//auto fb = camera->Fb.get();
+			//if (fb && fb->GetColor())
+			//	ImGui::Image(
+			//		Im::GetImGuiTextureID(fb->GetColor().get()),
+			//		ImVec2((float)Size.x, (float)Size.y),
+			//		ImVec2(0, 1),  // top-left UV
+			//		ImVec2(1, 0)   // bottom-right UV (flipped vertically)
+			//	);
 
-		DrawViewportGizmo(m_editorWorld->camEnt);
+			DrawViewportGizmo(m_editorWorld->camEnt);
+			});
 	}
 
 	void WorldViewPanel::DrawViewportGizmo(Entity camEntity)
@@ -71,7 +79,7 @@ namespace Twisted::Editor
 		model *= glm::mat4_cast(glm::quat(gizmoRot.w, gizmoRot.x, gizmoRot.y, gizmoRot.z));
 		model = glm::scale(model, glm::vec3(gizmoScale.x, gizmoScale.y, gizmoScale.z));
 
-		Mat4x4f projMat= glm::ortho(c.LeftEdge, c.RightEdge, c.BotEdge, c.TopEdge,c.NearPlane,c.FarPlane);
+		Mat4x4f projMat = glm::ortho(c.LeftEdge, c.RightEdge, c.BotEdge, c.TopEdge, c.NearPlane, c.FarPlane);
 		Mat4x4f camViewMat = glm::mat4_cast(glm::quat(t.LocalRot.w, t.LocalRot.x, t.LocalRot.y, t.LocalRot.z));
 		auto InverseCamRotmatrix = t.GetInvertRotationMatrix();
 

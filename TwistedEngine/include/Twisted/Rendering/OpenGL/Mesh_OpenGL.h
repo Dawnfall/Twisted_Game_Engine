@@ -6,27 +6,30 @@
 
 #include <glad/glad.h>
 
+namespace Twisted
+{
+	struct MeshBackend
+	{
+		GLuint Vao = 0;
+		GLuint Vbo = 0;
+		GLuint Ebo = 0;
+	};
+}
+
 namespace Twisted::GL
 {
-	class Mesh_OpenGL:public TObject
+
+	inline void BindMesh(GLuint vao)
 	{
-	public:
-
-		void ApplyBuffers(const PackedMeshData& packedData);
-		void Clear();
-		void Bind()const;
-		void UnBind()const;
-
-		MeshWindingOrder WindOrder = MeshWindingOrder::CLOCKWISE;
-		MeshDrawType DrawType = MeshDrawType::STATIC;
-
-		unsigned int Vao = 0;
-		unsigned int Vbo = 0;
-		unsigned int Ebo = 0;
-		size_t IndexCount = 0;
-
-	private:
-	};
+		glEnable(GL_CULL_FACE);
+		//glFrontFace(m_windOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
+		glCullFace(GL_BACK);
+		glBindVertexArray(vao);
+	}
+	inline void UnbindMesh()
+	{
+		glBindVertexArray(0);
+	}
 
 	[[nodiscard]] GLenum TWISTED_API MeshTypeToGL(MeshPrimitiveType type);
 
@@ -38,5 +41,6 @@ namespace Twisted::GL
 
 	void TWISTED_API SetMeshLayout(const PackedMeshData& packedData);
 
+	void Render(GLsizei indexCount);
 
 }

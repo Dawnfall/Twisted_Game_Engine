@@ -9,6 +9,10 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_win32.h>
 
+#ifndef TWISTED_D3D
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+#endif
+
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Im
@@ -469,4 +473,14 @@ namespace Im
 		return value != previous;
 	}
 }
+
+
+//for opengl
+ImTextureID GetImGuiTextureID(Twisted::Texture* tex)
+{
+	(void)tex;
+	return 0; //TODO
+	//return (ImGui::ImTextureID)tex->GetBackend()->TexID;
+}
+
 

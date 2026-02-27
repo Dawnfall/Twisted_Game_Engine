@@ -8,34 +8,31 @@
 #include <Utils/GlmUtils.h>
 #include "Utils/WPtr.h"
 
+namespace Twisted
+{
+	struct FramebufferBackend
+	{
+		GLuint Id = 0;
+	};
+}
 
 namespace Twisted::GL
 {
-	class FrameBuffer_OpenGL
+
+	inline void BindFramebuffer(GLuint fbID)
 	{
-	public:
-		FrameBuffer_OpenGL();
-		~FrameBuffer_OpenGL();
+		glBindFramebuffer(GL_FRAMEBUFFER, fbID);
+		//if (IsDirty)
+		//	Update();
+		//glViewport(0, 0, Size.x, Size.y);
+	}
 
-		bool IsValid()const
-		{
-			return Id != 0 && Tex && Tex->IsValid();
-		}
+	inline void UnbindFramebuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
-		void Bind();
-		void UnBind();
-
-		void Update();
-
-		unsigned int Id = 0;
-		unsigned int Rbo = 0;
-		Vec2i Size{ 0,0 };
-		bool IsDirty = true;
-		URef<Texture_OpenGL> Tex;
-	private:
-	};
-
-	void TWISTED_API Blit(FrameBuffer_OpenGL& framebuffer, unsigned int destID);
+	void TWISTED_API Blit(FramebufferBackend& framebuffer, GLuint destID);
 	void TWISTED_API ClearBuffer(const ClearParams& clearParams); //assumes bound buffer
 }
 

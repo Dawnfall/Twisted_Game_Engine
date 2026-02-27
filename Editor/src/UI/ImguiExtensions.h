@@ -10,6 +10,7 @@
 //#include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Entity.h"
 #include "Twisted/Windowing/Window.h"
+#include "Twisted/Rendering/Texture.h"
 #include "EditorConstants.h"
 
 #include "Twisted/AssetsLayer/AssetInfo.h"
@@ -104,6 +105,7 @@ namespace Im
 		}
 		return defaultValue;
 	}
+
 
 	bool DrawToggle(const char* label, bool& value);
 
@@ -232,7 +234,7 @@ namespace Im
 	}
 
 	template<typename T>
-	T* ObjectDropField(const std::string& label, T*& obj)
+	T* ObjectDropField(const std::string& label, T* obj)
 	{
 		static_assert(std::is_base_of_v<Twisted::TObject, T>, "T must derive from TObject");
 
@@ -240,32 +242,49 @@ namespace Im
 		ImGui::SameLine();
 
 		//drop area
-		std::string dropFieldText = obj ? obj->GetName() : "None";
-		dropFieldText += "##" + label;
-		ImGui::Button(dropFieldText.c_str(), ImVec2(150, 0)); // fixed-width dummy
-		auto objResult = Im::DragTarget<T*>(Twisted::Editor::Constants::OBJECT_DRAG_TYPE, nullptr);
+		std::string text = obj ? obj->GetName() : "None";
+		ImGui::PushID(label.c_str());
+		ImGui::Button(text.c_str(), ImVec2(150, 0)); // fixed-width dummy
 
-		if (objResult.first)
+		bool isChange = false;
+		if (!isChange)
 		{
-			obj = objResult.second;
+			auto [success, assetInfo] = Im::DragTarget<T*>(Twisted::Editor::Constants::OBJECT_DRAG_TYPE, nullptr);
+			if (success && assetInfo != obj)
+			{
+				obj = assetInfo;
+				isChange = true;
+			}
 		}
-		else
+		if (!isChange)
 		{
 			auto [success, assetInfo] = Im::DragTarget<Twisted::AssetInfo*>(Twisted::Editor::Constants::ASSET_DRAG_TYPE, nullptr);
 			if (success && assetInfo)
 			{
 				auto& objects = Twisted::AssetsService::GetInstance()->GetManagedAssetObjects(assetInfo);
-				if(!objects.empty())
+				if (!objects.empty())
+				{
 					obj = dynamic_cast<T*>(objects[0].GetObj());
+					isChange = true;
+				}
 			}
 		}
 
 		ImGui::SameLine();
 
-		auto [success, selectObj] = ObjectPicker<T>("Select an object", label);
-		if (success)
-			obj = selectObj;
-
+		if (!isChange)
+		{
+			auto [success, selectObj] = ObjectPicker<T>("Select an object", label);
+			if (success)
+			{
+				obj = selectObj;
+				isChange = true;
+			}
+		}
 		return obj;
 	}
+
+
+	//ImTextureID GetImGuiTextureID(Twisted::Texture* ) { return ImTextureID{}; }
+
 }

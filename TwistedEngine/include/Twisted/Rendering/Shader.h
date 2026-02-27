@@ -9,19 +9,31 @@
 
 namespace Twisted
 {
-	//class Shader_OpenGL;
-	class Material;
-
-	struct TWISTED_API Shader :public TObject
+	struct ShaderBackend;
+	class TWISTED_API Shader :public TObject
 	{
+	public:
 		Shader(const std::string& name);
+		~Shader();
 
-		void OnDestroy()override;
-		void ApplyUniforms(const Material* material);
+		void Clear();
 		void SetData(const ShaderData& data);
+		void OnDestroy()override;
 
+		void SetBool(bool val,size_t reflectionIndex);
+		void SetInt(int val, size_t reflectionIndex);
+		void SetFloat(float val, size_t reflectionIndex);
+		void SetVec3(const Vec3f& val, size_t reflectionIndex);
+		void SetVec4(const Vec4f& val, size_t reflectionIndex);
+		void SetMat4(const Mat4x4f& val, size_t reflectionIndex);
+		void SetTexture(const Texture* tex, size_t reflectionIndex);
+
+		//void ApplyUniforms(const std::vector<ActiveValueUniform>& activeUniforms);
+		const ShaderReflection& GetReflection()const;
+
+		ShaderBackend* GetBackend() { return m_backend; }
 	private:
-		//SRef<Shader_OpenGL> m_resource;
+		ShaderBackend* m_backend = nullptr;
 	};
 
 }

@@ -9,118 +9,144 @@
 namespace Twisted
 {
 	Texture::Texture(const std::string& name) :
-		TObject(name)
+		TObject(name),
+		m_backend(new TextureBackend())
 	{
 	}
+	Texture::~Texture()
+	{
+		delete m_backend;
+	}
 
-	//Texture::Texture(const std::string& name, const TextureParams& params) :
-	//	TObject(name),
-	//	//Params(params)
-	//{
-	//}
+	void Texture::SetData(const TextureData& data, TextureParams params)
+	{
+		Clear();
+		Params = params;
+
+		Info.Width = data.Width;
+		Info.Height = data.Height;
+		Info.Format = TextureFormat::RGBA8; // data.Channels;
+
+		Info.MipLevels = Params.DoMipMaps ? (uint32_t)GL::CalcMipCount2D(Info.Width, Info.Height) : 1;
+
+		// (Re)create texture object if needed
+		if (!m_backend->IsValid())
+		{
+			glCreateTextures(GL_TEXTURE_2D, 1, &m_backend->TexID);
+			Version++;
+		}
+
+		// Allocate immutable storage every time SetData is called.
+		// If you want to avoid reallocations on repeated uploads of same size/format, add cached fields and compare.
+		const GLenum internalFmt = GL::ToGLInternalFormat(Info.Format);
+		glTextureStorage2D(m_backend->TexID, (GLint)Info.MipLevels, internalFmt, Info.Width, Info.Height);
+		Version++; // storage was (re)allocated
+
+		// Apply sampler state (stored on the texture here)
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_WRAP_S, GL::WrapToGL(Params.Wrap));
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_WRAP_T, GL::WrapToGL(Params.Wrap));
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_MIN_FILTER, GL::MinFilterToGL(Params.MinFilter));
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_MAG_FILTER, GL::MagFilterToGL(Params.MagFilter));
+
+		// Upload base level
+		GLenum extFmt = GL_RGBA, extType = GL_UNSIGNED_BYTE;
+		GL::ToGLExternalFormatAndType(Info.Format, extFmt, extType);
+
+		// Optional: alignment (RGBA8 is usually fine with 4; set if you have tightly packed data)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		glTextureSubImage2D(
+			m_backend->TexID,
+			0,
+			0, 0,
+			Info.Width, Info.Height,
+			extFmt,
+			extType,
+			data.Data
+		);
+
+		if (Params.DoMipMaps && Info.MipLevels > 1)
+			glGenerateTextureMipmap(m_backend->TexID);
+	}
+
+
+	void Texture::Resize(const Vec2i& newSize)
+	{
+		if (newSize.x <= 0 || newSize.y <= 0)
+			return; // dont allow zero or negative sizes
+
+		if (Info.Width == newSize.x && Info.Height == newSize.y && m_backend->IsValid())
+			return; // already correct size
+
+		glDeleteTextures(1, &m_backend->TexID);
+		m_backend->TexID = 0;
+
+		Info.Width = newSize.x;
+		Info.Height = newSize.y;
+
+		Info.MipLevels = Params.DoMipMaps ? (uint32_t)GL::CalcMipCount2D(Info.Width, Info.Height) : 1;
+
+		if (!m_backend->IsValid())
+		{
+			glCreateTextures(GL_TEXTURE_2D, 1, &m_backend->TexID);
+			++Version;
+		}
+
+		// Allocate immutable storage every time SetData is called.
+		// If you want to avoid reallocations on repeated uploads of same size/format, add cached fields and compare.
+		const GLenum internalFmt = GL::ToGLInternalFormat(Info.Format);
+		glTextureStorage2D(m_backend->TexID, (GLint)Info.MipLevels, internalFmt, Info.Width, Info.Height);
+		Version++; // storage was (re)allocated
+
+		// Apply sampler state (stored on the texture here)
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_WRAP_S, GL::WrapToGL(Params.Wrap));
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_WRAP_T, GL::WrapToGL(Params.Wrap));
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_MIN_FILTER, GL::MinFilterToGL(Params.MinFilter));
+		glTextureParameteri(m_backend->TexID, GL_TEXTURE_MAG_FILTER, GL::MagFilterToGL(Params.MagFilter));
+
+		// Upload base level
+		GLenum extFmt = GL_RGBA;
+		GLenum extType = GL_UNSIGNED_BYTE;
+		GL::ToGLExternalFormatAndType(Info.Format, extFmt, extType);
+
+		// Optional: alignment (RGBA8 is usually fine with 4; set if you have tightly packed data)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		if (Params.DoMipMaps && Info.MipLevels > 1)
+			glGenerateTextureMipmap(m_backend->TexID);
+	}
+
+	void Texture::Clear()
+	{
+		if (!m_backend->IsValid())
+			return;
+
+		glDeleteTextures(1, &m_backend->TexID);
+		m_backend->TexID = 0;
+		Info.Width = Info.Height = 0;
+		Info.MipLevels = 0;
+		Version++;
+	}
 
 	void Texture::OnDestroy()
 	{
-		//Clear();
-	}
-
-	void Texture::SetData(const TextureData& data)
-	{
-		(void)data;
-
-		/*tex.Clear();
-
-		tex.Width = data.Width;
-		tex.Height = data.Height;
-		tex.Channels = data.Channels;
-
-		glGenTextures(1, &tex.TexID);
-		glBindTexture(GL_TEXTURE_2D, tex.TexID);
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA8,
-			tex.Width,
-			tex.Height,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			data.Data);
-
-		GL::ApplyParams(tex.Params);
-
-		glBindTexture(GL_TEXTURE_2D, 0);*/
-
-		//currently input must always be RGBA;4 channels
+		Clear();
 	}
 }
 
 
 namespace Twisted::GL
 {
-
-
-
-
-
-	void Texture_OpenGL::Bind(unsigned int slot)
+	void Bind(GLuint texID,GLenum slot)
 	{
 		glActiveTexture(GL_TEXTURE0 + slot);
-		glBindTexture(GL_TEXTURE_2D, TexID);
+		glBindTexture(GL_TEXTURE_2D, texID);
 	}
 
-
-	void Texture_OpenGL::UnBind()
+	void UnBind()
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-
-	void Texture_OpenGL::Clear()
-	{
-		if (!IsValid())
-			return;
-
-		glDeleteTextures(1, &TexID);
-		TexID = 0;
-		Width = Height = Channels = 0;
-	}
-
-	void Texture_OpenGL::Resize(const Vec2i& newSize)
-	{
-		if (newSize.x <= 0 || newSize.y <= 0)
-			return; // dont allow zero or negative sizes
-
-		if (Width == newSize.x && Height == newSize.y && IsValid())
-			return; // already correct size
-
-		Width = newSize.x;
-		Height = newSize.y;
-
-		if (!IsValid())
-		{
-			glGenTextures(1, &TexID);
-		}
-
-		UnBind();//TODO...
-
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0, //mipamap
-			GL_RGBA, //format
-			Width,
-			Height,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			nullptr
-		);
-
-		GL::ApplyParams(Params);
-
-		UnBind();
-	}
-
-
 
 	GLenum WrapToGL(TextureWrap wrap)
 	{
@@ -176,66 +202,109 @@ namespace Twisted::GL
 		}
 	}
 
-
-
-	void SetMagFilter(Texture_OpenGL tex, TextureMagFilter magFilter)
+	GLenum ToGLInternalFormat(TextureFormat fmt)
 	{
-		if (tex.Params.MagFilter == magFilter)
-			return;
-
-		tex.Params.MagFilter = magFilter;
-
-		if (!tex.IsValid())
-			return;
-
-		tex.UnBind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL::MagFilterToGL(tex.Params.MagFilter));
-		tex.UnBind();
+		switch (fmt)
+		{
+		case TextureFormat::RGBA8:   return GL_RGBA8;
+		case TextureFormat::RGBA16F: return GL_RGBA16F;
+		case TextureFormat::RGBA32F: return GL_RGBA32F;
+			// add depth formats etc when you need them
+		default: return GL_RGBA8;
+		}
 	}
 
-	void SetParams(Texture_OpenGL& tex, const TextureParams& params)
+	void ToGLExternalFormatAndType(TextureFormat fmt, GLenum& outFormat, GLenum& outType)
 	{
-		tex.Params = params;
-
-		if (!tex.IsValid())
+		// For uploads. Extend for other formats as needed.
+		switch (fmt)
+		{
+		case TextureFormat::RGBA8:
+			outFormat = GL_RGBA;
+			outType = GL_UNSIGNED_BYTE;
 			return;
-
-		tex.UnBind();
-		GL::ApplyParams(tex.Params);
-		tex.UnBind();
+		case TextureFormat::RGBA16F:
+			outFormat = GL_RGBA;
+			outType = GL_HALF_FLOAT;
+			return;
+		case TextureFormat::RGBA32F:
+			outFormat = GL_RGBA;
+			outType = GL_FLOAT;
+			return;
+		default:
+			outFormat = GL_RGBA;
+			outType = GL_UNSIGNED_BYTE;
+			return;
+		}
 	}
 
-	void SetMinFilter(Texture_OpenGL& tex, TextureMinFilter minFilter)
+	int CalcMipCount2D(int w, int h)
 	{
-		if (tex.Params.MinFilter == minFilter)
-			return;
-
-		tex.Params.MinFilter = minFilter;
-
-		if (!tex.IsValid())
-			return;
-
-		tex.UnBind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL::MinFilterToGL(tex.Params.MinFilter));
-		if (tex.Params.DoMipMaps)
-			glGenerateMipmap(GL_TEXTURE_2D);
-		tex.UnBind();
+		int m = std::max(w, h);
+		int levels = 1;
+		while (m > 1) 
+		{ m >>= 1; ++levels; }
+		return levels;
 	}
 
-	void SetWrapType(Texture_OpenGL& tex, TextureWrap wrapType)
+	void SetMagFilter(GLuint tex, TextureMagFilter& magFilter)
 	{
-		if (tex.Params.Wrap == wrapType)
-			return;
+		//if (tex.Params.MagFilter == magFilter)
+		//	return;
 
-		tex.Params.Wrap = wrapType;
+		//tex.Params.MagFilter = magFilter;
 
-		if (!tex.IsValid())
-			return;
+		//if (!tex.IsValid())
+		//	return;
 
-		tex.UnBind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL::WrapToGL(tex.Params.Wrap));
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL::WrapToGL(tex.Params.Wrap));
-		tex.UnBind();
+		//tex.UnBind();
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL::MagFilterToGL(tex.Params.MagFilter));
+		//tex.UnBind();
+	}
+
+	void SetParams(GLuint tex, const TextureParams& params)
+	{
+		//tex.Params = params;
+
+		//if (!tex.IsValid())
+		//	return;
+
+		//tex.UnBind();
+		//GL::ApplyParams(tex.Params);
+		//tex.UnBind();
+	}
+
+	void SetMinFilter(GLuint tex, TextureMinFilter minFilter)
+	{
+		//if (tex.Params.MinFilter == minFilter)
+		//	return;
+
+		//tex.Params.MinFilter = minFilter;
+
+		//if (!tex.IsValid())
+		//	return;
+
+		//tex.UnBind();
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL::MinFilterToGL(tex.Params.MinFilter));
+		//if (tex.Params.DoMipMaps)
+		//	glGenerateMipmap(GL_TEXTURE_2D);
+		//tex.UnBind();
+	}
+
+	void SetWrapType(GLuint tex, TextureWrap wrapType)
+	{
+		//if (tex.Params.Wrap == wrapType)
+		//	return;
+
+		//tex.Params.Wrap = wrapType;
+
+		//if (!tex.IsValid())
+		//	return;
+
+		//tex.UnBind();
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL::WrapToGL(tex.Params.Wrap));
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL::WrapToGL(tex.Params.Wrap));
+		//tex.UnBind();
 	}
 
 	void ApplyParams(const TextureParams& params) //assumes bound and valid

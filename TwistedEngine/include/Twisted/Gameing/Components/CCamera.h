@@ -55,12 +55,12 @@ namespace Twisted
 
 		bool IsMainCamera()const
 		{
-			return CamManager->MainCamera == GetID();
+			return CamManager->GetMainCamera() == this;
 		}
 
-		void SetAsMainCamera(bool isMain)
+		void SetAsMainCamera()
 		{
-			CamManager->MainCamera = (isMain) ? GetID() : NullEntity;
+			CamManager->SetAsMainCamera(this);
 		}
 
 		Mat4x4f GetViewMatrix()const
@@ -105,21 +105,22 @@ namespace Twisted
 		float TopEdge = 1.0f;
 
 		ClearParams clearParams;
-		WPtr<FrameBuffer> Fb = nullptr;
+		WPtr<Framebuffer> Fb = nullptr;
 		CameraManager* CamManager = nullptr;
 	};
 
 	template<>
 	inline void OnCreateComponent(CameraComponent& camera)
 	{
-		if (camera.CamManager->MainCamera == NullEntity)
-			camera.SetAsMainCamera(true);
+		if (!camera.CamManager->GetMainCamera())
+			camera.SetAsMainCamera();
 	}
 
 	template<>
 	inline void OnDestroyComponent<CameraComponent>(CameraComponent& camera)
 	{
-		camera.SetAsMainCamera(false);
+		if (camera.IsMainCamera())
+			camera.CamManager->SetAsMainCamera(nullptr);
 	}
 
 	template<>

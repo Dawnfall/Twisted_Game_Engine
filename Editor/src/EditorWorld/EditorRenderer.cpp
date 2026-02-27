@@ -12,15 +12,31 @@
 
 namespace Twisted::Editor
 {
-	std::vector<CameraData> EditorRenderer::CollectCameraData(World& editorWorld, World& gameWorld)const
+	void EditorRenderer::Render(World& editorWorld, World& gameWorld)const
 	{
-		(void)gameWorld;
+		RenderContext context = ExtractContext(editorWorld, gameWorld);
+		//Twisted::ForwardRender(context);
+	}
+
+	RenderContext EditorRenderer::ExtractContext(World& editorWorld, World& gameWorld)const
+	{
+		RenderContext context{};
+
+		context.camDatas = CollectCameraData(editorWorld, gameWorld);
+		context.modelDatas = CollectModelData(editorWorld, gameWorld);
+		context.lightData = CollectLightData(editorWorld, gameWorld);
+
+		return context;
+	}
+
+	std::vector<CameraData> EditorRenderer::CollectCameraData(World& editorWorld, World&)const
+	{
 		std::vector<CameraData> camData;
 
 		auto camera = editorWorld.FindFirstOfType<CameraComponent>();
 
 		CameraData data{};
-		data.framebuffer = EditorFrameBuffer;
+		data.framebuffer = camera->Fb.get();
 		data.viewMatrix = camera->GetViewMatrix();
 		data.projectionMatrix = camera->GetProjectionMatrix();
 		data.clearParams = camera->clearParams;
@@ -31,10 +47,8 @@ namespace Twisted::Editor
 		return camData;
 	}
 
-	std::vector<ModelData> EditorRenderer::CollectModelData(World& editorWorld, World& gameWorld)const
+	std::vector<ModelData> EditorRenderer::CollectModelData(World&, World& gameWorld)const
 	{
-		(void)editorWorld;
-
 		std::vector<ModelData> modelData;
 
 		auto renderers = gameWorld.GetGroup<RendererComponent, TransformComponent>();
@@ -45,7 +59,7 @@ namespace Twisted::Editor
 			data.material = r.material;
 			data.mesh = r.mesh;
 
-			if (!data.material || !data.mesh || !data.material->Shad)
+			if (!data.material || !data.mesh || !data.material->GetShader())
 				continue;
 
 			data.modelMatrix = t.GetWorldModelMatrix();
@@ -55,10 +69,8 @@ namespace Twisted::Editor
 		return modelData;
 	}
 
-	LightData EditorRenderer::CollectLightData(World& editorWorld, World& gameWorld)const
+	LightData EditorRenderer::CollectLightData(World&, World& gameWorld)const
 	{
-		(void)editorWorld;
-
 		LightData lightData;
 
 		auto dirLights = gameWorld.GetGroup<DirectionalLightComponent, TransformComponent>();
