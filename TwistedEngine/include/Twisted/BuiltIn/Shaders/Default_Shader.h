@@ -39,7 +39,7 @@ namespace Twisted::Collections
 		defaultShaderData.FragShader = Collections::defaultFragmentShader;
 		defaultShader->SetData(defaultShaderData);
 
-		AssetsService::GetInstance()->AddBuiltIn(Collections::defaultShaderUUID, defaultShader);
+		Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::defaultShaderUUID, defaultShader);
 
 	}
 }

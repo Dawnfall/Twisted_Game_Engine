@@ -4,13 +4,15 @@
 
 namespace Twisted
 {
-	void Input::UpdateKey(Twisted::Key key, bool isDown)
+	void Input::UpdateKey(Twisted::Key key, Twisted::KeyState state)
 	{
 		if (key == Key::Invalid)
 			return;
+		if (state == KeyState::INVALID)
+			return;
 
 		size_t idx = static_cast<size_t>(key);
-		if (isDown)
+		if (state == KeyState::PRESSED)
 		{
 			if (!m_pressedKeys.test(idx))
 				m_justPressedKeys.set(idx);
@@ -23,13 +25,13 @@ namespace Twisted
 			m_pressedKeys.reset(idx);
 		}
 	}
-	void Input::UpdateMouseButton(Twisted::MouseButton button, bool isDown)
+	void Input::UpdateMouseButton(Twisted::MouseButton button, Twisted::KeyState state)
 	{
 		if (button == MouseButton::Invalid)
 			return;
 
 		const uint16_t mask = 1 << static_cast<uint8_t>(button);
-		if (isDown)
+		if (state == KeyState::PRESSED)
 		{
 			if ((m_pressedButtons & mask) == 0) // first frame pressed
 				m_justPressedButtons |= mask;
@@ -50,6 +52,12 @@ namespace Twisted
 		m_mousePos.x = x;
 		m_mousePos.y = y;
 	}
+
+	void Input::UpdateMouseWheel(float delta)
+	{
+		m_wheelDelta = delta;
+	}
+
 
 }
 

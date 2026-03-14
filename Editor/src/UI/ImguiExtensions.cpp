@@ -3,16 +3,14 @@
 #include "Debug/Logger.h"
 #include "EditorConstants.h"
 
-#ifndef GLFW_INCLUDE_NONE
-
 #include <Windows.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_win32.h>
 
-#ifndef TWISTED_D3D
-#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
-#endif
+#include <imgui.h>
+#include <imgui_internal.h>
 
+#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Im
@@ -28,18 +26,22 @@ namespace Im
 		ImGui_ImplOpenGL3_Init("#version 460"); // You can use another version string depending on your context
 
 		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
 		io.IniFilename = Twisted::Editor::Constants::IMGUI_INI_PATH.string().c_str();
 
-		Im::SetFlags();
-		Im::SetStyle();
+		//Im::SetFlags();
+		//Im::SetStyle();
 
-		window->PollMsgEvent.AddListener([](void* rawMsg) {
-			MSG* msg = static_cast<MSG*>(rawMsg);
-			ImGui_ImplWin32_WndProcHandler(msg->hwnd, msg->message, msg->wParam, msg->lParam);
-			});
+		//window->PollMsgEvent.AddListener([](void* rawMsg) {
+		//	MSG* msg = static_cast<MSG*>(rawMsg);
+		//	ImGui_ImplWin32_WndProcHandler(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+		//	});
 
 		ImGui::GetIO().IniFilename = nullptr;
+
+		ImGui::StyleColorsDark();
+
 	}
 
 	void StartFrame()
@@ -48,7 +50,7 @@ namespace Im
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		ImGuizmo::BeginFrame();
+		//ImGuizmo::BeginFrame();
 	}
 
 	void Terminate()
@@ -59,59 +61,57 @@ namespace Im
 	}
 }
 
-#else
-
-#include <GLFW/glfw3.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_glfw.h>
-#include <imgui.h>
-#include <imgui_internal.h>
-#include <filesystem>
-#include "Twisted/Windowing/Window.h"
-#include <string.h>
-#include <cfloat>
-#include <cmath>
-#include <string>
-#include <vector>
-
-namespace Im
-{
-	void Init(Twisted::Window* window)
-	{
-		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
-		{
-			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
-		}
-
-		//Setup Dear ImGui context
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(window->GetRawPointer()), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
-		ImGui_ImplOpenGL3_Init();
-
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
-		io.IniFilename = Twisted::Editor::Constants::IMGUI_INI_PATH.string().c_str();
-
-		ImGui::StyleColorsDark();
-	}
-
-	void StartFrame()
-	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void Terminate()
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-}
-#endif
+//
+//#include <GLFW/glfw3.h>
+//#include <backends/imgui_impl_opengl3.h>
+//#include <backends/imgui_impl_glfw.h>
+//#include <imgui.h>
+//#include <imgui_internal.h>
+//#include <filesystem>
+//#include "Twisted/Windowing/Window.h"
+//#include <string.h>
+//#include <cfloat>
+//#include <cmath>
+//#include <string>
+//#include <vector>
+//
+//namespace Im
+//{
+//	void Init(Twisted::Window* window)
+//	{
+//		if (!glfwInit()) //due to globals and dlls glfw is not initialized outside of dll
+//		{
+//			TWISTED_ERROR("GLFW init failure; RenderCore Init failure!"); //TODO: editor output
+//		}
+//
+//		//Setup Dear ImGui context
+//		IMGUI_CHECKVERSION();
+//		ImGui::CreateContext();
+//		ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(window->GetRawPointer()), true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+//		ImGui_ImplOpenGL3_Init();
+//
+//		ImGuiIO& io = ImGui::GetIO();
+//		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+//		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
+//		io.IniFilename = Twisted::Editor::Constants::IMGUI_INI_PATH.string().c_str();
+//
+//		ImGui::StyleColorsDark();
+//	}
+//
+//	void StartFrame()
+//	{
+//		ImGui_ImplOpenGL3_NewFrame();
+//		ImGui_ImplGlfw_NewFrame();
+//		ImGui::NewFrame();
+//	}
+//
+//	void Terminate()
+//	{
+//		ImGui_ImplOpenGL3_Shutdown();
+//		ImGui_ImplGlfw_Shutdown();
+//		ImGui::DestroyContext();
+//	}
+//}
 
 
 namespace Im

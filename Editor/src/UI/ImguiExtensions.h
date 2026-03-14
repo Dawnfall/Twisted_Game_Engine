@@ -6,8 +6,8 @@
 #include "imgui_internal.h"
 
 //#include "Twisted/Gameing/AComponent.h"
-#include "Twisted/TObject.h"
 //#include "Twisted/Gameing/World.h"
+#include "Twisted/TObject.h"
 #include "Twisted/Gameing/Entity.h"
 #include "Twisted/Windowing/Window.h"
 #include "Twisted/Rendering/Texture.h"
@@ -15,11 +15,11 @@
 
 #include "Twisted/AssetsLayer/AssetInfo.h"
 #include "Twisted/AssetsLayer/AssetsService.h"
-
-#include <filesystem>
+#include "Twisted/Application/Application.h"
 //#include <algorithm>
-#include <string>
 //#include <vector>
+#include <filesystem>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include "Twisted/Gameing/AComponent.h"
@@ -147,7 +147,7 @@ namespace Im
 			ImGui::Text(label.c_str());
 			ImGui::Separator();
 
-			std::vector<T*> objects = Twisted::AssetsService::GetInstance()->GetObjectsOfType<T>();
+			std::vector<T*> objects =Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetObjectsOfType<T>();
 			for (T* assetObject : objects)
 			{
 				if (ImGui::Selectable(assetObject->GetName().c_str()))
@@ -261,7 +261,7 @@ namespace Im
 			auto [success, assetInfo] = Im::DragTarget<Twisted::AssetInfo*>(Twisted::Editor::Constants::ASSET_DRAG_TYPE, nullptr);
 			if (success && assetInfo)
 			{
-				auto& objects = Twisted::AssetsService::GetInstance()->GetManagedAssetObjects(assetInfo);
+				auto& objects = Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetManagedAssetObjects(assetInfo);
 				if (!objects.empty())
 				{
 					obj = dynamic_cast<T*>(objects[0].GetObj());

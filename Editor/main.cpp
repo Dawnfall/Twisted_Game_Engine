@@ -13,18 +13,18 @@
 
 int main()
 {
-	Twisted::Application editorApplication;
-	editorApplication.AddService<Twisted::Editor::EditorWorldService>();
-	editorApplication.AddService<Twisted::GameService>();
-	editorApplication.AddService<Twisted::WindowsService>();
-	editorApplication.AddService<Twisted::Editor::UIService>();
-	editorApplication.AddService<Twisted::AssetsService>();
-	editorApplication.AddService<Twisted::RenderService>();
+	auto& app = Twisted::Application::GetInstance();
+	app.AddService<Twisted::Editor::EditorWorldService>();
+	app.AddService<Twisted::GameService>();
+	app.AddService<Twisted::WindowsService>();
+	app.AddService<Twisted::Editor::UIService>();
+	app.AddService<Twisted::AssetsService>();
+	app.AddService<Twisted::RenderService>();
 
-	editorApplication.AddProcessor<Twisted::GameProcessor>();
-	editorApplication.AddProcessor<Twisted::Editor::EditorProcessor>();
+	app.AddProcessor<Twisted::GameProcessor>();
+	app.AddProcessor<Twisted::Editor::EditorProcessor>();
 
-	editorApplication.Run();
+	app.Run();
 
 	return 0;
 }

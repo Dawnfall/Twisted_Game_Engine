@@ -87,7 +87,7 @@ namespace Twisted::Collections
         Mesh* sphereMesh = TObject::Create<Mesh>(Collections::sphericalSphereMeshName);
         sphereMesh->SetData(Collections::CreateSphericalSpherePackedData(), MeshDrawType::STATIC);
 
-        AssetsService::GetInstance()->AddBuiltIn(Collections::quadMeshUUID, sphereMesh);
+        Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::quadMeshUUID, sphereMesh);
     }
 }
 

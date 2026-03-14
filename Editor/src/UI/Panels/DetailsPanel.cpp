@@ -37,7 +37,7 @@ namespace Twisted::Editor
 			auto& selectedPaths = selection.GetSelectedPaths();
 			if (selectedPaths.size() >= 1)
 			{
-				AssetsService* assetsLayer = AssetsService::GetInstance();
+				auto assetsLayer = Application::GetInstance().GetService<AssetsService>();
 				auto info = assetsLayer->GetInfo(*selectedPaths.begin());
 				auto& objects = assetsLayer->GetManagedAssetObjects(info);
 

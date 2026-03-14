@@ -26,12 +26,7 @@ namespace Twisted
 	class TWISTED_API AssetsService :public Service
 	{
 	public:
-		AssetsService(Application* app) :Service(app) { s_instance = this; }
-
-		inline static AssetsService* GetInstance()
-		{
-			return s_instance;
-		}
+		AssetsService(Application* app) :Service(app) {}
 
 		AssetInfo* GetInfo(const fs::path& assetPath)const;
 		AssetInfo* GetInfo(const AssetUuid& uuid)const;
@@ -88,8 +83,6 @@ namespace Twisted
 		std::unordered_map<fs::path, SRef<AssetInfo>> m_assetsByPath;
 		std::unordered_map<AssetUuid, SRef<AssetInfo>> m_assetsByUuid;
 		std::unordered_map<AssetUuid, std::vector<WPtrBase>> m_assetObjects;
-
-		inline static AssetsService* s_instance = nullptr;
 
 	private:
 		Project m_project;

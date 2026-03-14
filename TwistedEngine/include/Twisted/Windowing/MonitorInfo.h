@@ -15,7 +15,7 @@ namespace Twisted
 		Vec2i GetMonitorSize()const;
 		Vec2i GetMonitorPos();
 		std::string GetWindowName();
-		Vec2i GetResolution();
+		Vec2i GetResolution()const;
 		int GetRefreshRate();
 
 		static std::vector<MonitorInfo> GetAllMonitors();

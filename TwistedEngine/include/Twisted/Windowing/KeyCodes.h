@@ -5,6 +5,13 @@
 
 namespace Twisted
 {
+	enum class TWISTED_API KeyState :uint8_t
+	{
+		PRESSED,
+		RELEASED,
+		INVALID
+	};
+
 	enum class TWISTED_API Key : uint16_t
 	{
 		Space,

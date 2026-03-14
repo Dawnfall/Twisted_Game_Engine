@@ -9,7 +9,7 @@
 #include "Twisted/AssetsLayer/AssetInfo.h"
 #include "EditorApp/EditorRegistry.h"
 #include "Twisted/AssetsLayer/AssetsService.h"
-
+#include "Twisted/Application/Application.h"
 #include <imgui.h>
 
 namespace Twisted::Editor
@@ -60,7 +60,7 @@ namespace Twisted::Editor
 
 		if (ImGui::Button("Save"))
 		{
-			auto assetsLayer = AssetsService::GetInstance();
+			auto assetsLayer = Application::GetInstance().GetService<AssetsService>();
 			AssetInfo* asset = assetsLayer->GetObjectAssetInfo(material);
 			assetsLayer->SaveAssetManaged(dynamic_cast<FileAssetInfo*>(asset));
 		}

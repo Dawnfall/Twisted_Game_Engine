@@ -44,7 +44,7 @@ namespace Twisted::Collections
 		Mesh* quadMesh = TObject::Create<Mesh>(Collections::quadMeshName);
 		quadMesh->SetData(Collections::CreateQuadPackedData(), MeshDrawType::STATIC);
 
-		AssetsService::GetInstance()->AddBuiltIn(Collections::quadMeshUUID, quadMesh);
+		Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::quadMeshUUID, quadMesh);
 
 	}
 }

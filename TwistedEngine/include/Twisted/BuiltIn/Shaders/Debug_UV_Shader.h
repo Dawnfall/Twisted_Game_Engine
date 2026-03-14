@@ -55,7 +55,7 @@ namespace Twisted::Collections
 		debugUVsShaderData.FragShader = Collections::debugUVsFragmentShader;
 		debugUVsShader->SetData(debugUVsShaderData);
 
-		AssetsService::GetInstance()->AddBuiltIn(Collections::debugUVsShaderUUID, debugUVsShader);
+		Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::debugUVsShaderUUID, debugUVsShader);
 
 	}
 }

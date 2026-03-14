@@ -43,25 +43,26 @@ namespace Twisted
 
 		const Vec2f& GetMousePosition()const { return m_mousePos; }
 		const Vec2f& GetMouseDelta()const { return m_mouseDelta; }
+		float GetMouseWheelDelta()const { return m_wheelDelta; }
 
-
-		void UpdateKey(Twisted::Key key, bool isDown);
-		void UpdateMouseButton(Twisted::MouseButton button, bool isDown);
+		void UpdateKey(Key key, KeyState state);
+		void UpdateMouseButton(MouseButton button, KeyState state);
 		void UpdateMousePosition(float x, float y);
+		void UpdateMouseWheel(float delta);
 	private:
 
 		void ResetInput()
 		{
 			m_justPressedButtons = 0;
 			m_justReleasedButtons = 0;
+			m_wheelDelta = 0;
 
 			m_justPressedKeys.reset();
 			m_justReleasedKeys.reset();
 		}
 
-
-
 	private:
+
 		uint16_t m_pressedButtons = 0;
 		uint16_t m_justPressedButtons = 0;
 		uint16_t m_justReleasedButtons = 0;
@@ -71,10 +72,11 @@ namespace Twisted
 		std::bitset<static_cast<size_t>(Key::Count)> m_justReleasedKeys{};
 
 		Vec2f m_mousePos = Constants::Vec2Zero;
-		Vec2f m_mouseDelta= Constants::Vec2Zero;
+		Vec2f m_mouseDelta = Constants::Vec2Zero;
+		float m_wheelDelta = 0;
 
 	private:
-		Input() :m_mousePos(Constants::Vec2Zero),m_mouseDelta(Constants::Vec2Zero) {}
+		Input() :m_mousePos(Constants::Vec2Zero), m_mouseDelta(Constants::Vec2Zero) {}
 
 	public:
 		Input(const Input& other) = delete;

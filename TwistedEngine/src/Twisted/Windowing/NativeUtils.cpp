@@ -1,5 +1,6 @@
 ﻿#include "Twisted/Windowing/NativeUtils.h"
 #include "Twisted/Windowing/Window.h"
+#include "Twisted/Windowing/WIN32/Window_Win32.h"
 
 #include <cstdlib>
 #include <Windows.h>
@@ -38,7 +39,7 @@ namespace Twisted::Native
                     pFileDialog->SetFileTypeIndex(1);
                 }
 
-                HWND hwnd = static_cast<HWND>(window.GetNativeHandle());
+                HWND hwnd = static_cast<HWND>(window.GetBackend()->hwnd);
                 if (SUCCEEDED(pFileDialog->Show(hwnd)))
                 {
                     IShellItem* pItem = nullptr;
@@ -83,7 +84,7 @@ namespace Twisted::Native
                 pFileDialog->GetOptions(&options);
                 pFileDialog->SetOptions(options | FOS_PICKFOLDERS | FOS_PATHMUSTEXIST);
 
-                HWND hwnd = static_cast<HWND>(window.GetNativeHandle());
+                HWND hwnd = window.GetBackend()->hwnd;
                 if (SUCCEEDED(pFileDialog->Show(hwnd)))
                 {
                     IShellItem* pItem = nullptr;
@@ -133,7 +134,7 @@ namespace Twisted::Native
                     pFileDialog->SetFileTypeIndex(1);
                 }
 
-                HWND hwnd = static_cast<HWND>(window.GetNativeHandle());
+                HWND hwnd = window.GetBackend()->hwnd;
                 if (SUCCEEDED(pFileDialog->Show(hwnd)))
                 {
                     IShellItem* pItem = nullptr;
@@ -165,7 +166,7 @@ namespace Twisted::Native
     bool ShowConfirmDialog(Window& window, const std::wstring& message, const std::wstring& title)
     {
         int result = MessageBoxW(
-            static_cast<HWND>(window.GetNativeHandle()),
+            static_cast<HWND>(window.GetBackend()->hwnd),
             message.c_str(),
             title.c_str(),
             MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2

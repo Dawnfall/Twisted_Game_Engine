@@ -98,7 +98,7 @@ namespace Twisted::Editor
 
 	void AssetsPanel::Init()
 	{
-		AssetsService::GetInstance()->GetProject().ProjectChangeEvent.AddListener([this](const Project& project) {
+		Twisted::Application::GetInstance().GetService<AssetsService>()->GetProject().ProjectChangeEvent.AddListener([this](const Project& project) {
 			currentDir = project.GetAssetsFolder();
 			});
 		EditorWorldService::GetInstance()->MakeNewFileEvent.AddListener([this](fs::path defaultName) {
@@ -118,7 +118,7 @@ namespace Twisted::Editor
 
 		// LEFT PANEL: Folder Tree
 		ImGui::BeginChild("LeftPanel", ImVec2(leftPanelWidth, panelHeight), true);
-		PaintTreePart(AssetsService::GetInstance()->GetProject().GetRootPath());
+		PaintTreePart(Application::GetInstance().GetService<AssetsService>()->GetProject().GetRootPath());
 		ImGui::EndChild();
 
 		ImGui::SameLine();
@@ -180,7 +180,7 @@ namespace Twisted::Editor
 		bool justSelected = false;
 		fs::path filename = assetPath.filename();
 
-		AssetsService* assetsLayer = AssetsService::GetInstance();
+		AssetsService* assetsLayer = Application::GetInstance().GetService<AssetsService>();
 		AssetInfo* info = assetsLayer->GetInfo(assetPath);
 		auto& objects = assetsLayer->GetManagedAssetObjects(info);
 
@@ -223,7 +223,7 @@ namespace Twisted::Editor
 				std::filesystem::path path = currentDir / (m_newFileName->Text + m_newFileName->PostLabel);
 				if (!path.empty() && path.has_filename() && !std::filesystem::exists(path))
 				{
-					AssetsService::GetInstance()->CreateNewAsset(path);
+					Application::GetInstance().GetService<AssetsService>()->CreateNewAsset(path);
 				}
 				m_newFileName = std::nullopt;
 			}

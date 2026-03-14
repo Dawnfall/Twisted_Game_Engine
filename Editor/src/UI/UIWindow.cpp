@@ -87,32 +87,32 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New World"))
 				{
-					GameService::GetInstance()->CreateEmptyWorld();
+					Application::GetInstance().GetService<GameService>()->CreateEmptyWorld();
 				}
 				if (ImGui::MenuItem("Open World"))
 				{
 					if (fs::path path = Native::OpenFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
 					{
-						auto objects = AssetsService::GetInstance()->ImportAssetDirect(path);
+						auto objects = Application::GetInstance().GetService<AssetsService>()->ImportAssetDirect(path);
 						if (objects.size() == 1)
 						{
 							World* world = dynamic_cast<World*>(objects[0].GetObj());
 							if (world)
-								GameService::GetInstance()->SetGameWorld(*world);
+								Application::GetInstance().GetService<GameService>()->SetGameWorld(*world);
 						}
 					}
 
 				}
 				if (ImGui::MenuItem("Save World As"))
 				{
-					World* gameWorld = GameService::GetInstance()->GameWorld;
+					World* gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld;
 					if (gameWorld)
 					{
 						if (std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
 						{
 							path = path.replace_extension(".world");
 							std::vector<WPtrBase> assetObjects = { WPtr<World>(gameWorld) };
-							AssetsService::GetInstance()->SaveAssetDirect(path, {assetObjects});
+							Application::GetInstance().GetService<AssetsService>()->SaveAssetDirect(path, {assetObjects});
 						}
 					}
 				}
@@ -174,7 +174,7 @@ namespace Twisted::Editor
 
 		ImGui::End();
 
-		if (AssetsService::GetInstance()->GetProject().GetRootPath() != "")
+		if (Application::GetInstance().GetService<AssetsService>()->GetProject().GetRootPath() != "")
 		{
 			for (auto& panel : EditorRegistry::GetInstance().m_panels)
 			{
@@ -211,7 +211,7 @@ namespace Twisted::Editor
 			path = path.parent_path();
 
 		EditorWorldService* editorLayer = EditorWorldService::GetInstance();
-		if (AssetsService::GetInstance()->GetProject().SetProject(path))
+		if (Application::GetInstance().GetService<AssetsService>()->GetProject().SetProject(path))
 			editorLayer->GetLoadupConfig().AddLatest(path.string());
 		else
 			editorLayer->GetLoadupConfig().RemoveEntry(path.string());

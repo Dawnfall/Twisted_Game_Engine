@@ -49,11 +49,11 @@ namespace Twisted::Editor
 
 	void EditorProcessor::OnFrameBegin()
 	{
+		m_windowsService->PollEvents();
 		if (m_windowsService->GetWindow())
 		{
 			Color clearColor{}; //TODO... move this
-			m_windowsService->GetWindow()->GetContext()->Clear(clearColor);
-			Windowing::PollEvents(*m_windowsService->GetWindow());
+			//m_windowsService->GetWindow()->Clear(clearColor);
 		}
 
 		m_editorService->GetInput().Update();
@@ -71,7 +71,7 @@ namespace Twisted::Editor
 	void EditorProcessor::OnFrameEnd()
 	{
 		if (m_windowsService->GetWindow())
-			m_windowsService->GetWindow()->GetContext()->SwapBuffers();
+			m_windowsService->GetWindow()->SwapBuffers();
 	}
 	void EditorProcessor::OnTerminate()
 	{

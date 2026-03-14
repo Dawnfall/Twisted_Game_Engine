@@ -61,6 +61,6 @@ namespace Twisted::Collections
 		debugNormalsShaderData.FragShader = Collections::debugNormalsFragmentShader;
 		debugNormalsShader->SetData(debugNormalsShaderData);
 
-		AssetsService::GetInstance()->AddBuiltIn(Collections::debugNormalsShaderUUID, debugNormalsShader);
+		Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::debugNormalsShaderUUID, debugNormalsShader);
 	}
 }

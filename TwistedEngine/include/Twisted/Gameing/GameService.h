@@ -15,10 +15,9 @@ namespace Twisted
 	public:
 		GameService(Application* app) :Service(app) 
 		{
-			s_instance = this;
+
 		}
 
-		inline static GameService* GetInstance() { return s_instance; }
 
 		void SetGameWorld(World& world);
 		void CreateEmptyWorld();
@@ -30,9 +29,5 @@ namespace Twisted
 
 	public:
 		Event<World*> WorldChangeEvent;
-
-	private:
-		inline static GameService* s_instance;
-
 	};
 }

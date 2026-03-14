@@ -11,7 +11,7 @@
 
 #include "Twisted/Gameing/Managers/CameraManager.h"
 #include "Twisted/Gameing/Components/CCamera.h"
-
+#include "Twisted/Application/Application.h"
 #include "UI/ImguiExtensions.h"
 
 namespace Twisted::Editor
@@ -20,7 +20,7 @@ namespace Twisted::Editor
 	GameViewPanel::GameViewPanel() :EditorPanel("Game View")
 	{
 		this->PanelResizeEvent.AddListener([this]() {
-			if (World* gameWorld = GameService::GetInstance()->GameWorld; gameWorld)
+			if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld; gameWorld)
 				if (CameraComponent* mainCamera = gameWorld->GetManager<CameraManager>()->GetMainCamera(); mainCamera)
 					if (Framebuffer* fb = mainCamera->Fb.get(); fb)
 					{
@@ -36,7 +36,7 @@ namespace Twisted::Editor
 
 	void GameViewPanel::PaintContent()
 	{
-		if (World* gameWorld = GameService::GetInstance()->GameWorld; gameWorld)
+		if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld; gameWorld)
 			if (CameraComponent* mainCamera = gameWorld->GetManager<CameraManager>()->GetMainCamera(); mainCamera)
 				if (Framebuffer* fb = mainCamera->Fb.get(); fb)
 				{

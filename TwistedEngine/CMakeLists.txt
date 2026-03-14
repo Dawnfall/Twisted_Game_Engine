@@ -44,8 +44,6 @@ target_include_directories(TwistedEngine PUBLIC
 # ------------------------------
 # Libraries
 # ------------------------------
-option(USE_GLFW "Use GLFW" ON)
-
 find_package(OpenGL REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -54,10 +52,6 @@ find_package(entt CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(rapidobj CONFIG REQUIRED)
 
-if(USE_GLFW)
-    message(STATUS "Building with GLFW")
-    find_package(glfw3 CONFIG REQUIRED)
-endif()
 
 target_link_libraries(TwistedEngine PRIVATE
     OpenGL::GL
@@ -68,8 +62,6 @@ target_link_libraries(TwistedEngine PRIVATE
     yaml-cpp::yaml-cpp
     rapidobj::rapidobj
     #ShaderParser
-
-    $<$<BOOL:${USE_GLFW}>:glfw>
 )
 
 # ------------------------------
@@ -81,8 +73,6 @@ target_compile_definitions(TwistedEngine PRIVATE
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:RelWithDebInfo>:TWISTED_RELEASE>
     $<$<CONFIG:Release>:TWISTED_DEPLOY>
-    $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
-    $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
 )
 
 if(MSVC)

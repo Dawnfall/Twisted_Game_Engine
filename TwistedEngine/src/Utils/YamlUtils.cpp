@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "Twisted/AssetsLayer/AssetsService.h"
+#include "Twisted/Application/Application.h"
 
 namespace YamlUtils
 {
@@ -47,7 +48,7 @@ namespace YamlUtils
 		else
 		{
 			node[Twisted::NAME_SER_KEY] = obj->GetName();
-			node[Twisted::UUID_SER_KEY] = Twisted::AssetsService::GetInstance()->GetObjectAssetInfo(obj)->GetUuid();
+			node[Twisted::UUID_SER_KEY] =Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetObjectAssetInfo(obj)->GetUuid();
 		}
 		return node;
 	}
@@ -57,7 +58,7 @@ namespace YamlUtils
 		std::string name = node["name"].as<std::string>("");
 		Twisted::AssetUuid uuid = node["uuid"].as<Twisted::AssetUuid>(Twisted::AssetUuid::Invalid());
 
-		return Twisted::AssetsService::GetInstance()->GetAssetObject(uuid, name);
+		return Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetAssetObject(uuid, name);
 
 	}
 }

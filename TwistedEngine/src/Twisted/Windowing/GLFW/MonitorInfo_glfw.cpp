@@ -1,4 +1,4 @@
-﻿#ifdef GLFW_INCLUDE_NONE
+﻿#ifdef TWISTED_GLFW
 
 #include "Twisted/Windowing/MonitorInfo.h"
 #include <GLFW/glfw3.h>

@@ -8,6 +8,7 @@
 
 #include "Twisted/AssetsLayer/AssetUuid.h"
 #include "Twisted/AssetsLayer/AssetsService.h"
+#include "Twisted/Application/Application.h"
 
 namespace Twisted::Collections
 {
@@ -85,7 +86,7 @@ namespace Twisted::Collections
 	{
 		Mesh* cubeMesh = TObject::Create<Mesh>(Collections::cubeMeshName);
 		cubeMesh->SetData(Collections::CreateCubePackedData(), MeshDrawType::STATIC);
-		AssetsService::GetInstance()->AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
-	
+
+		Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::cubeMeshUUID, cubeMesh);
 	}
 }

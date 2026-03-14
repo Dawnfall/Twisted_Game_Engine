@@ -43,25 +43,12 @@ target_include_directories(Editor PRIVATE
 find_package(glm CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 
-if(USE_GLFW)
-    find_package(glfw3 CONFIG REQUIRED)
-  if(TARGET glfw3::glfw)
-    set(TW_GLFW_TARGET glfw3::glfw)
-  elseif(TARGET glfw)
-    set(TW_GLFW_TARGET glfw)
-  else()
-    message(FATAL_ERROR "glfw3 found but no target (glfw3::glfw or glfw) exported")
-  endif()
-endif()
-
 target_link_libraries(Editor PRIVATE
     TwistedEngine
     glm::glm
     imgui
     imguizmo
     yaml-cpp::yaml-cpp
-
-    $<$<BOOL:${USE_GLFW}>:${TW_GLFW_TARGET}>
 )
 
 # ------------------------------
@@ -88,8 +75,6 @@ target_compile_definitions(Editor PRIVATE
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:RelWithDebInfo>:TWISTED_RELEASE>
     $<$<CONFIG:Release>:TWISTED_DEPLOY>
-    $<$<BOOL:${USE_GLFW}>:GLFW_INCLUDE_NONE>
-    $<$<BOOL:${USE_GLFW}>:GLFW_EXCLUDE_VULKAN>
 )
 
 if(MSVC)

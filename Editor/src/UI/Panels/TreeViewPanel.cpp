@@ -134,7 +134,7 @@ namespace Twisted::Editor
 	void TreeViewPanel::PaintContent()
 	{
 		//auto editor = EditorWorldService::GetInstance();
-		auto gameWorld = GameService::GetInstance()->GameWorld;
+		auto gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld;
 
 		if (!gameWorld)
 			return;
@@ -263,7 +263,7 @@ namespace Twisted::Editor
 
 		if (token.doCreateNew)
 		{
-			Entity newEntity = GameService::GetInstance()->GameWorld->CreateNewEntity();
+			Entity newEntity = Application::GetInstance().GetService<GameService>()->GameWorld->CreateNewEntity();
 			if (token.NewEntityParent)
 			{
 				TransformComponent& transform = newEntity.GetWorld()->GetComponent<TransformComponent>(newEntity.GetID());

@@ -65,6 +65,6 @@ namespace Twisted::Collections
 		simpleShaderData.FragShader = Collections::simpleFragmentShader;
 		simpleShader->SetData(simpleShaderData);
 
-		AssetsService::GetInstance()->AddBuiltIn(Collections::simpleShaderUUID, simpleShader);
+		Application::GetInstance().GetService<AssetsService>()->AddBuiltIn(Collections::simpleShaderUUID, simpleShader);
 	}
 }

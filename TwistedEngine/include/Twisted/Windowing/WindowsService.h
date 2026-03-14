@@ -11,18 +11,23 @@ namespace Twisted
 	class TWISTED_API WindowsService :public Service
 	{
 	public:
-		WindowsService(Application* app) :Service(app) 
+		WindowsService(Application* app) :Service(app)
 		{
-			Windowing::Init();
+
 		}
-		~WindowsService() 
+		~WindowsService()
 		{
-			Windowing::Terminate();
+
 		}
+
+		void PollEvents();
 
 		Window* GetWindow() { return (m_window) ? m_window.get() : nullptr; }
 		Window* CreateNewWindow(const std::string& title, const Vec2i& size, const Vec2i& position);
 		void DestroyWindow(Window* window);
+
+		inline static Event<void*> PollMsgEvent;
+
 	private:
 
 		URef<Window> m_window;

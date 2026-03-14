@@ -19,7 +19,12 @@ namespace Twisted
 	class TWISTED_API Application
 	{
 	public:
-		Application() {}
+		static Application& GetInstance()
+		{
+			static Application app;
+			return app;
+		}
+
 		Application& operator=(const Application& other) = delete;
 		Application(const Application& other) = delete;
 
@@ -68,6 +73,8 @@ namespace Twisted
 			return nullptr;
 		}
 	protected:
+		Application() {}
+
 		std::vector<URef<Service>> m_services;
 		std::vector<URef<Processor>> m_processors;
 		TimeService* m_timeService = nullptr;
