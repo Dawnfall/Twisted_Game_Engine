@@ -21,9 +21,6 @@ namespace Twisted::GL
 
 	inline void BindMesh(GLuint vao)
 	{
-		glEnable(GL_CULL_FACE);
-		//glFrontFace(m_windOrder == MeshWindingOrder::CLOCKWISE ? GL_CW : GL_CCW); //this is global state, can be put out
-		glCullFace(GL_BACK);
 		glBindVertexArray(vao);
 	}
 	inline void UnbindMesh()
@@ -41,6 +38,6 @@ namespace Twisted::GL
 
 	void TWISTED_API SetMeshLayout(const PackedMeshData& packedData);
 
-	void Render(GLsizei indexCount);
+	void Render(GLsizei indexCount, MeshPrimitiveType primitiveType);
 
 }

@@ -32,7 +32,7 @@ namespace Twisted
 			if (!GetImporter())
 				return;
 
-			GetImporter()->FillDefaultInfo(m_infoData);
+			m_infoData[ASSET_TYPE_KEY] = GetImporter()->GetAssetType();
 			SaveInfo();
 		}
 		else

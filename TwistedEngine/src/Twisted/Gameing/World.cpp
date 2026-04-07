@@ -99,7 +99,7 @@ namespace Twisted
 	}
 }
 
-//
+
 //World::World(const std::string& name, BinSerializer& buffer) :TObject(name)
 //{
 //	m_rootEntities = buffer.Read<std::vector<EntityID>>(nullptr);

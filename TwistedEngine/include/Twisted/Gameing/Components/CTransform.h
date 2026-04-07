@@ -27,7 +27,11 @@ namespace Twisted
 		static void SetSiblingsIndex(TransformComponent& transform, size_t newIndex);
 		static void SetParent(TransformComponent& transform, TransformComponent* newParent);
 		static void SetParent(TransformComponent& transform, TransformComponent* newParent, size_t index);
-		inline void SetWorldPosition(TransformComponent& transform, const Vec3f& newPosition) { transform.LocalPos = transform.WorldToLocalPoint(newPosition); }
+		inline void SetWorldPosition(TransformComponent& transform, const Vec3f& newPosition)
+		{
+			const TransformComponent* parent = transform.GetParent();
+			transform.LocalPos = parent ? parent->WorldToLocalPoint(newPosition) : newPosition;
+		}
 		static void Unparent(TransformComponent& transform);
 
 		//********************
@@ -110,8 +114,7 @@ namespace Twisted
 		inline void LookAt(const Vec3f& lookAtPoint, const Vec3f& upVector)
 		{
 			auto lookAtMat = glm::lookAt(LocalPos, lookAtPoint, upVector);
-			auto newRotation = glm::quat_cast(lookAtMat); //TODO: maybe inverse?
-			LocalRot = newRotation;
+			LocalRot = glm::conjugate(glm::quat_cast(lookAtMat));
 		}
 
 		inline Mat4x4f GetLocalTranslationMatrix()const { return glm::translate(glm::mat4(1.0f), LocalPos); }
@@ -140,9 +143,9 @@ namespace Twisted
 		}
 
 		inline Vec3f GetWorldPosition()const { return LocalToWorldPoint(Constants::Vec3Zero); }
-		inline Vec3f GetWorldForward()const { return LocalToWorldVector(Constants::Forward); }
-		inline Vec3f GetWorldRight()const { return LocalToWorldVector(Constants::Right); }
-		inline Vec3f GetWorldUp()const { return LocalToWorldVector(Constants::Up); }
+		inline Vec3f GetWorldForward()const { return GetWorldRotation() * Constants::Forward; }
+		inline Vec3f GetWorldRight()const { return GetWorldRotation() * Constants::Right; }
+		inline Vec3f GetWorldUp()const { return GetWorldRotation() * Constants::Up; }
 
 		inline Vec3f GetForward()const { return LocalRot * Constants::Forward; }
 		inline Vec3f GetRight()const { return LocalRot * Constants::Right; }

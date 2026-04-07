@@ -41,6 +41,7 @@ namespace Twisted
 			return;
 
 		m_drawType = drawType;
+		m_primitiveType = packedData.PrimitiveType;
 		m_indexCount = packedData.Indices.size();
 
 		glGenVertexArrays(1, &m_backend->Vao);
@@ -126,10 +127,10 @@ namespace Twisted::GL
 		}
 	}
 
-	void Render(GLsizei indexCount)
+	void Render(GLsizei indexCount, MeshPrimitiveType primitiveType)
 	{
 		glDrawElements(
-			GL_TRIANGLES,                 //TODO... should be set on mesh
+			PrimitiveTypeToGL(primitiveType),
 			static_cast<GLsizei>(indexCount),
 			GL_UNSIGNED_INT,
 			nullptr

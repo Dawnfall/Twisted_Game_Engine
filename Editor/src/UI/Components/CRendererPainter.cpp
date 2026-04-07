@@ -7,8 +7,8 @@ namespace Twisted::Editor
 	{
 		RendererComponent* renderer = static_cast<RendererComponent*>(obj);
 
-		Im::ObjectDropField<Material>("Material", renderer->material);
-		Im::ObjectDropField<Mesh>("Mesh", renderer->mesh);
+		renderer->material = Im::ObjectDropField<Material>("Material", renderer->material);
+		renderer->mesh = Im::ObjectDropField<Mesh>("Mesh", renderer->mesh);
 	}
 }
 

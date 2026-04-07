@@ -71,6 +71,7 @@ namespace Utils
 	std::string TWISTED_API toString(const glm::vec3& vec);
 	std::string TWISTED_API toString(const glm::vec4& vec);
 	std::string TWISTED_API toString(const glm::mat3& mat);
+	std::string TWISTED_API toString(const glm::mat4& mat);
 
 	glm::vec2 TWISTED_API fromStringVec2f(const std::string& str);
 	glm::ivec2 TWISTED_API fromStringVec2i(const std::string& str);

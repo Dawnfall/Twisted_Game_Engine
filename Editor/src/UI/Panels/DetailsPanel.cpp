@@ -2,7 +2,7 @@
 
 #include "Twisted/Gameing/World.h"
 
-#include "EditorApp/EditorWorldService.h"
+#include "EditorApp/EditorService.h"
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"
@@ -16,7 +16,7 @@ namespace Twisted::Editor
 {
 	void DetailsPanel::PaintContent()
 	{
-		auto& selection = EditorWorldService::GetInstance()->GetSelection();
+		auto& selection = Application::GetInstance().GetService<EditorService>()->GetSelection();
 
 		switch (selection.GetActiveType())
 		{

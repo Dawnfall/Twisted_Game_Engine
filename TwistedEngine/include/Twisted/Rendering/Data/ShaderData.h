@@ -97,6 +97,8 @@ namespace Twisted
 			return Vec3f{};
 		case EShaderValueType::VEC4_F:
 			return Vec4f{};
+		case EShaderValueType::TEX_2D:
+			return TextureValue{};
 		default:
 			TWISTED_ERROR("Unsupported shader uniform value type");
 			throw std::exception("Unsupported type");

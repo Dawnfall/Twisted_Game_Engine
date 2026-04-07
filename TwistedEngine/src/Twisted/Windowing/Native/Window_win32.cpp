@@ -11,45 +11,51 @@
 #include <GL/wglext.h>
 #include <tuple>
 
-inline static Twisted::Window* GetWindow(HWND windowPtr) //TODO... i dont like this
-{
-	auto service = Twisted::Application::GetInstance().GetService<Twisted::WindowsService>();
-	return service->GetWindow();
-}
 
 using PFNWGLCREATECONTEXTATTRIBSARBPROC = HGLRC(WINAPI*)(HDC, HGLRC, const int*);
 namespace Twisted
 {
-	Window::Window(const std::string& title, Vec2i size, Vec2i position) :
-		m_backend(new WindowBackend())
+	Window::Window(WindowsService* service, const std::string& title, Vec2i size, Vec2i position) :
+		m_windowsService(service),
+		m_backend(std::make_unique<WindowBackend>(title,size,position))
 	{
-		m_backend->hwnd = createWindowHandle(title, size, position);
-		if (!m_backend->hwnd)
+	}
+
+	Window::~Window()
+	{
+
+	}
+
+	Window::Window(Window&& other) = default;
+	Window& Window::operator=(Window&& other) = default;
+
+	WindowBackend::WindowBackend(const std::string& title, Vec2i& size, Vec2i position)
+	{
+		hwnd = createWindowHandle(title, size, position);
+		if (!hwnd)
 		{
 			TWISTED_ERROR("Failed to create Win32 window!");
 			return;
 		}
 
-		SetWindowLongPtr(m_backend->hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-
 		// 1. Get the device context for the window
-		m_backend->hdc = GetDC(m_backend->hwnd);
-		if (!m_backend->hdc)
+		hdc = GetDC(hwnd);
+		if (!hdc)
 		{
 			TWISTED_ERROR("Failed to get device context (HDC) for window! GraphicsContext_win32 failed!");
 			return;
 		}
 
 		// 2. Choose a pixel format for the device context
-		if (!setPixelFormat(m_backend->hdc))
+		if (!setPixelFormat(hdc))
 		{
 			TWISTED_ERROR("GraphicsContext_win32 failed!");
 			return;
 		}
 
 		// 3. Create the OpenGL rendering context
-		m_backend->glrc = createContext(m_backend->hdc);
-		if (!m_backend->glrc)
+		glrc = createContext(hdc);
+		if (!glrc)
 		{
 			TWISTED_ERROR("GraphicsContext_win32 failed!");
 			return;
@@ -58,29 +64,28 @@ namespace Twisted
 		// 5. Log success
 		TWISTED_INFO("GraphicsContext_win32 successfully initialized!");
 
-		ShowWindow(m_backend->hwnd, SW_SHOW);
+		ShowWindow(hwnd, SW_SHOW);
 
 		TWISTED_INFO("Win32 Window Created");
 	}
-
-	Window::~Window()
+	WindowBackend::~WindowBackend()
 	{
-		if (m_backend->hwnd)
-			DestroyWindow(m_backend->hwnd);
+		if (hwnd)
+			DestroyWindow(hwnd);
 
-		if (m_backend->glrc)
+		if (glrc)
 		{
 			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(m_backend->glrc);
-			m_backend->glrc = nullptr;
+			wglDeleteContext(glrc);
+			glrc = nullptr;
 		}
 
-		if (m_backend->hdc)
+		if (hdc)
 		{
-			ReleaseDC(m_backend->hwnd, m_backend->hdc);
-			m_backend->hdc = nullptr;
+			ReleaseDC(hwnd, hdc);
+			hdc = nullptr;
 		}
-
+		hwnd = nullptr;
 	}
 
 	void Window::SetVSync(int deltaFrames)
@@ -134,34 +139,26 @@ namespace Twisted
 			SetWindowTextA(m_backend->hwnd, newTitle.c_str());
 	}
 
+	bool Window::IsWindowMaximized() const
+	{
+		return m_backend->hwnd && IsZoomed(m_backend->hwnd);
+	}
+
+	Window::RestoreBounds Window::GetRestoreBounds() const
+	{
+		WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
+		if (m_backend->hwnd && GetWindowPlacement(m_backend->hwnd, &wp))
+		{
+			const RECT& r = wp.rcNormalPosition;
+			return { Vec2i{r.left, r.top}, Vec2i{r.right - r.left, r.bottom - r.top} };
+		}
+		return { GetPosition(), GetSize() };
+	}
+
 	void Window::Maximize()
 	{
-		RECT work;
-		MONITORINFO mi = { sizeof(mi) };
-		if (GetMonitorInfo(MonitorFromWindow(m_backend->hwnd, MONITOR_DEFAULTTOPRIMARY), &mi))
-			work = mi.rcWork;
-
-		RECT clientRect = { 0, 0, work.right - work.left, work.bottom - work.top };
-
-		// Adjust for window style (borders, title bar)
-		AdjustWindowRectEx(&clientRect,
-			GetWindowLong(m_backend->hwnd, GWL_STYLE),
-			FALSE, // menu
-			GetWindowLong(m_backend->hwnd, GWL_EXSTYLE));
-
-		// clientRect now gives the total window size needed
-		int width = clientRect.right - clientRect.left;
-		int height = clientRect.bottom - clientRect.top;
-
-		// Compute top-left so that client area aligns with work.left/top
-		int posX = work.left - clientRect.left;
-		int posY = work.top - clientRect.top;
-
-		SetWindowLong(m_backend->hwnd, GWL_STYLE, WS_VISIBLE); // or combine flags as needed
-		SetWindowPos(m_backend->hwnd, HWND_TOP,
-			posX, posY,
-			width, height,
-			SWP_NOZORDER | SWP_FRAMECHANGED);
+		if (m_backend->hwnd)
+			ShowWindow(m_backend->hwnd, SW_SHOWMAXIMIZED);
 	}
 
 	void Window::SetFullScreen(bool isFullScreen)
@@ -321,19 +318,23 @@ namespace Twisted
 		// 2) Load GL functions using GLAD 
 		// -------------------------
 
-		auto loader = [](const char* name) -> void* {
-			void* p = (void*)wglGetProcAddress(name);
-			if (!p) p = (void*)GetProcAddress(GetModuleHandleA("opengl32.dll"), name);
-			return p;
+		static bool gladLoaded = false;
+		if (!gladLoaded)
+		{
+			auto loader = [](const char* name) -> void* {
+				void* p = (void*)wglGetProcAddress(name);
+				if (!p) p = (void*)GetProcAddress(GetModuleHandleA("opengl32.dll"), name);
+				return p;
 			};
 
-		if (!gladLoadGLLoader(loader))
-		{
-			TWISTED_ERROR("GLAD initialization failed on temp context");
-
-			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(realContext);
-			return nullptr;
+			if (!gladLoadGLLoader(loader))
+			{
+				TWISTED_ERROR("GLAD initialization failed");
+				wglMakeCurrent(nullptr, nullptr);
+				wglDeleteContext(realContext);
+				return nullptr;
+			}
+			gladLoaded = true;
 		}
 
 		// -------------------------
@@ -385,6 +386,46 @@ namespace Twisted
 		}
 
 		return true;
+	}
+
+	HWND createWindowHandle(const std::string& title, Vec2i size, Vec2i position)
+	{
+		WNDCLASSEX wc{};
+		wc.cbSize        = sizeof(WNDCLASSEX);
+		wc.lpfnWndProc   = WndProc;
+		wc.hInstance     = GetModuleHandle(nullptr);
+		wc.lpszClassName = WINDOW_CLASS_NAME.c_str();
+		wc.style         = CS_OWNDC;
+		wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+
+		if (!RegisterClassEx(&wc))
+		{
+			DWORD err = GetLastError();
+			if (err != ERROR_CLASS_ALREADY_EXISTS)
+			{
+				TWISTED_ERROR("Failed to register window class. Error: {}", err);
+				return nullptr;
+			}
+		}
+
+		HWND hwnd = CreateWindowEx(
+			0,
+			wc.lpszClassName,
+			title.c_str(),
+			WS_OVERLAPPEDWINDOW,
+			position.x, position.y, size.x, size.y,
+			nullptr, nullptr,
+			wc.hInstance,
+			nullptr
+		);
+
+		if (!hwnd)
+		{
+			TWISTED_ERROR("CreateWindowEx failed. Error: {}", GetLastError());
+			return nullptr;
+		}
+
+		return hwnd;
 	}
 }
 

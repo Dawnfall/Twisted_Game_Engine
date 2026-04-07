@@ -75,6 +75,7 @@ namespace Twisted
 			std::function<AComponent* (Entity)> GetComponentMethod;
 			std::function<bool(Entity)> HasComponentMethod;
 			std::function<void(Entity)> AddComponentMethod;
+			std::function<void(Entity)> RemoveComponentMethod;
 			std::function<void(World& world)> InitAndDestroyRegisterMethod;
 		};
 
@@ -84,7 +85,7 @@ namespace Twisted
 			//static_assert(std::is_base_of_v<ManagerBase, T>, "T must derive from ManagerBase");
 			std::string managerName = GetTypeName<T>();
 
-			RegManagerEntry entry;
+			RegManagerEntry& entry = m_registeredManagers[managerName];
 
 			entry.YamlSerMethod = [](const World& world)->YAML::Node {
 				const T* manager = world.GetManager<T>();
@@ -146,6 +147,12 @@ namespace Twisted
 			entry.HasComponentMethod = [](Entity entity)->bool {
 				return entity.GetWorld()->HasComponent<T>(entity.GetID());
 				};
+			if constexpr (RemovableComponentType<T>)
+			{
+				entry.RemoveComponentMethod = [](Entity entity) {
+					entity.GetWorld()->RemoveComponent<T>(entity.GetID());
+					};
+			}
 			entry.YamlSerMethod = [](const World& world)->YAML::Node {
 				YAML::Node allCompNode;
 				auto view = world.GetRegistry().view<T>();

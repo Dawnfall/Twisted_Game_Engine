@@ -370,7 +370,7 @@ namespace Twisted
 			});
 	}
 
-	Window::Window(const std::string& title, Vec2i size, Vec2i position)
+	Window::Window(WindowsService* service, const std::string& title, Vec2i size, Vec2i position)
 	{
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

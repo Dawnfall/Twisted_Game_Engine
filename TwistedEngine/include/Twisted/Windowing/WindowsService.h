@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "Twisted/Windowing/WindowCoreAPI.h"
 #include "Twisted/AssetsLayer/AssetsService.h"
+#include "Twisted/Windowing/WindowEvents.h"
 
 namespace Twisted
 {
@@ -27,6 +28,14 @@ namespace Twisted
 		void DestroyWindow(Window* window);
 
 		inline static Event<void*> PollMsgEvent;
+		
+		void DispatchEvent(const KeyEvent& e);
+		void DispatchEvent(const MouseButtonEvent& e);
+		void DispatchEvent(const MouseMoveEvent& e);
+		void DispatchEvent(const MouseWheelEvent& e);
+		void DispatchEvent(const WindowCloseEvent& e);
+		void DispatchEvent(const WindowResizeEvent& e);
+		void DispatchEvent(const WindowFocusEvent& e);
 
 	private:
 

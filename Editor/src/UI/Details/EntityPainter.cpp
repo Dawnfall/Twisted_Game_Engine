@@ -1,4 +1,4 @@
-﻿#include "EntityPainter.h"
+#include "EntityPainter.h"
 
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"
@@ -24,6 +24,7 @@ namespace Twisted::Editor
 		ImGui::Separator();
 
 		WorldRegistry& reg = WorldRegistry::GetInstance();
+		std::string pendingRemove;
 		for (const auto& [name, entry] : reg.GetComponentEntries())
 		{
 			AComponent* comp = entry.GetComponentMethod(*entity);
@@ -37,11 +38,24 @@ namespace Twisted::Editor
 					ImGui::SetCursorPosX(labelPosX);
 				ImGui::Text("%s", name.c_str());
 
+				if (entry.RemoveComponentMethod)
+				{
+					ImGui::SameLine();
+					std::string removeLabel = "X##remove_" + name;
+					if (ImGui::SmallButton(removeLabel.c_str()))
+						pendingRemove = name;
+				}
+
 				painter->Paint(comp);
 
 				ImGui::NewLine();
 				ImGui::Separator();
 			}
+		}
+		if (!pendingRemove.empty())
+		{
+			auto& removeEntry = reg.GetComponentEntries().at(pendingRemove);
+			removeEntry.RemoveComponentMethod(*entity);
 		}
 		//// --- AddComponent Button ---
 		Im::CenterCursor(ADD_COMPONENT_TEXT);

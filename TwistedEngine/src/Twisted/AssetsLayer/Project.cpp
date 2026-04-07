@@ -1,35 +1,21 @@
-﻿#include "Twisted/AssetsLayer/Project.h"
+#include "Twisted/AssetsLayer/Project.h"
+#include "Utils/FileUtils.h"
 #include "Debug/Logger.h"
 
 namespace Twisted
 {
-	void Project::ValidateProject()const
+	Project::Project(fs::path rootPath) : m_rootPath(std::move(rootPath))
 	{
-		Utils::CreateNewFile(m_rootPath / PROJECT_FILE);
-		Utils::CreateFolder(GetAssetsFolder());
-		Utils::CreateFolder(GetInternalFolder());
-		Utils::CreateFolder(GetInternalMeshesFolder());
-	}
-
-	bool Project::SetProject(const fs::path& projectFolder)
-	{
-		if (!Utils::IsExisting(projectFolder))
+		if (!Utils::IsExisting(m_rootPath))
 		{
-			TWISTED_WARN(std::format("projectFolder must exist {}", projectFolder.string()));
-			return false;
+			TWISTED_WARN("projectFolder must exist {}", m_rootPath.string());
+			return;
 		}
-		if (!Utils::IsEmptyDirectory(projectFolder) && !Utils::IsExisting(projectFolder / PROJECT_FILE))
+		if (!Utils::IsEmptyDirectory(m_rootPath) && !Utils::IsExisting(m_rootPath / PROJECT_FILE))
 		{
-			TWISTED_WARN(std::format("Project path must be empty directory or have twisted.editor file: {}" , projectFolder.string()));
-			return false;
+			TWISTED_WARN("Project path must be empty directory or have twisted.editor file: {}", m_rootPath.string());
+			return;
 		}
-
-		m_rootPath = projectFolder;
-		ValidateProject();
-
-		ProjectChangeEvent.Invoke(*this);
-		return true;
+		m_valid = true;
 	}
 }
-
-

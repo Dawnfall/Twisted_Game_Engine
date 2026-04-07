@@ -2,7 +2,7 @@
 #include "Utils/Utils.h"
 #include "UI/ImguiExtensions.h"
 #include "EditorApp/EditorRegistry.h"
-#include "EditorApp/EditorWorldService.h"
+#include "EditorApp/EditorService.h"
 #include "Twisted/Gameing/GameService.h"
 #include "Twisted/Gameing/World.h"
 
@@ -12,7 +12,7 @@ namespace Twisted::Editor
 	const std::string ADD_SYSTEM_POPUP = "system_popup";
 	void WorldSystemPanel::PaintContent()
 	{
-		auto gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld;
+		auto gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
 		
 		auto& systems = gameWorld->GetAllSystems();
 		for (auto& sys : systems)

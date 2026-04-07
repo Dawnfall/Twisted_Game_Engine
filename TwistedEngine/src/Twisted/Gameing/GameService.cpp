@@ -1,27 +1,63 @@
 #include "Twisted/Gameing/GameService.h"
 #include "Twisted/TObject.h"
-#include "Twisted/Gameing/World.h"
+#include "Twisted/AssetsLayer/Importers/WorldImporter.h"
+#include "Twisted/AssetsLayer/AssetsService.h"
+#include "Twisted/AssetsLayer/AssetInfo.h"
 
 namespace Twisted
 {
-	void GameService::SetGameWorld(World& world)
+	GameService::~GameService()
 	{
-		if (&world == GameWorld)
-			return;
-
-		if (GameWorld)
-		{
-			TObject::Destroy(GameWorld);
-			GameWorld = nullptr;
-		}
-
-		GameWorld = &world;
-		WorldChangeEvent.Invoke(GameWorld);
+		if (m_ownsWorld && m_gameWorld)
+			TObject::Destroy(m_gameWorld);
 	}
-	void GameService::CreateEmptyWorld()
+
+	World* GameService::NewGameWorld(const std::string& name)
 	{
-		if (GameWorld)
-			TObject::Destroy(GameWorld);
-		GameWorld = TObject::Create<World>("New world"); //m_app
+		m_gameWorldUuid = AssetUuid::Invalid();
+		SetActiveWorld(TObject::Create<World>(name), true);
+		return m_gameWorld;
+	}
+
+	World* GameService::LoadWorld(const fs::path& path)
+	{
+		WorldImporter importer;
+		auto objects = importer.Load(path);
+		if (objects.empty())
+			return nullptr;
+
+		World* world = static_cast<World*>(objects[0].GetObj());
+		m_gameWorldUuid = AssetUuid::Invalid();
+		SetActiveWorld(world, true);
+		return m_gameWorld;
+	}
+
+	World* GameService::LoadWorld(const AssetUuid& uuid, const AssetsService& assets)
+	{
+		const AssetInfo* info = assets.GetInfo(uuid);
+		const FileAssetInfo* fileInfo = dynamic_cast<const FileAssetInfo*>(info);
+		if (!fileInfo)
+			return nullptr;
+
+		World* world = LoadWorld(fileInfo->GetAssetPath());
+		if (world)
+			m_gameWorldUuid = uuid;
+		return world;
+	}
+
+	void GameService::SetGameWorld(World* world)
+	{
+		m_gameWorldUuid = AssetUuid::Invalid();
+		SetActiveWorld(world, false);
+	}
+
+	void GameService::SetActiveWorld(World* world, bool owned)
+	{
+		if (m_ownsWorld && m_gameWorld)
+			TObject::Destroy(m_gameWorld);
+
+		m_gameWorld = world;
+		m_ownsWorld = owned;
+		WorldChangeEvent.Invoke(m_gameWorld);
 	}
 }

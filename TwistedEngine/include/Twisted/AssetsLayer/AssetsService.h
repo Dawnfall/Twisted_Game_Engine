@@ -2,6 +2,7 @@
 #include "Twisted/Application/Service.h"
 
 #include "AppCore.h"
+#include "Utils/Event.h"
 #include "Twisted/AssetsLayer/AssetImporter.h"
 #include "AssetImporterRegistry.h"
 #include "AssetInfo.h"
@@ -33,6 +34,15 @@ namespace Twisted
 		AssetInfo* GetObjectAssetInfo(const TObject* object)const;
 		TObject* GetAssetObject(AssetUuid uuid, const std::string& name);
 
+		template<typename T = TObject>
+		T* GetAssetObject(AssetUuid uuid)
+		{
+			auto it = m_assetObjects.find(uuid);
+			if (it != m_assetObjects.end() && !it->second.empty())
+				return dynamic_cast<T*>(it->second.front().GetObj());
+			return nullptr;
+		}
+
 		void AutoImportAssets();
 		std::vector<WPtrBase> ImportAssetDirect(const fs::path& assetPath)const;
 
@@ -52,20 +62,15 @@ namespace Twisted
 			return objects;
 		}
 
+		bool SetProject(const fs::path& projectFolder);
+
 		Project& GetProject() { return m_project; }
 		const Project& GetProject()const { return m_project; }
 
+		Event<const Project&> ProjectChangeEvent;
+
 		std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info);
 		const std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info)const;
-
-		//inline void OnInit()override
-		//{
-		//	////resource load
-		//	//GetProject().ProjectChangeEvent.AddListener([this]() {
-		//	//	LoadBuiltIn();
-		//	//	AutoImportAssets();
-		//	//	});
-		//}
 
 		void AddBuiltIn(AssetUuid uuid, TObject* obj);
 

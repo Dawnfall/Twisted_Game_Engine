@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "AppCore.h"
 
@@ -13,14 +13,14 @@ namespace Twisted
     struct FramebufferBackend;
 
     struct TWISTED_API FramebufferAttachment
-    {        
-        WPtr<Texture> Override; // If Override is set, it is used for rendering and NOT owned/resized by the framebuffer.
-        WPtr<Texture> Owned; // Owned texture used when Override is not set.
+    {
+        WPtr<Texture> Override; // If set, used for rendering and NOT owned/resized by the framebuffer.
+        WPtr<Texture> Owned;    // Created and managed by the framebuffer when Override is not set.
 
         // Descriptor for the owned texture (format/usage/etc). Size is driven by Framebuffer::Size.
         TextureInfo OwnedDesc{};
 
-        // Subresource selection (optional for now)
+        // Subresource selection
         uint32_t Mip = 0;
         uint32_t Layer = 0;
 
@@ -36,14 +36,17 @@ namespace Twisted
         void OnCreate() override;
         void OnDestroy() override;
 
-        void SetSize(const Vec2i& newSize); // resizes/recreates owned attachments only
+        void SetSize(const Vec2i& newSize); // resizes owned attachments only
+        void Bind();
+        void Unbind();
 
-        // Attachment control
+        // Override control — set an externally owned texture as the attachment
         void SetColorOverride(WPtr<Texture> tex) { Color.Override = tex; Version++; }
         void SetDepthOverride(WPtr<Texture> tex) { Depth.Override = tex; Version++; }
-        void ClearColorOverride() { Color.Override->Clear(); Version++; }
-        void ClearDepthOverride() { Depth.Override->Clear(); Version++; }
+        void ClearColorOverride() { Color.Override = nullptr; Version++; }
+        void ClearDepthOverride() { Depth.Override = nullptr; Version++; }
 
+        // Owned attachment descriptors — applied on next OnCreate / SetSize
         void SetOwnedColorDesc(const TextureInfo& desc) { Color.OwnedDesc = desc; Version++; }
         void SetOwnedDepthDesc(const TextureInfo& desc) { Depth.OwnedDesc = desc; Version++; }
 
@@ -53,10 +56,12 @@ namespace Twisted
         Vec2i GetSize() const { return Size; }
         uint32_t GetVersion() const { return Version; }
 
-        const FramebufferBackend* GetBackend() const { return m_backend; } // if you keep it exposed
+        FramebufferBackend* GetBackend() { return m_backend.get(); }
 
     private:
-        FramebufferBackend* m_backend = nullptr;
+        friend struct FramebufferBackend;
+
+        URef<FramebufferBackend> m_backend = nullptr;
 
         Vec2i Size{ 0, 0 };
         uint32_t Version = 0;
@@ -66,4 +71,3 @@ namespace Twisted
     };
 
 }
-

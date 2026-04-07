@@ -206,10 +206,10 @@ namespace Twisted::GL
 	{
 		switch (fmt)
 		{
-		case TextureFormat::RGBA8:   return GL_RGBA8;
-		case TextureFormat::RGBA16F: return GL_RGBA16F;
-		case TextureFormat::RGBA32F: return GL_RGBA32F;
-			// add depth formats etc when you need them
+		case TextureFormat::RGBA8:            return GL_RGBA8;
+		case TextureFormat::RGBA16F:          return GL_RGBA16F;
+		case TextureFormat::RGBA32F:          return GL_RGBA32F;
+		case TextureFormat::Depth24Stencil8:  return GL_DEPTH24_STENCIL8;
 		default: return GL_RGBA8;
 		}
 	}

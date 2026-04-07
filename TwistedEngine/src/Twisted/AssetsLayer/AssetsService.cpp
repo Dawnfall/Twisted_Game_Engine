@@ -25,9 +25,26 @@
 
 namespace Twisted
 {
+	bool AssetsService::SetProject(const fs::path& projectFolder)
+	{
+		Project newProject(projectFolder);
+		if (!newProject.IsValid())
+			return false;
+
+		m_project = newProject;
+
+		Utils::CreateNewFile(m_project.GetProjectFilePath());
+		Utils::CreateFolder(m_project.GetAssetsFolder());
+		Utils::CreateFolder(m_project.GetInternalFolder());
+		Utils::CreateFolder(m_project.GetInternalMeshesFolder());
+
+		ProjectChangeEvent.Invoke(m_project);
+		return true;
+	}
+
 	void AssetsService::AutoImportAssets() //TODO:... doesnt use validation for hot reload
 	{
-		if (m_project.GetRootPath() == "")
+		if (!m_project.IsValid())
 			return;
 
 		fs::path assetsFolder = m_project.GetAssetsFolder();
@@ -53,8 +70,8 @@ namespace Twisted
 		if (!fileAssetInfo || !fileAssetInfo->GetInfo())
 			return assetObjects;
 
-		fileAssetInfo->GetImporter()->ImportNew(*fileAssetInfo, assetObjects);
-		fileAssetInfo->GetImporter()->PostImport(*fileAssetInfo, assetObjects);
+		assetObjects = fileAssetInfo->GetImporter()->Load(fileAssetInfo->GetAssetPath());
+		fileAssetInfo->GetImporter()->PostLoad(fileAssetInfo->GetAssetPath(), assetObjects);
 
 		return assetObjects;
 	}
@@ -141,7 +158,7 @@ namespace Twisted
 		if (!info->GetImporter())
 			return;
 
-		info->GetImporter()->SaveAsset(info->GetAssetPath(), objects);
+		info->GetImporter()->Save(info->GetAssetPath(), objects);
 		//TODO... validate
 	}
 
@@ -154,7 +171,7 @@ namespace Twisted
 		}
 
 		auto importer = AssetImporterRegistry::GetInstance().GetImporter(path.extension());
-		importer->CreateNewAsset(path);
+		importer->CreateNew(path);
 		AssetInfo* info = CreateInfo(path);
 
 		if (!info || !importer->DoAutoImport())
@@ -214,9 +231,9 @@ namespace Twisted
 				continue;
 
 			if (GetManagedAssetObjects(info).empty())
-				info->GetImporter()->ImportNew(*info, GetManagedAssetObjects(info));
+				GetManagedAssetObjects(info) = info->GetImporter()->Load(info->GetAssetPath());
 			else
-				info->GetImporter()->HotReload(*info, GetManagedAssetObjects(info));
+				info->GetImporter()->HotReload(info->GetAssetPath(), GetManagedAssetObjects(info));
 		}
 
 
@@ -225,7 +242,7 @@ namespace Twisted
 			if (!info->GetImporter() || !info->GetImporter()->DoAutoImport())
 				continue;
 
-			info->GetImporter()->PostImport(*info, GetManagedAssetObjects(info));
+			info->GetImporter()->PostLoad(info->GetAssetPath(), GetManagedAssetObjects(info));
 			info->Validate();
 		}
 	}

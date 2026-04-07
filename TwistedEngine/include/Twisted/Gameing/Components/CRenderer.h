@@ -12,9 +12,6 @@ namespace Twisted
 	struct TWISTED_API RendererComponent :public AComponent
 	{
 		RendererComponent(Entity entity) :AComponent(entity) {}
-
-
-
 		Material* material = nullptr;
 		Mesh* mesh = nullptr;
 	};

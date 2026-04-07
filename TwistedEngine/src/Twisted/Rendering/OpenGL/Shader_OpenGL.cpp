@@ -22,45 +22,48 @@ namespace Twisted
 {
 	Shader::Shader(const std::string& name) :
 		TObject(name),
-		m_backend(new ShaderBackend())
+		m_backend(nullptr)
 	{
 	}
 
 	Shader::~Shader()
 	{
-		Clear();
-		delete m_backend;
+	}
+
+	ShaderBackend::ShaderBackend(const ShaderData& shaderData)
+	{
+		ProgramID = GL::CompileProgram(shaderData);
+		if (ProgramID != 0)
+		{
+			m_reflection = GL::ReflectProgramGL(ProgramID);
+			m_bindings = GL::BuildGLProgramBindings(ProgramID, m_reflection);
+		}
+	}
+
+	ShaderBackend::~ShaderBackend()
+	{
+		if (ProgramID == 0)
+			return;
+
+		glDeleteProgram(ProgramID);
+		ProgramID = 0;
+		m_reflection = {};
+		m_bindings = {};
 	}
 
 	void Shader::Clear()
 	{
-		if (m_backend->ProgramID == 0)
-			return;
-
-		glDeleteProgram(m_backend->ProgramID);
-		m_backend->ProgramID = 0;
-		m_backend->m_reflection = {};
-		m_backend->m_bindings = {};
+		m_backend = nullptr;
 	}
 
 	void Shader::OnDestroy()
 	{
-		m_backend = nullptr;
+		Clear();
 	}
 
 	void Shader::SetData(const ShaderData& shaderData)
 	{
-		Clear();
-		GLuint shaderID = GL::CompileProgram(shaderData);
-
-		if (shaderID != 0)
-		{
-			if (m_backend->ProgramID)
-				return;
-
-			m_backend->m_reflection = GL::ReflectProgramGL(shaderID);
-			m_backend->m_bindings = GL::BuildGLProgramBindings(shaderID, m_backend->m_reflection);
-		}
+		m_backend = std::make_unique<ShaderBackend>(shaderData);
 	}
 
 	void Shader::SetBool(bool val, size_t reflectionIndex)

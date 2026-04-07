@@ -3,7 +3,7 @@
 #include "Twisted/Windowing/NativeUtils.h"
 
 //#include "Twisted/AssetsLayer/AssetsLayer.h"
-#include "EditorApp/EditorWorldService.h"
+#include "EditorApp/EditorService.h"
 #include "Twisted/Gameing/GameService.h"
 #include "EditorApp/EditorRegistry.h"
 #include "Twisted/Windowing/Window.h"
@@ -60,7 +60,7 @@ namespace Twisted::Editor
 				if (ImGui::BeginMenu("Recent Projects"))
 				{
 					int count = 0;
-					for (const std::string& recentProjPath : EditorWorldService::GetInstance()->GetLoadupConfig().GetRecentProjects())
+					for (const std::string& recentProjPath : Application::GetInstance().GetService<EditorService>()->GetLoadupConfig().GetRecentProjects())
 					{
 						if (count++ >= 5)
 							break; // limit to 5 projects
@@ -79,7 +79,7 @@ namespace Twisted::Editor
 				if (ImGui::MenuItem("Exit"))
 				{
 					if (Native::ShowConfirmDialog(*window, L"Are you sure?", L"Exit editor?"))
-						EditorWorldService::GetInstance()->ConfirmedQuitEvent.Invoke();
+						Application::GetInstance().GetService<EditorService>()->ConfirmedQuitEvent.Invoke();
 				}
 				ImGui::EndMenu();
 			}
@@ -87,25 +87,16 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New World"))
 				{
-					Application::GetInstance().GetService<GameService>()->CreateEmptyWorld();
+					Application::GetInstance().GetService<GameService>()->NewGameWorld();
 				}
 				if (ImGui::MenuItem("Open World"))
 				{
 					if (fs::path path = Native::OpenFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
-					{
-						auto objects = Application::GetInstance().GetService<AssetsService>()->ImportAssetDirect(path);
-						if (objects.size() == 1)
-						{
-							World* world = dynamic_cast<World*>(objects[0].GetObj());
-							if (world)
-								Application::GetInstance().GetService<GameService>()->SetGameWorld(*world);
-						}
-					}
-
+						Application::GetInstance().GetService<GameService>()->LoadWorld(path);
 				}
 				if (ImGui::MenuItem("Save World As"))
 				{
-					World* gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld;
+					World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
 					if (gameWorld)
 					{
 						if (std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
@@ -140,7 +131,7 @@ namespace Twisted::Editor
 					std::string createPath = imp->GetCreatePath();
 					if (createPath != "")
 						if (ImGui::MenuItem(createPath.c_str()))
-							EditorWorldService::GetInstance()->MakeNewFileEvent.Invoke(imp->DefaultFileName());
+							Application::GetInstance().GetService<EditorService>()->MakeNewFileEvent.Invoke(imp->DefaultFileName());
 				}
 
 				ImGui::EndMenu();
@@ -210,8 +201,8 @@ namespace Twisted::Editor
 		if (fs::is_regular_file(path))
 			path = path.parent_path();
 
-		EditorWorldService* editorLayer = EditorWorldService::GetInstance();
-		if (Application::GetInstance().GetService<AssetsService>()->GetProject().SetProject(path))
+		auto* editorLayer = Application::GetInstance().GetService<EditorService>();
+		if (Application::GetInstance().GetService<AssetsService>()->SetProject(path))
 			editorLayer->GetLoadupConfig().AddLatest(path.string());
 		else
 			editorLayer->GetLoadupConfig().RemoveEntry(path.string());

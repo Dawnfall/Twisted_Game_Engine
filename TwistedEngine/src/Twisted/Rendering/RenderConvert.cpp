@@ -1,23 +1,20 @@
-#include "Twisted/Rendering/Renderers/GameRenderer.h"
-
-#include "Twisted/Gameing/Components/CRenderer.h"
+#include "Twisted/Rendering/RenderConvert.h"
+#include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Components/CCamera.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/Components/SpotLightComponent.h"
+#include "Twisted/Gameing/Components/CRenderer.h"
 #include "Twisted/Gameing/Components/DirectionalLightComponent.h"
 #include "Twisted/Gameing/Components/PointLightComponent.h"
+#include "Twisted/Gameing/Components/SpotLightComponent.h"
 
 namespace Twisted
 {
-	std::vector<CameraData> GameRenderer::CollectCameraData(World& world)const
+	std::vector<CameraData> CollectCameraData(World& world)
 	{
 		std::vector<CameraData> camData;
 
-		const auto cameras = world.GetGroup<CameraComponent>();
-		camData.reserve(cameras.size());
-		for (const auto camEnt : cameras)
+		auto cameras = world.GetView<CameraComponent>();
+		for (auto&& [camEnt, cam] : cameras.each())
 		{
-			CameraComponent& cam = cameras.get<CameraComponent>(camEnt);
 			if (!cam.IsMainCamera())
 				continue;
 
@@ -33,7 +30,7 @@ namespace Twisted
 		return camData;
 	}
 
-	std::vector<ModelData> GameRenderer::CollectModelData(World& world)const
+	std::vector<ModelData> CollectModelData(World& world)
 	{
 		std::vector<ModelData> modelData;
 
@@ -55,7 +52,7 @@ namespace Twisted
 		return modelData;
 	}
 
-	LightData GameRenderer::CollectLightData(World& world)const
+	LightData CollectLightData(World& world)
 	{
 		LightData lightData;
 
@@ -63,12 +60,10 @@ namespace Twisted
 		lightData.dirLights.reserve(dirLights.size());
 		for (auto&& [ent, l, t] : dirLights.each())
 		{
-			DirLightData dirLightData;
-
+			GPUDirLight dirLightData{};
 			dirLightData.direction = Vec4f(t.GetWorldForward(), 0.0f);
 			dirLightData.lightColor = l.color;
 			dirLightData.intensity = l.intensity;
-
 			lightData.dirLights.emplace_back(dirLightData);
 		}
 
@@ -76,15 +71,13 @@ namespace Twisted
 		lightData.spotLights.reserve(spotLights.size());
 		for (auto&& [ent, l, t] : spotLights.each())
 		{
-			SpotLightData spotLightData;
-
+			GPUSpotLight spotLightData{};
 			spotLightData.direction = Vec4f(t.GetWorldForward(), 0.0f);
 			spotLightData.position = Vec4f(t.GetWorldPosition(), 1.0f);
 			spotLightData.lightColor = l.color;
 			spotLightData.intensity = l.intensity;
-			spotLightData.inner = l.innerAngleDeg;
-			spotLightData.outer = l.outerAngleDeg;
-
+			spotLightData.innerCos = glm::cos(glm::radians(l.innerAngleDeg));
+			spotLightData.outerCos = glm::cos(glm::radians(l.outerAngleDeg));
 			lightData.spotLights.emplace_back(spotLightData);
 		}
 
@@ -92,16 +85,23 @@ namespace Twisted
 		lightData.pointLights.reserve(pointLights.size());
 		for (auto&& [ent, l, t] : pointLights.each())
 		{
-			PointLightData pointLightData;
-
-			pointLightData.direction = Vec4f(t.GetWorldForward(), 0.0f);
+			GPUPointLight pointLightData{};
 			pointLightData.position = Vec4f(t.GetWorldPosition(), 1.0f);
 			pointLightData.lightColor = l.color;
 			pointLightData.intensity = l.intensity;
-
+			pointLightData.radius = l.radius;
 			lightData.pointLights.emplace_back(pointLightData);
 		}
 
 		return lightData;
+	}
+
+	RenderContext ExtractContext(World& world)
+	{
+		RenderContext context{};
+		context.camDatas   = CollectCameraData(world);
+		context.modelDatas = CollectModelData(world);
+		context.lightData  = CollectLightData(world);
+		return context;
 	}
 }

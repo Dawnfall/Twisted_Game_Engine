@@ -31,16 +31,33 @@ namespace Twisted
 			return;
 
 		const uint16_t mask = 1 << static_cast<uint8_t>(button);
+		const size_t idx = static_cast<size_t>(button);
+
 		if (state == KeyState::PRESSED)
 		{
-			if ((m_pressedButtons & mask) == 0) // first frame pressed
+			if ((m_pressedButtons & mask) == 0)
+			{
 				m_justPressedButtons |= mask;
+				m_buttonPressPos[idx] = m_mousePos;
+				m_dragging[idx] = false;
+			}
 			m_pressedButtons |= mask;
 		}
 		else
 		{
-			if (m_pressedButtons & mask) // was pressed, now released
+			if (m_pressedButtons & mask)
+			{
 				m_justReleasedButtons |= mask;
+				if (m_dragging[idx])
+				{
+					m_dragEnd[idx] = true;
+					m_dragging[idx] = false;
+				}
+				else
+				{
+					m_clicked[idx] = true;
+				}
+			}
 			m_pressedButtons &= ~mask;
 		}
 	}
@@ -48,9 +65,23 @@ namespace Twisted
 	{
 		m_mouseDelta.x = x - m_mousePos.x;
 		m_mouseDelta.y = y - m_mousePos.y;
-
 		m_mousePos.x = x;
 		m_mousePos.y = y;
+
+		for (size_t i = 0; i < ButtonCount; ++i)
+		{
+			const uint16_t mask = 1 << static_cast<uint8_t>(i);
+			if ((m_pressedButtons & mask) && !m_dragging[i])
+			{
+				float dx = x - m_buttonPressPos[i].x;
+				float dy = y - m_buttonPressPos[i].y;
+				if (dx * dx + dy * dy >= DragThreshold * DragThreshold)
+				{
+					m_dragStart[i] = true;
+					m_dragging[i] = true;
+				}
+			}
+		}
 	}
 
 	void Input::UpdateMouseWheel(float delta)

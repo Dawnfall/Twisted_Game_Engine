@@ -3,6 +3,7 @@
 #include "Twisted/Gameing/Components/CTransform.h"
 #include "Twisted/Gameing/Components/CName.h"
 #include "Twisted/Gameing/Entity.h"
+#include <vector>
 
 namespace Twisted::Editor
 {
@@ -17,13 +18,15 @@ namespace Twisted::Editor
 	{
 		bool IsClickUsed = false;
 		ImVec2 EntireRegion;
-		Entity EntityToDelete= Entity::Invalid();
+		std::vector<Entity> EntitiesToDelete;
 		bool doCreateNew = false;
 		
 		bool IsDropped = false;
-		Entity DraggedEntity = Entity::Invalid();
 		size_t NewIndex = 0;
+
+		Entity DraggedEntity = Entity::Invalid();
 		Entity NewEntityParent= Entity::Invalid();
+		World* gameWorld = nullptr;
 	};
 
 
@@ -52,5 +55,6 @@ namespace Twisted::Editor
 		const std::string DRAG_TREE_TRANSFORM = "drag_tree_transform";
 		const ImU32 SELECTED_COLOR = IM_COL32(80, 120, 200, 80);
 		float CORNER_ROUND = 4.0f;
-	}; 
+		Entity m_contextMenuEntity = Entity::Invalid();
+	};
 }

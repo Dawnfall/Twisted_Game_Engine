@@ -17,7 +17,7 @@ namespace Twisted::Collections
 		triangleData.AddPosition(Vec3f{ 0.5f, -0.5f, 0.0f });
 		triangleData.AddPosition(Vec3f{ 0.0f,  0.5f, 0.0f });
 
-		triangleData.Indices = { 2,1,0 };
+		triangleData.Indices = { 0,1,2 };
 		return triangleData.Pack();
 	}
 

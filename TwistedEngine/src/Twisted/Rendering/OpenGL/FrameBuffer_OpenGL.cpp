@@ -1,172 +1,105 @@
-﻿#ifndef TWISTED_D3D
+#ifndef TWISTED_D3D
 
 #include "Twisted/Rendering/OpenGL/FrameBuffer_OpenGL.h"
 #include "Twisted/Rendering/FrameBuffer.h"
 #include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+#include "Twisted/TObject.h"
 #include "Debug/Logger.h"
 
 #include <glad/glad.h>
-#include <string>
 
 namespace Twisted
 {
 	Framebuffer::Framebuffer(const std::string& name) :
-		TObject(name)
+		TObject(name),
+		m_backend(std::make_unique<FramebufferBackend>())
 	{
-		m_backend = new FramebufferBackend();
 	}
 
 	Framebuffer::~Framebuffer()
 	{
-		delete m_backend;
-	}
-
-	void Framebuffer::SetSize(const Vec2i& size)
-	{
-		//if (Tex && framebuffer.Tex->IsValid())
-		//{
-		//	if (framebuffer.Size != size)
-		//	{
-		//		framebuffer.Size = size;
-		//		framebuffer.Tex->Resize(framebuffer.Size);
-		//		framebuffer.IsDirty = true;
-		//	}
-		//}
-		//else
-		//	TWISTED_WARN("Cannot resize framebuffer with invalid texture");
 	}
 
 	void Framebuffer::OnCreate()
 	{
-		Color.Owned = TObject::Create<Texture>("color");
-		Depth.Owned = TObject::Create<Texture>("depth");
+		// Set default descriptors
+		Color.OwnedDesc.Format     = TextureFormat::RGBA8;
+		Color.OwnedDesc.UsageFlags = TextureUsage_ColorAttachment | TextureUsage_Sampled;
 
-		//glGenTextures(1, &m_backend->TexID);    
+		Depth.OwnedDesc.Format     = TextureFormat::Depth24Stencil8;
+		Depth.OwnedDesc.UsageFlags = TextureUsage_DepthAttachment;
 
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, m_backend->TexID);
+		// Create engine texture objects
+		Color.Owned = WPtr<Texture>(TObject::Create<Texture>(GetName() + "_color"));
+		Depth.Owned = WPtr<Texture>(TObject::Create<Texture>(GetName() + "_depth"));
 
-		//glTexImage2D(
-		//	GL_TEXTURE_2D,
-		//	0,
-		//	GL_RGBA8,
-		//	Size.x,
-		//	Size.y,
-		//	0,
-		//	GL_RGBA,
-		//	GL_UNSIGNED_BYTE,
-		//	0);
+		Color.Owned->Info = Color.OwnedDesc;
+		Depth.Owned->Info = Depth.OwnedDesc;
 
-		////apply params
-
-		//glBindTexture(GL_TEXTURE_2D, 0);
-
-		//if (m_backend->TexID == 0)
-		//{
-		//	TWISTED_WARN("Framebuffer without texture: {}", GetName());
-		//	return;
-		//}
-
-		//glGenFramebuffers(1, &m_backend->Id);
-		//glBindFramebuffer(GL_FRAMEBUFFER, m_backend->Id);
-
-		//glFramebufferTexture2D(
-		//	GL_FRAMEBUFFER,
-		//	GL_COLOR_ATTACHMENT0,
-		//	GL_TEXTURE_2D,
-		//	m_backend->TexID,
-		//	0
-		//);
-
-		//glGenRenderbuffers(1, &m_backend->Rbo);
-		//glBindRenderbuffer(GL_RENDERBUFFER, m_backend->Rbo);
-		//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Size.x, Size.y);
-		//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_backend->Rbo);
-
-		//GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-		//glDrawBuffers(1, drawBuffers);
-
-		//GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		//if (status != GL_FRAMEBUFFER_COMPLETE) {
-		//	std::string errorMessage = "ERROR::FRAMEBUFFER:: Framebuffer is not complete! Status: " + std::to_string(status);
-		//	TWISTED_WARN(errorMessage);
-		//}
-
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		//IsDirty = true;
-
-		//TWISTED_INFO("Framebuffer '{}' created successfully ({}x{})", GetName(), Size.x, Size.y);
+		m_backend = std::make_unique<FramebufferBackend>();
+		glCreateFramebuffers(1, &m_backend->Id);
+		// Create the GL FBO handle (no attachments yet — size not known)
 	}
-
 
 	void Framebuffer::OnDestroy()
 	{
 		TObject::Destroy(Color.Owned.get());
 		TObject::Destroy(Depth.Owned.get());
+		Color.Owned = nullptr;
+		Depth.Owned = nullptr;
+
+		glDeleteFramebuffers(1, &m_backend->Id);
+		m_backend = nullptr;
 	}
 
-	//void Framebuffer::Update()
-	//{
-		//if (m_backend->TexID)
-		//{
-		//	glBindTexture(GL_TEXTURE_2D, m_backend->TexID);
-		//	glTexImage2D(
-		//		GL_TEXTURE_2D,
-		//		0,
-		//		GL_RGBA8,
-		//		Size.x,
-		//		Size.y,
-		//		0,
-		//		GL_RGBA,
-		//		GL_UNSIGNED_BYTE,
-		//		nullptr
-		//	);
-		//}
+	void Framebuffer::SetSize(const Vec2i& newSize)
+	{
+		if (newSize.x <= 0 || newSize.y <= 0)
+			return;
+		if (newSize == Size && m_backend->IsValid())
+			return;
 
-		//if (m_backend->Rbo)
-		//{
-		//	glBindRenderbuffer(GL_RENDERBUFFER, m_backend->Rbo);
-		//	glRenderbufferStorage(
-		//		GL_RENDERBUFFER,
-		//		GL_DEPTH24_STENCIL8,
-		//		Size.x,
-		//		Size.y
-		//	);
-		//}
+		Size = newSize;
 
-		//glBindTexture(GL_TEXTURE_2D, 0);
-		//glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		//IsDirty = false;
-	//}
+		// Resize owned attachments
+		if (Texture* colorTex = Color.Owned.get())
+			colorTex->Resize(newSize);
+		if (Texture* depthTex = Depth.Owned.get())
+			depthTex->Resize(newSize);
 
+		// Attach to FBO
+		GLuint colorID = Color.Owned->GetBackend()->TexID;
+		GLuint depthID = Depth.Owned->GetBackend()->TexID;
 
+		glNamedFramebufferTexture(m_backend->Id, GL_COLOR_ATTACHMENT0,    colorID, 0);
+		glNamedFramebufferTexture(m_backend->Id, GL_DEPTH_STENCIL_ATTACHMENT, depthID, 0);
 
+		constexpr GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+		glNamedFramebufferDrawBuffers(m_backend->Id, 1, drawBuffers);
+
+		GLenum status = glCheckNamedFramebufferStatus(m_backend->Id, GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+			TWISTED_WARN("Framebuffer '{}' incomplete, status: {:#x}", GetName(), status);
+
+		Version++;
+	}
+
+	void Framebuffer::Bind()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, m_backend->Id);
+		glViewport(0, 0, Size.x, Size.y);
+	}
+
+	void Framebuffer::Unbind()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 }
 
 namespace Twisted::GL
 {
-	void Blit(FramebufferBackend& framebuffer, GLuint destID) //TODO... may be improved
-	{
-		//if (!framebuffer.IsValid())
-		//	return;
 
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.Id);      // source
-
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destID);
-
-		//glBlitFramebuffer(
-		//	0, 0, framebuffer.Tex->GetWidth(), framebuffer.Tex->GetHeight(),   // src rect
-		//	0, 0, framebuffer.Tex->GetWidth(), framebuffer.Tex->GetHeight(),   // dst rect
-		//	GL_COLOR_BUFFER_BIT,   // what to copy
-		//	GL_NEAREST             // filtering
-		//);
-
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	}
-
-	void ClearBuffer(const ClearParams& clearParams) //assumes bound buffer
+	void ClearBuffer(const ClearParams& clearParams)
 	{
 		int clearBits = 0;
 		if (clearParams.doClearColor)

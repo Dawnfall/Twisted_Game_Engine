@@ -19,7 +19,7 @@ namespace Twisted::Collections
 	layout(location = 1) in vec3 aNormal; 
 	layout(location = 2) in vec2 aUV; 
 	
-	layout(std140) uniform MVP_uniforms
+	layout(std140, binding = 0) uniform ShaderMVPBuffer
 	{
 		mat4 uModel;
 		mat4 uView;
@@ -36,7 +36,7 @@ namespace Twisted::Collections
 	void main()
 	{
 	    vUV = aUV;
-	    gl_Position = TransformMVPPoint(aPos, uModel, uView, uProj);
+	    gl_Position = uProj * uView * uModel * vec4(aPos, 1.0);
 	}
 	)";
 
@@ -47,10 +47,10 @@ namespace Twisted::Collections
 	
 	in vec2 vUV;
 	out vec4 FragColor;
-	
+
 	uniform sampler2D uTexture;
 	uniform vec4 uColor;
-	
+
 	void main()
 	{
 	    FragColor = texture(uTexture, vUV) * uColor;

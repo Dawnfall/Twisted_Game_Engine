@@ -20,6 +20,7 @@ namespace Twisted
 {
 	class AssetImporter;
 	const std::string ASSET_UUID_KEY = "uuid";
+	const std::string ASSET_TYPE_KEY = "type";
 
 	class AssetInfo
 	{

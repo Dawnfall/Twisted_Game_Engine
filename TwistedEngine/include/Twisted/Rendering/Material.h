@@ -119,102 +119,80 @@ namespace Twisted
 		YAML::Node node;
 		node[SHADER_KEY] = YamlUtils::encodeTObject(material.GetShader());
 
-		//YAML::Node props = node[PROPERTIES_KEY];
-		//for (const auto& activeUniformValue : material.GetActiveUniforms())
-		//{
-		//	YAML::Node entry = props[name];
-		//	// Save material properties
-		//	std::visit([&](auto&& v)
-		//		{
-		//			using T = std::decay_t<decltype(v)>;
-
-		//			// TEXTURE SPECIAL CASE
-		//			if constexpr (std::is_same_v<T, WPtr<Texture>>)
-		//			{
-		//				entry[PROP_TYPE_KEY] = TEXTURE_TYPE_NAME;
-
-		//				const Texture* tex = v.get();
-		//				entry[PROP_VALUE_KEY] = YamlUtils::encodeTObject(tex);
-		//			}
-		//			else
-		//			{
-		//				// Everything else supports YAML encode
-		//				entry[PROP_TYPE_KEY] = typeid(T).name();   // You may replace this with your own enum/string
-		//				entry[PROP_VALUE_KEY] = v;                 // relies on existing YAML conversions
-		//			}
-		//		}, value
-		//	);
-		//}
+		YAML::Node props;
+		for (const auto& mv : material.GetValues())
+		{
+			YAML::Node entry;
+			bool handled = true;
+			std::visit([&](const auto& val) {
+				using T = std::decay_t<decltype(val)>;
+				if constexpr (std::is_same_v<T, bool>) {
+					entry[PROP_TYPE_KEY] = "bool";
+					entry[PROP_VALUE_KEY] = val;
+				} else if constexpr (std::is_same_v<T, int>) {
+					entry[PROP_TYPE_KEY] = "int";
+					entry[PROP_VALUE_KEY] = val;
+				} else if constexpr (std::is_same_v<T, float>) {
+					entry[PROP_TYPE_KEY] = "float";
+					entry[PROP_VALUE_KEY] = val;
+				} else if constexpr (std::is_same_v<T, Vec3f>) {
+					entry[PROP_TYPE_KEY] = "vec3f";
+					entry[PROP_VALUE_KEY] = val;
+				} else if constexpr (std::is_same_v<T, Vec4f>) {
+					entry[PROP_TYPE_KEY] = "vec4f";
+					entry[PROP_VALUE_KEY] = val;
+				} else if constexpr (std::is_same_v<T, TextureValue>) {
+					entry[PROP_TYPE_KEY] = TEXTURE_TYPE_NAME;
+					entry[PROP_VALUE_KEY] = YamlUtils::encodeTObject(val.tex.get());
+				} else {
+					handled = false;
+				}
+			}, mv.val);
+			if (handled)
+				props[mv.name] = entry;
+		}
+		node[PROPERTIES_KEY] = props;
 		return node;
 	}
+
 	template<>
-	inline void YamlDeserialize<Material>(Material&, const YAML::Node&)
+	inline void YamlDeserialize<Material>(Material& material, const YAML::Node& node)
 	{
-		/*if (node[PROPERTIES_KEY])
+		if (node[SHADER_KEY])
+			material.SetShader(static_cast<Shader*>(YamlUtils::decodeTObject(node[SHADER_KEY])));
+
+		if (!node[PROPERTIES_KEY])
+			return;
+
+		const auto& props = node[PROPERTIES_KEY];
+		for (auto& mv : material.GetValues())
 		{
-			const auto propertiesNode = node[PROPERTIES_KEY];
-			for (auto it = propertiesNode.begin(); it != propertiesNode.end(); ++it)
+			if (!props[mv.name])
+				continue;
+
+			const auto& entry = props[mv.name];
+			if (!entry[PROP_TYPE_KEY] || !entry[PROP_VALUE_KEY])
+				continue;
+
+			const std::string typeStr = entry[PROP_TYPE_KEY].as<std::string>();
+			const auto& valNode = entry[PROP_VALUE_KEY];
+
+			if (typeStr == "bool")
+				mv.val = valNode.as<bool>();
+			else if (typeStr == "int")
+				mv.val = valNode.as<int>();
+			else if (typeStr == "float")
+				mv.val = valNode.as<float>();
+			else if (typeStr == "vec3f")
+				mv.val = valNode.as<Vec3f>();
+			else if (typeStr == "vec4f")
+				mv.val = valNode.as<Vec4f>();
+			else if (typeStr == TEXTURE_TYPE_NAME)
 			{
-				const std::string& key = it->first.as<std::string>();
-				const YAML::Node& entry = it->second;
-
-				const std::string typeStr = entry[PROP_TYPE_KEY].as<std::string>();
-				const YAML::Node encodedValue = entry[PROP_VALUE_KEY];
-
-				if (typeStr == TEXTURE_TYPE_NAME)
-				{
-					Texture* tex = static_cast<Texture*>(YamlUtils::decodeTObject(encodedValue));
-					material.Values[key] = WPtr<Texture>(tex);
-				}
-				else if (typeStr == typeid(bool).name())
-					material.Values[key] = encodedValue.as<bool>();
-				else if (typeStr == typeid(int).name())
-					material.Values[key] = encodedValue.as<int>();
-				else if (typeStr == typeid(unsigned int).name())
-					material.Values[key] = encodedValue.as<unsigned int>();
-				else if (typeStr == typeid(float).name())
-					material.Values[key] = encodedValue.as<float>();
-				else if (typeStr == typeid(double).name())
-					material.Values[key] = encodedValue.as<double>();
-				else if (typeStr == typeid(Vec2f).name())
-					material.Values[key] = encodedValue.as<Vec2f>();
-				else if (typeStr == typeid(Vec3f).name())
-					material.Values[key] = encodedValue.as<Vec3f>();
-				else if (typeStr == typeid(Vec4f).name())
-					material.Values[key] = encodedValue.as<Vec4f>();
-				else if (typeStr == typeid(Vec2d).name())
-					material.Values[key] = encodedValue.as<Vec2d>();
-				else if (typeStr == typeid(Vec3d).name())
-					material.Values[key] = encodedValue.as<Vec3d>();
-				else if (typeStr == typeid(Vec4d).name())
-					material.Values[key] = encodedValue.as<Vec4d>();
-				else if (typeStr == typeid(Vec2i).name())
-					material.Values[key] = encodedValue.as<Vec2i>();
-				else if (typeStr == typeid(Vec3i).name())
-					material.Values[key] = encodedValue.as<Vec3i>();
-				else if (typeStr == typeid(Vec4i).name())
-					material.Values[key] = encodedValue.as<Vec4i>();
-				else if (typeStr == typeid(Mat2x2f).name())
-					material.Values[key] = encodedValue.as<Mat2x2f>();
-				else if (typeStr == typeid(Mat3x3f).name())
-					material.Values[key] = encodedValue.as<Mat3x3f>();
-				else if (typeStr == typeid(Mat4x4f).name())
-					material.Values[key] = encodedValue.as<Mat4x4f>();
-				else if (typeStr == typeid(Mat2x2d).name())
-					material.Values[key] = encodedValue.as<Mat2x2d>();
-				else if (typeStr == typeid(Mat3x3d).name())
-					material.Values[key] = encodedValue.as<Mat3x3d>();
-				else if (typeStr == typeid(Mat4x4d).name())
-					material.Values[key] = encodedValue.as<Mat4x4d>();
-				else
-				{
-					TWISTED_WARN("Unknown property type: " + typeStr);
-				}
+				TextureValue tv;
+				tv.tex = WPtr<Texture>(static_cast<Texture*>(YamlUtils::decodeTObject(valNode)));
+				mv.val = tv;
 			}
 		}
-		if (node[SHADER_KEY])
-		{
-			material.SetShader(static_cast<Shader*>(YamlUtils::decodeTObject(node[SHADER_KEY])));
-		}*/
 	}
 }

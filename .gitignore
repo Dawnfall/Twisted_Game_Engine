@@ -37,6 +37,8 @@ vcpkg_installed/
 
 # Misc
 *.vs/
+CLAUDE.md
+Data/
 
 # Executables and dlls
 *.exe

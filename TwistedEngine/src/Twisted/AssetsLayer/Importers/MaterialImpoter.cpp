@@ -1,62 +1,57 @@
-﻿#include "Twisted/AssetsLayer/Importers/MaterialImporter.h"
-//#include "Twisted/AssetsLayer/AssetsService.h"
-#include "Twisted/Rendering/Material.h"
+#include "Twisted/AssetsLayer/Importers/MaterialImporter.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+
+#include "Twisted/Rendering/Material.h"
+#include "Twisted/TObject.h"
+#include "Utils/WPtr.h"
+#include "Utils/WPtrBase.h"
+#include "Utils/YamlUtils.h"
+
 #include <filesystem>
 #include <memory>
-#include <yaml-cpp/node/parse.h>
-#include "Twisted/AssetsLayer/AssetInfo.h"
-#include "Utils/WPtr.h"
-#include "Twisted/TObject.h"
-#include "Utils/WPtrBase.h"
-#include <yaml-cpp/node/node.h>
 #include <vector>
-#include "Utils/YamlUtils.h"
+#include <yaml-cpp/node/node.h>
+#include <yaml-cpp/node/parse.h>
 
 namespace Twisted
 {
-	void MaterialImporter::ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	std::vector<WPtrBase> MaterialImporter::Load(const fs::path& path) const
 	{
-		WPtr<Material> mat(TObject::Create<Material>(assetInfo.GetAssetName()));
-
-		objects.emplace_back(mat);
+		WPtr<Material> mat(TObject::Create<Material>(path.stem().string()));
+		return { mat };
 	}
 
-	void MaterialImporter::PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void MaterialImporter::PostLoad(const fs::path& path, std::vector<WPtrBase>& objects) const
 	{
 		if (objects.empty())
 			return;
 
 		Material* mat = static_cast<Material*>(objects[0].GetObj());
-		YAML::Node buffer = YAML::LoadFile(assetInfo.GetAssetPath().string());
-		
 		if (!mat)
 			return;
-		
+
+		YAML::Node buffer = YAML::LoadFile(path.string());
 		YamlDeserialize<Material>(*mat, buffer);
-
 	}
 
-	void MaterialImporter::HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void MaterialImporter::HotReload(const fs::path& path, std::vector<WPtrBase>& objects) const
 	{
-		(void)assetInfo;
+		(void)path;
 		(void)objects;
-		//TODO:...
+		//TODO...
 	}
 
-
-
-	void MaterialImporter::CreateNewAsset(const fs::path& path)const
+	void MaterialImporter::CreateNew(const fs::path& path) const
 	{
 		auto material = std::make_unique<Material>(path.stem().string());
 		if (!material)
 			return;
 
 		YAML::Node data = YamlSerialize<Material>(*material);
-		YamlUtils::saveNode(data, path,"Failed to create material asset!");
+		YamlUtils::saveNode(data, path, "Failed to create material asset!");
 	}
 
-	bool MaterialImporter::SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const
+	bool MaterialImporter::Save(const fs::path& path, const std::vector<WPtrBase>& objects) const
 	{
 		if (objects.empty())
 			return false;
@@ -66,13 +61,9 @@ namespace Twisted
 			return false;
 
 		YAML::Node data = YamlSerialize<Material>(*mat);
-		YamlUtils::saveNode(data, assetPath, "Cannot save material");
-
+		YamlUtils::saveNode(data, path, "Cannot save material");
 		return true;
 	}
-
 }
 
 REGISTER_IMPORTER(MaterialImporter)
-
-

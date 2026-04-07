@@ -35,6 +35,10 @@ namespace Twisted::Editor
 		{
 			return m_rootNode[Constants::WIN_POS_NAME].as<Vec2i>(Constants::WINDOW_DEFAULT_POS);
 		}
+		bool GetWindowMaximized()
+		{
+			return m_rootNode[Constants::WIN_MAXIMIZED_NAME].as<bool>(false);
+		}
 
 		void SetWindowSize(Vec2i size)
 		{
@@ -43,6 +47,10 @@ namespace Twisted::Editor
 		void SetWindowPos(Vec2i pos)
 		{
 			m_rootNode[Constants::WIN_POS_NAME] = pos;
+		}
+		void SetWindowMaximized(bool maximized)
+		{
+			m_rootNode[Constants::WIN_MAXIMIZED_NAME] = maximized;
 		}
 	};
 }

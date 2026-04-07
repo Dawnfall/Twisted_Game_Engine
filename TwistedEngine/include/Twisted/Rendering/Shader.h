@@ -31,9 +31,9 @@ namespace Twisted
 		//void ApplyUniforms(const std::vector<ActiveValueUniform>& activeUniforms);
 		const ShaderReflection& GetReflection()const;
 
-		ShaderBackend* GetBackend() { return m_backend; }
+		ShaderBackend* GetBackend() { return m_backend.get(); }
 	private:
-		ShaderBackend* m_backend = nullptr;
+		URef<ShaderBackend> m_backend = nullptr;
 	};
 
 }

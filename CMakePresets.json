@@ -26,6 +26,18 @@
       }
     },
     {
+      "name": "ninja-vs",
+      "displayName": "Ninja (compile_commands.json for tooling)",
+      "inherits": "base",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/ninja",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
       "name": "linux",
       "displayName": "Linux (Ninja Multi-Config)",
       "inherits": "base",

@@ -1,6 +1,7 @@
 ﻿#include "TreeViewPanel.h"
-#include "EditorApp/EditorWorldService.h"
 
+#include "EditorApp/EditorService.h"
+#include "Twisted/Windowing/Input.h"
 #include "Twisted/Gameing/World.h"
 #include "Twisted/Gameing/Entity.h"
 #include "Twisted/Gameing/Components/CTransform.h"
@@ -30,7 +31,7 @@ namespace Twisted::Editor
 		if (childCount == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (EditorWorldService::GetInstance()->GetSelection().GetSelectedEntities().contains(entity))
+		if (Application::GetInstance().GetService<EditorService>()->GetSelection().GetSelectedEntities().contains(entity))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -41,7 +42,7 @@ namespace Twisted::Editor
 	static void CheckLeftClickOnNode(TreeViewToken& token, Entity entity)
 	{
 		(void)token;
-		if (EditorWorldService::GetInstance()->GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (Input::GetInstance().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -50,7 +51,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorWorldService::GetInstance()->GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_IF_SELECTED);
+				Application::GetInstance().GetService<EditorService>()->GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -58,43 +59,45 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorWorldService::GetInstance()->GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_OTHERS);
+				Application::GetInstance().GetService<EditorService>()->GetSelection().SelectEntities({ entity }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
 
-	static void CheckRightClickOnNode(Entity entity, TreeViewToken& token)
+	static void CheckRightClickOnNode(Entity entity, TreeViewToken& token, Entity& contextMenuEntity)
 	{
 		if (!token.IsClickUsed && ImGui::IsItemClicked(ImGuiMouseButton_Right))
 		{
 			ImGui::OpenPopup(nodeContextPopup.c_str());
 			token.IsClickUsed = true;
+			contextMenuEntity = entity;
 		}
 
 		if (ImGui::BeginPopup(nodeContextPopup.c_str()))
 		{
+			Entity contextEntity = contextMenuEntity;
 			if (ImGui::BeginMenu("Create"))
 			{
 				if (ImGui::MenuItem("Empty"))
 				{
 					token.doCreateNew = true;
-					token.NewEntityParent = entity;
+					token.NewEntityParent = contextEntity;
 				}
 				if (ImGui::MenuItem("Sphere"))
 				{
 					token.doCreateNew = true;
-					token.NewEntityParent = entity;
+					token.NewEntityParent = contextEntity;
 				}
 				if (ImGui::MenuItem("Cube"))
 				{
 					token.doCreateNew = true;
-					token.NewEntityParent = entity;
+					token.NewEntityParent = contextEntity;
 				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Delete"))
 			{
-				token.EntityToDelete = entity;
+				token.EntitiesToDelete.push_back(contextEntity);
 			}
 			ImGui::EndPopup();
 		}
@@ -134,19 +137,19 @@ namespace Twisted::Editor
 	void TreeViewPanel::PaintContent()
 	{
 		//auto editor = EditorWorldService::GetInstance();
-		auto gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld;
+		TreeViewToken token;
+		token.gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
 
-		if (!gameWorld)
+		if (!token.gameWorld)
 			return;
 
 		//SetNodeBackgroundColor(); //TODO:... must be done probably somewhere else ??!? not sure
 
-		TreeViewToken token;
 		token.EntireRegion = ImGui::GetContentRegionAvail();
 
-		auto& rootManager = gameWorld->ForceGetManager<RootTransformManager>();
+		auto& rootManager = token.gameWorld->ForceGetManager<RootTransformManager>();
 		for (auto rootEnt : rootManager.RootEntities)
-			RenderTreeNode(Entity{ rootEnt,gameWorld }, token);
+			RenderTreeNode(Entity{ rootEnt,token.gameWorld }, token);
 
 		CheckRightClickOnEmpty(token);
 		HandleChanges(token);
@@ -161,7 +164,7 @@ namespace Twisted::Editor
 
 		ImGuiTreeNodeFlags flags = GetNodeFlags(transform.GetChildCount(), entity);
 
-		bool IsSelected = EditorWorldService::GetInstance()->GetSelection().GetSelectedEntities().contains(entity);
+		bool IsSelected = Application::GetInstance().GetService<EditorService>()->GetSelection().GetSelectedEntities().contains(entity);
 		bool isOpened = ImGui::TreeNodeEx(nodeID.c_str(), flags);
 		//bool isHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
@@ -178,11 +181,11 @@ namespace Twisted::Editor
 			token.IsDropped = true;
 		}
 
-		CheckRightClickOnNode(entity, token);
+		CheckRightClickOnNode(entity, token, m_contextMenuEntity);
 		CheckLeftClickOnNode(token, entity);
 
 		if (IsSelected && ImGui::IsKeyPressed(ImGuiKey_Delete))
-			token.EntityToDelete = entity;
+			token.EntitiesToDelete.push_back(entity);
 
 		auto& children = transform.GetChildrenIDs();
 		if (isOpened)
@@ -254,16 +257,16 @@ namespace Twisted::Editor
 			}
 		}
 
-		if (token.EntityToDelete)
+		if (!token.EntitiesToDelete.empty())
 		{
-			Entity entToDelete = token.EntityToDelete;
-			token.EntityToDelete.GetWorld()->DestroyEntity(entToDelete.GetID());
-			EditorWorldService::GetInstance()->GetSelection().ClearEntities();
+			for (Entity& entToDelete : token.EntitiesToDelete)
+				entToDelete.GetWorld()->DestroyEntity(entToDelete.GetID());
+			Application::GetInstance().GetService<EditorService>()->GetSelection().ClearEntities();
 		}
 
 		if (token.doCreateNew)
 		{
-			Entity newEntity = Application::GetInstance().GetService<GameService>()->GameWorld->CreateNewEntity();
+			Entity newEntity = Application::GetInstance().GetService<GameService>()->GetGameWorld()->CreateNewEntity();
 			if (token.NewEntityParent)
 			{
 				TransformComponent& transform = newEntity.GetWorld()->GetComponent<TransformComponent>(newEntity.GetID());

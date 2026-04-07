@@ -19,14 +19,6 @@ namespace Twisted::Editor
 
 	GameViewPanel::GameViewPanel() :EditorPanel("Game View")
 	{
-		this->PanelResizeEvent.AddListener([this]() {
-			if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld; gameWorld)
-				if (CameraComponent* mainCamera = gameWorld->GetManager<CameraManager>()->GetMainCamera(); mainCamera)
-					if (Framebuffer* fb = mainCamera->Fb.get(); fb)
-					{
-						fb->SetSize(Size);
-					}
-			});
 	}
 
 	void GameViewPanel::Init()
@@ -36,16 +28,17 @@ namespace Twisted::Editor
 
 	void GameViewPanel::PaintContent()
 	{
-		if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GameWorld; gameWorld)
-			if (CameraComponent* mainCamera = gameWorld->GetManager<CameraManager>()->GetMainCamera(); mainCamera)
+		if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld(); gameWorld)
+			if (CameraComponent* mainCamera = gameWorld->ForceGetManager<CameraManager>().GetMainCamera(); mainCamera)
 				if (Framebuffer* fb = mainCamera->Fb.get(); fb)
 				{
-					//ImGui::Image(
-					//	 Im::GetImGuiTextureID(fb->GetColor().get()),
-					//	ImVec2((float)Size.x, (float)Size.y),
-					//	ImVec2(0, 1),  // top-left UV
-					//	ImVec2(1, 0)   // bottom-right UV (flipped vertically)
-					//);
+					fb->SetSize(Size);
+					ImGui::Image(
+						Im::GetImGuiTextureID(fb->GetColor().get()),
+						ImVec2((float)Size.x, (float)Size.y),
+						ImVec2(0, 1),  // top-left UV
+						ImVec2(1, 0)   // bottom-right UV (flipped vertically)
+					);
 				}
 	}
 }

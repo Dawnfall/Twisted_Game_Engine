@@ -1,10 +1,7 @@
 ﻿#pragma once
 #include "UI/EditorPanel.h"
-
-#include "Twisted/Rendering/FrameBuffer.h"
-#include "EditorApp/EditorWorldService.h"
-#include "ImGuizmo.h"
-#include "Twisted/Gameing/Components/CCamera.h"
+#include "EditorApp/EditorService.h"
+#include "Twisted/Application/Application.h"
 
 namespace Twisted::Editor
 {
@@ -13,15 +10,13 @@ namespace Twisted::Editor
 	public:
 		WorldViewPanel();
 		void Init() override
-		{		
-			m_editorWorld = EditorWorldService::GetInstance();
+		{	
+			m_editorService = Application::GetInstance().GetService<EditorService>();
 		}
 
 		virtual void PaintContent()override;
 
-    private:
-		void DrawViewportGizmo(Entity camEntity);
-
-		EditorWorldService* m_editorWorld=nullptr;
+	private:
+		EditorService* m_editorService = nullptr;
 	};
 }

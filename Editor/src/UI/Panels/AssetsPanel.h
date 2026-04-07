@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "UI/EditorPanel.h"
 #include <filesystem>
-#include "EditorApp/EditorWorldService.h"
 #include "Twisted/AssetsLayer/Project.h"
 #include "UI/ImguiExtensions.h"
 #include <imgui.h>

@@ -5,7 +5,8 @@
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 #include "Twisted/TObject.h"
 #include "EditorConstants.h"
-#include "EditorApp/EditorWorldService.h"
+#include "EditorApp/EditorService.h"
+#include "Twisted/Windowing/Input.h"
 #include "Twisted/AssetsLayer/Project.h"
 #include <optional>
 #include <filesystem>
@@ -26,7 +27,7 @@ namespace Twisted::Editor
 		if (childCount == 0)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		if (EditorWorldService::GetInstance()->GetSelection().GetSelectedPaths().contains(assetPath))
+		if (Application::GetInstance().GetService<EditorService>()->GetSelection().GetSelectedPaths().contains(assetPath))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -40,7 +41,7 @@ namespace Twisted::Editor
 			ImGuiTreeNodeFlags_Leaf |
 			ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-		if (EditorWorldService::GetInstance()->GetSelection().GetSelectedObjects().contains(obj->GetID()))
+		if (Application::GetInstance().GetService<EditorService>()->GetSelection().GetSelectedObjects().contains(obj->GetID()))
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -50,7 +51,7 @@ namespace Twisted::Editor
 
 	static void CheckLeftClickOnAsset(const fs::path& asset)
 	{
-		if (EditorWorldService::GetInstance()->GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (Input::GetInstance().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -59,7 +60,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorWorldService::GetInstance()->GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
+				Application::GetInstance().GetService<EditorService>()->GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -67,14 +68,14 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorWorldService::GetInstance()->GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
+				Application::GetInstance().GetService<EditorService>()->GetSelection().SelectPaths({ asset }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
 
 	static void CheckLeftClickOnObject(TObject* object)
 	{
-		if (EditorWorldService::GetInstance()->GetInput().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
+		if (Input::GetInstance().IsClicked() && ImGui::IsItemHovered())//!ImGui::IsItemToggledOpen()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			bool ctrlHeld = io.KeyCtrl; // true if Ctrl is held
@@ -83,7 +84,7 @@ namespace Twisted::Editor
 
 			if (ctrlHeld)
 			{
-				EditorWorldService::GetInstance()->GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
+				Application::GetInstance().GetService<EditorService>()->GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_IF_SELECTED);
 			}
 			else if (shiftHeld)
 			{
@@ -91,17 +92,17 @@ namespace Twisted::Editor
 			}
 			else
 			{
-				EditorWorldService::GetInstance()->GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
+				Application::GetInstance().GetService<EditorService>()->GetSelection().SelectObject({ object }, SelectionFlags::REMOVE_OTHERS);
 			}
 		}
 	}
 
 	void AssetsPanel::Init()
 	{
-		Twisted::Application::GetInstance().GetService<AssetsService>()->GetProject().ProjectChangeEvent.AddListener([this](const Project& project) {
+		Twisted::Application::GetInstance().GetService<AssetsService>()->ProjectChangeEvent.AddListener([this](const Project& project) {
 			currentDir = project.GetAssetsFolder();
 			});
-		EditorWorldService::GetInstance()->MakeNewFileEvent.AddListener([this](fs::path defaultName) {
+		Application::GetInstance().GetService<EditorService>()->MakeNewFileEvent.AddListener([this](fs::path defaultName) {
 			m_newFileName = Im::InputTextToken{};
 			m_newFileName.value().PostLabel = defaultName.extension().string();
 			m_newFileName.value().Text = defaultName.stem().string();
@@ -241,7 +242,7 @@ namespace Twisted::Editor
 				{
 					if (ImGui::MenuItem(createPath.c_str()))
 					{
-						EditorWorldService::GetInstance()->MakeNewFileEvent.Invoke(importer->DefaultFileName());
+						Application::GetInstance().GetService<EditorService>()->MakeNewFileEvent.Invoke(importer->DefaultFileName());
 					}
 				}
 			}

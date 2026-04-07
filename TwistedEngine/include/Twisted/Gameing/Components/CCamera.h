@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "AppCore.h"
+#include "Debug/Logger.h"
 #include "Utils/GlmUtils.h"
 #include "Twisted/Gameing/AComponent.h"
 #include "Serialization/BinSerializer.h"
@@ -71,9 +72,9 @@ namespace Twisted
 			auto target = position + transform.GetWorldForward();
 			auto viewMat = glm::lookAt(position, target, Constants::Up);
 
-			//std::cout << "World Pos:\n " << glm::to_string(position) << std::endl;
-			//std::cout << "Target:\n " << glm::to_string(target) << std::endl;
-			//std::cout << "View:\n " << glm::to_string(viewMat) << std::endl;
+			//TWISTED_INFO("World Pos: {}", glm::to_string(position));
+			//TWISTED_INFO("Target: {}", glm::to_string(target));
+			//TWISTED_INFO("View: {}", glm::to_string(viewMat));
 
 			return viewMat;
 		}
@@ -112,6 +113,8 @@ namespace Twisted
 	template<>
 	inline void OnCreateComponent(CameraComponent& camera)
 	{
+		camera.Fb = WPtr<Framebuffer>(TObject::Create<Framebuffer>(camera.GetWorld()->GetName() + "_camera_fb"));
+
 		if (!camera.CamManager->GetMainCamera())
 			camera.SetAsMainCamera();
 	}
@@ -119,6 +122,9 @@ namespace Twisted
 	template<>
 	inline void OnDestroyComponent<CameraComponent>(CameraComponent& camera)
 	{
+		TObject::Destroy(camera.Fb.get());
+		camera.Fb = nullptr;
+
 		if (camera.IsMainCamera())
 			camera.CamManager->SetAsMainCamera(nullptr);
 	}

@@ -18,7 +18,17 @@ namespace Twisted
 	{
 		GLuint ProgramID = 0;
 		ShaderReflection m_reflection; //indices match
-		GL::GLProgramBindings m_bindings; //
+		GL::GLProgramBindings m_bindings;
+
+		ShaderBackend(const ShaderData& shaderData);
+		~ShaderBackend();
+
+		bool UsesBlock(GLuint bindingPoint) const
+		{
+			for (const auto& b : m_bindings.blocks)
+				if (b.bindingPoint == bindingPoint) return true;
+			return false;
+		}
 	};
 
 	inline const ShaderReflection& Shader::GetReflection() const { return m_backend->m_reflection; }
@@ -34,13 +44,6 @@ namespace Twisted::GL
 	inline void TWISTED_API BindShader(GLuint shader) { glUseProgram(shader); }
 	inline void TWISTED_API UnbindShader() { glUseProgram(0); }
 
-	template<typename T>
-	void SetUniformBuffer(const T& data, GLuint id)
-	{
-		glBindBuffer(GL_UNIFORM_BUFFER, id);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &data);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	}
 }
 
 #endif

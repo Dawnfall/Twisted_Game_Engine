@@ -16,11 +16,22 @@ namespace Twisted
 		m_values.clear();
 		m_nameToIndex.clear();
 
-		const auto& values = m_shader->GetReflection().values;
+		const auto& reflection = m_shader->GetReflection();
+		const auto& values = reflection.values;
 		for (size_t i = 0; i < values.size(); ++i)
 		{
 			const auto& shaderReflectedVal = values[i];
-			m_values.emplace_back(MaterialValue{ GetDefaultValue(shaderReflectedVal.type),shaderReflectedVal.name,i });
+
+			size_t reflIdx = i;
+			if (shaderReflectedVal.type == EShaderValueType::TEX_2D)
+			{
+				// textures are indexed separately in m_bindings.textures,
+				// so we need the position in texIndices, not values
+				auto it = std::find(reflection.texIndices.begin(), reflection.texIndices.end(), i);
+				reflIdx = std::distance(reflection.texIndices.begin(), it);
+			}
+
+			m_values.emplace_back(MaterialValue{ GetDefaultValue(shaderReflectedVal.type), shaderReflectedVal.name, reflIdx });
 			m_nameToIndex[shaderReflectedVal.name] = m_values.size() - 1;
 		}
 	}
@@ -66,7 +77,8 @@ namespace Twisted
 					shader->SetMat4(val, uniVar.reflectionIndex);
 				}
 				else if constexpr (std::is_same_v<T, TextureValue>) {
-					shader->SetTexture(val.tex.get(), uniVar.reflectionIndex);
+					if (const Texture* t = val.tex.get())
+						shader->SetTexture(t, uniVar.reflectionIndex);
 				}
 				else {
 					TWISTED_ERROR("Unsupported material uniform type to assign to shader!");

@@ -1,12 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "AppCore.h"
 #include "Twisted/AssetsLayer/AssetImporter.h"
-#include "Twisted/AssetsLayer/AssetInfo.h"
-#include "Utils/WPtrBase.h"
 
-#include <yaml-cpp/node/node.h>
-#include <string>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 namespace Twisted
 {
@@ -15,20 +13,11 @@ namespace Twisted
 	class TWISTED_API TextureImporter : public AssetImporter
 	{
 	public:
+		std::vector<WPtrBase> Load(const fs::path& path) const override;
+		void HotReload(const fs::path& path, std::vector<WPtrBase>& objects) const override;
 
-		void ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-		void PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-		void HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const override;
-
-		void FillDefaultInfo(YAML::Node& node)const override
-		{
-			node[ASSET_TYPE_KEY] = ASSET_TEXTURE_TYPE;
-		}
-
-		inline bool DoAutoImport()const override { return true; }
-		std::vector<fs::path> GetAssetExtensions()const override { return { ".jpg",".jpeg",".png",".bmp",".tga" }; }
+		std::string GetAssetType() const override { return ASSET_TEXTURE_TYPE; }
+		bool DoAutoImport() const override { return true; }
+		std::vector<fs::path> GetAssetExtensions() const override { return { ".jpg", ".jpeg", ".png", ".bmp", ".tga" }; }
 	};
 }
-
-
-

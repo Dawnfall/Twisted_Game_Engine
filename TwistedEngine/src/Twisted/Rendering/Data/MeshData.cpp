@@ -99,7 +99,7 @@ namespace Twisted
                 packed.VertexBuffer[base + currentOffset + 1] = Colors[i].g;
                 packed.VertexBuffer[base + currentOffset + 2] = Colors[i].b;
                 packed.VertexBuffer[base + currentOffset + 3] = Colors[i].a;
-                currentOffset += 2;
+                currentOffset += 4;
             }
         }
 

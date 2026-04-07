@@ -9,22 +9,27 @@
 
 namespace Twisted
 {
+	class WindowsService;
 	struct WindowBackend;
 	class TWISTED_API Window
 	{
 	public:
-		Window(const std::string& title, Vec2i size, Vec2i position);
+		Window(WindowsService* service,const std::string& title, Vec2i size, Vec2i position);
 		Window(const Window& other) = delete;
-		Window(Window&& other) = default;
+		Window(Window&& other);
 		~Window();
 
 		Window& operator=(const Window& other) = delete;
-		Window& operator=(Window&& other) = default;
+		Window& operator=(Window&& other);
 
 		Vec2i GetSize()const;
 		Vec2i GetClientSize() const;
 		Vec2i GetPosition()const;
 		std::string GetTitle()const;
+		bool IsWindowMaximized()const;
+
+		struct RestoreBounds { Vec2i pos; Vec2i size; };
+		RestoreBounds GetRestoreBounds()const; // pre-maximize position and size
 
 		void SetTitle(const std::string& newName);
 		void SetSize(Vec2i newSize);
@@ -45,12 +50,13 @@ namespace Twisted
 		Event<> CloseWindowEvent;
 		Event<Vec2i> WindowResizeEvent;
 
-		const WindowBackend* GetBackend()const { return m_backend; }
+		const WindowBackend* GetBackend()const { return m_backend ? m_backend.get() : nullptr; }
+		WindowsService* GetWindowsService() { return m_windowsService; }
 
 	private:
 
-		WindowBackend* m_backend = nullptr;
-	
+		std::unique_ptr<WindowBackend> m_backend = nullptr;
+		WindowsService* m_windowsService = nullptr;
 	};
 }
 

@@ -17,12 +17,14 @@ namespace Twisted
 
 		const MeshBackend* GetBackend() const { return m_backend; }
 		size_t GetIndexCount()const { return m_indexCount; }
+		MeshPrimitiveType GetPrimitiveType() const { return m_primitiveType; }
 	private:
 
 		MeshBackend* m_backend = nullptr;
 
 		MeshWindingOrder m_windOrder = MeshWindingOrder::COUNTER_CLOCKWISE;
 		MeshDrawType m_drawType = MeshDrawType::DYNAMIC;
+		MeshPrimitiveType m_primitiveType = MeshPrimitiveType::TRIANGLES;
 		size_t m_indexCount = 0;
 	};
 }

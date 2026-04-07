@@ -1,8 +1,6 @@
-﻿#pragma once
+#pragma once
 
 #include "AppCore.h"
-#include "Utils/FileUtils.h"
-#include "Utils/Event.h"
 #include "Twisted/Constants.h"
 
 #include <filesystem>
@@ -15,21 +13,20 @@ namespace Twisted
 	{
 	public:
 		Project() = default;
+		explicit Project(fs::path rootPath);
 
-		bool SetProject(const fs::path& projectFolder);
+		bool IsValid() const { return m_valid; }
 
 		const fs::path& GetRootPath()const { return m_rootPath; }
 		fs::path GetInternalFolder() const { return m_rootPath / "Internal"; }
 		fs::path GetInternalMeshesFolder()const { return m_rootPath / "Internal/Meshes"; }
 		fs::path GetAssetsFolder()const { return m_rootPath / "Assets"; }
 		std::string GetName()const { return m_rootPath.parent_path().filename().string(); }
-		std::string GetLayoutFilePath()const { return (GetRootPath() / "EditorLayout.ini").string(); };
+		fs::path GetPanelLayoutPath()const { return m_rootPath / "EditorLayout.layout"; }
+		fs::path GetProjectFilePath()const { return m_rootPath / PROJECT_FILE; }
 
-		void ValidateProject() const;
-
-		Event<const Project&> ProjectChangeEvent;
 	private:
 		fs::path m_rootPath;
+		bool m_valid = false;
 	};
 }
-

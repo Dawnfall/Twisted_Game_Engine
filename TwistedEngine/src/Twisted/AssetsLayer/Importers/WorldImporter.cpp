@@ -1,70 +1,49 @@
-﻿#include "Twisted/AssetsLayer/Importers/WorldImporter.h"
+#include "Twisted/AssetsLayer/Importers/WorldImporter.h"
+#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 
 #include "Twisted/Gameing/World.h"
+#include "Twisted/TObject.h"
 #include "Utils/WPtr.h"
-#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
-#include <vector>
 #include "Utils/WPtrBase.h"
 #include "Utils/YamlUtils.h"
 
 #include <yaml-cpp/node/node.h>
 #include <yaml-cpp/node/parse.h>
-#include "Twisted/TObject.h"
-#include "Twisted/AssetsLayer/AssetInfo.h"
 #include <memory>
+#include <vector>
 
 namespace Twisted
 {
-	void WorldImporter::ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	std::vector<WPtrBase> WorldImporter::Load(const fs::path& path) const
 	{
-		//BinSerializer buffer;
-		//buffer.LoadFromFile(assetInfo.AssetPath);
-		//assetInfo.GetAssetObjects()[""]= WPtr<World>(TObject::Create<World>(buffer));
+		YAML::Node data = YAML::LoadFile(path.string());
 
-		YAML::Node data = YAML::LoadFile(assetInfo.GetAssetPath().string());
-
-		WPtr<World> world(TObject::Create<World>(assetInfo.GetAssetName()));
+		WPtr<World> world(TObject::Create<World>(path.stem().string()));
 		if (!world)
-			return;
+			return {};
 
 		YamlDeserialize<World>(*world.get(), data);
-		objects.emplace_back(world);
+		return { world };
 	}
 
-	void WorldImporter::HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void WorldImporter::HotReload(const fs::path& path, std::vector<WPtrBase>& objects) const
 	{
+		(void)path;
 		(void)objects;
-		(void)assetInfo;
 		//TODO...
-		//World* world = objects[""].GetObj()->static_as<World>();
-		//world->Clear();
 	}
 
-	void WorldImporter::PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void WorldImporter::CreateNew(const fs::path& path) const
 	{
-		(void)assetInfo;
-		(void)objects;
-		//BinSerializer buffer;
-		//buffer.LoadFromFile(assetInfo.AssetPath);
-		//objects[0]->static_as<World>()->Deserialize(buffer, assetsLayer);
-	}
-
-	void WorldImporter::CreateNewAsset(const fs::path& assetPath)const
-	{
-		//auto world = std::make_unique<World>();
-		//BinSerializer buffer = world->Serialize();
-		//buffer.SaveToFile(assetPath);
-
-		auto world = std::make_unique<World>(assetPath.stem().string());
-
+		auto world = std::make_unique<World>(path.stem().string());
 		if (!world)
 			return;
 
 		YAML::Node data = YamlSerialize<World>(*world.get());
-		YamlUtils::saveNode(data, assetPath,"Failed to create world asset!");
+		YamlUtils::saveNode(data, path, "Failed to create world asset!");
 	}
 
-	bool WorldImporter::SaveAsset(const fs::path& assetPath, const std::vector<WPtrBase>& objects)const
+	bool WorldImporter::Save(const fs::path& path, const std::vector<WPtrBase>& objects) const
 	{
 		if (objects.empty())
 			return false;
@@ -74,12 +53,9 @@ namespace Twisted
 			return false;
 
 		YAML::Node data = YamlSerialize<World>(*world);
-		YamlUtils::saveNode(data, assetPath,"Failed to save world asset");
-
+		YamlUtils::saveNode(data, path, "Failed to save world asset");
 		return true;
 	}
-
 }
 
 REGISTER_IMPORTER(WorldImporter)
-

@@ -1,7 +1,10 @@
 #pragma once
 
+#include "Twisted/Windowing/Window.h"
+#include "Twisted/Windowing/WindowsService.h"
 #include "Twisted/Windowing/KeyCodes.h"
 #include "Twisted/Windowing/ButtonCodes.h"
+#include "Twisted/Windowing/WindowEvents.h"
 #include <Windows.h>
 #include <windowsx.h>
 
@@ -32,6 +35,7 @@ namespace Twisted
 			return Twisted::KeyState::RELEASED;
 
 		default:
+			TWISTED_WARN("Invalid key state detected: {}", msg);
 			return Twisted::KeyState::INVALID;
 		}
 	}
@@ -161,7 +165,9 @@ namespace Twisted
 		case VK_RWIN: return Twisted::Key::RightSuper;
 		case VK_APPS: return Twisted::Key::Menu;
 
-		default: return Twisted::Key::Invalid;
+		default: 
+			TWISTED_WARN("Invalid key detected: {}", vk);
+			return Twisted::Key::Invalid;
 		}
 	}
 
@@ -200,27 +206,31 @@ namespace Twisted
 			return { Twisted::MouseButton::Invalid ,Twisted::KeyState::RELEASED };
 		}
 		default:
+			TWISTED_WARN("Unknown mouse button detected: {}", msg);
 			return { Twisted::MouseButton::Invalid ,Twisted::KeyState::INVALID };
 		}
 	}
 
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		//Win32Window* window = (Win32Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+		Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+		if (!window)
+			return DefWindowProc(hwnd, msg, wParam, lParam);
 
-		CREATESTRUCT* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
-		Window* window = static_cast<Window*>(cs->lpCreateParams);
+		WindowsService* service=window->GetWindowsService();
+
+		//CREATESTRUCT* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
+		//Window* window = static_cast<Window*>(cs->lpCreateParams);
 
 		//TODO: use event registry to just trigger events from here
 
 		if (msg >= WM_KEYFIRST && msg <= WM_KEYLAST)
 		{
-			Twisted::Key key = win32ToTwistedKey(wParam);
-			Twisted::KeyState state = win32KeyUpOrDown(msg);
-			if (key == Key::Invalid || state == KeyState::INVALID)
-				TWISTED_WARN("Unknown keyboard key detected; msg: {}; wParam: {}", msg, wParam);
-			else
-				Input::GetInstance().UpdateKey(key, state);
+			KeyEvent e;
+			e.key = win32ToTwistedKey(wParam);
+			e.state = win32KeyUpOrDown(msg);
+
+			service->DispatchEvent(e);
 			return 0;
 		}
 
@@ -228,92 +238,51 @@ namespace Twisted
 		{
 			if (msg == WM_MOUSEMOVE)
 			{
-				int x = GET_X_LPARAM(lParam);
-				int y = GET_Y_LPARAM(lParam);
-
-				Input::GetInstance().UpdateMousePosition(static_cast<float>(x), static_cast<float>(y));
+				MouseMoveEvent e;
+				e.position = { static_cast<float>(GET_X_LPARAM(lParam)),
+							   static_cast<float>(GET_Y_LPARAM(lParam)) };
+				service->DispatchEvent(e);
 				return 0;
 			}
+
 			if (msg == WM_MOUSEWHEEL)
 			{
-				// High word: wheel delta (signed)
-				int delta = GET_WHEEL_DELTA_WPARAM(wParam); // typically ±120 per notch
-
-				// Convert to "notches"
-				float steps = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-
-				// Mouse position (screen coords)
-				int sx = GET_X_LPARAM(lParam);
-				int sy = GET_Y_LPARAM(lParam);
-
-				// If you want client coords:
-				POINT p{ sx, sy };
-				ScreenToClient(hwnd, &p);
-
-				Input::GetInstance().UpdateMouseWheel(steps); // your API
+				MouseWheelEvent e;
+				e.delta = static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA);
+				service->DispatchEvent(e);
 				return 0;
 			}
 
-			auto button = win32ToTwistedButton(msg);
-			if (button.first == Twisted::MouseButton::Invalid || button.second == Twisted::KeyState::INVALID)
-				TWISTED_WARN("Unknown mouse button detected: {}", msg);
-			else
-				Input::GetInstance().UpdateMouseButton(button.first, button.second);
-
+			MouseButtonEvent e;
+			auto [button, state] = win32ToTwistedButton(msg);
+			e.button = button;
+			e.state = state;
+			service->DispatchEvent(e);
 			return 0;
 		}
-
 		switch (msg)
 		{
 		case WM_CLOSE:
 		{
-			window->CloseWindowEvent.Invoke();
+			WindowCloseEvent e;
+			service->DispatchEvent(e);
 			return 0;
 		}
 		case WM_SIZE:
 		{
-			int width = LOWORD(lParam);
-			int height = HIWORD(lParam);
-			window->WindowResizeEvent.Invoke(Vec2i{ width,height });
+			WindowResizeEvent e;
+			e.size.x = LOWORD(lParam);
+			e.size.y = HIWORD(lParam);
+			service->DispatchEvent(e);
 		}
-		case WM_DESTROY:
-		{
-			PostQuitMessage(0); // ends message loop
-			return 0;
-		}
+		//case WM_DESTROY:
+		//{
+		//	PostQuitMessage(0); // ends message loop
+		//	return 0;
+		//}
 		}
 
 		return DefWindowProc(hwnd, msg, wParam, lParam);
-	}
-
-	inline static HWND createWindowHandle(const std::string& title, Vec2i size, Vec2i position)
-	{
-		// Register class
-		WNDCLASS wc{};
-		wc.lpfnWndProc = WndProc;
-		wc.hInstance = GetModuleHandle(nullptr);
-		wc.lpszClassName = WINDOW_CLASS_NAME.c_str();
-		wc.style = CS_OWNDC;
-
-		if (!RegisterClass(&wc))
-		{
-			MessageBox(nullptr, "Failed to register window class", "Error", MB_OK);
-			return nullptr;
-		}
-
-		HWND hwnd = CreateWindowEx(
-			0,
-			wc.lpszClassName,
-			title.c_str(),
-			WS_OVERLAPPEDWINDOW,
-			position.x, position.y, size.x, size.y,
-			nullptr,
-			nullptr,
-			wc.hInstance,
-			nullptr
-		);
-
-		return hwnd;
 	}
 
 }

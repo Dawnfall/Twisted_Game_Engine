@@ -44,6 +44,17 @@ namespace Utils
     }
 
 
+    // Convert glm::mat4 to string (row-major display, one row per line)
+    std::string toString(const glm::mat4& mat) {
+        std::ostringstream oss;
+        oss << "mat4(\n";
+        for (int row = 0; row < 4; ++row) {
+            oss << "  " << mat[0][row] << ", " << mat[1][row] << ", " << mat[2][row] << ", " << mat[3][row] << "\n";
+        }
+        oss << ")";
+        return oss.str();
+    }
+
     // Convert string to glm::vec2
     glm::vec2 fromStringVec2f(const std::string& str) {
         glm::vec2 vec;

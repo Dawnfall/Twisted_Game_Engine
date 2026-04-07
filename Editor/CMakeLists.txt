@@ -1,12 +1,64 @@
 cmake_minimum_required(VERSION 3.28)
 
 # ------------------------------
-# Collect source files
+# Source files
 # ------------------------------
 
-file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS 
-    "*.cpp"
-    "*.h"
+set(EDITOR_SOURCES
+    main.cpp
+    src/EditorConstants.h
+    src/EditorApp/EditorProcessor.cpp
+    src/EditorApp/EditorProcessor.h
+    src/EditorApp/EditorRegistry.h
+    src/EditorApp/EditorService.cpp
+    src/EditorApp/EditorService.h
+    src/EditorData/EditorConfig.h
+    src/EditorData/LoadupConfig.h
+    src/EditorData/ProjectConfig.h
+    src/EditorData/Selection.cpp
+    src/EditorData/Selection.h
+    src/EditorWorld/EditorCameraSystem.cpp
+    src/EditorWorld/EditorCameraSystem.h
+    src/UI/ComponentPainter.h
+    src/UI/EditorPanel.h
+    src/UI/ImguiExtensions.cpp
+    src/UI/ImguiExtensions.h
+    src/UI/LayoutManager.cpp
+    src/UI/LayoutManager.h
+    src/UI/UIWindow.cpp
+    src/UI/UIWindow.h
+    src/UI/Components/CCameraPainter.cpp
+    src/UI/Components/CCameraPainter.h
+    src/UI/Components/CNamePainter.cpp
+    src/UI/Components/CNamePainter.h
+    src/UI/Components/CRendererPainter.cpp
+    src/UI/Components/CRendererPainter.h
+    src/UI/Components/CTransformPainter.cpp
+    src/UI/Components/CTransformPainter.h
+    src/UI/Components/DirectionalLightPainter.cpp
+    src/UI/Components/DirectionalLightPainter.h
+    src/UI/Components/PointLightPainter.cpp
+    src/UI/Components/PointLightPainter.h
+    src/UI/Components/SpotLightPainter.cpp
+    src/UI/Components/SpotLightPainter.h
+    src/UI/Details/EntityPainter.cpp
+    src/UI/Details/EntityPainter.h
+    src/UI/Details/MaterialPainter.cpp
+    src/UI/Details/MaterialPainter.h
+    src/UI/Details/ShaderPainter.cpp
+    src/UI/Details/ShaderPainter.h
+    src/UI/Panels/AssetsPanel.cpp
+    src/UI/Panels/AssetsPanel.h
+    src/UI/Panels/DetailsPanel.cpp
+    src/UI/Panels/DetailsPanel.h
+    src/UI/Panels/GameViewPanel.cpp
+    src/UI/Panels/GameViewPanel.h
+    src/UI/Panels/TreeViewPanel.cpp
+    src/UI/Panels/TreeViewPanel.h
+    src/UI/Panels/WorldSystemPanel.cpp
+    src/UI/Panels/WorldSystemPanel.h
+    src/UI/Panels/WorldViewPanel.cpp
+    src/UI/Panels/WorldViewPanel.h
 )
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${EDITOR_SOURCES})

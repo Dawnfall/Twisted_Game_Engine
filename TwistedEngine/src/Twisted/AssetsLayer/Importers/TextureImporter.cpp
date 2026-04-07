@@ -1,67 +1,50 @@
-﻿#include "Twisted/AssetsLayer/Importers/TextureImporter.h"
-
-#include <stb_image.h>
-#include "Debug/Logger.h"
-#include "Twisted/Rendering/Texture.h"
-#include "Utils/WPtr.h"
-#include "Twisted/TObject.h"
+#include "Twisted/AssetsLayer/Importers/TextureImporter.h"
 #include "Twisted/AssetsLayer/AssetImporterRegistry.h"
 
+#include "Twisted/Rendering/Texture.h"
+#include "Twisted/TObject.h"
+#include "Utils/WPtr.h"
+#include "Utils/WPtrBase.h"
+#include "Debug/Logger.h"
+
+#include <stb_image.h>
 #include <filesystem>
-#include <Twisted/AssetsLayer/AssetInfo.h>
 #include <string>
-#include <Utils/WPtrBase.h>
 #include <vector>
 
 namespace Twisted
 {
-	static TextureData LoadTextureData(const fs::path& assetPath)
+	static TextureData LoadTextureData(const fs::path& path)
 	{
 		TextureData texData;
 		stbi_set_flip_vertically_on_load(true);
-		texData.Data = stbi_load(assetPath.string().c_str(), &texData.Width, &texData.Height, &texData.Channels, 4); //must be 4 channels for now
+		texData.Data = stbi_load(path.string().c_str(), &texData.Width, &texData.Height, &texData.Channels, 4);
 
 		if (!texData.Data)
-		{
-			TWISTED_WARN("Failed to load texture: {} ; {}", assetPath.string(), std::string(stbi_failure_reason()));
-		}
+			TWISTED_WARN("Failed to load texture: {} ; {}", path.string(), std::string(stbi_failure_reason()));
+
 		return texData;
 	}
 
-	void TextureImporter::ImportNew(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	std::vector<WPtrBase> TextureImporter::Load(const fs::path& path) const
 	{
-		TextureData texData = LoadTextureData(assetInfo.GetAssetPath());
+		TextureData texData = LoadTextureData(path);
 		if (!texData.Data)
-			return;
+			return {};
 
-		WPtr<Texture> texture(TObject::Create<Texture>(assetInfo.GetAssetName()));
+		WPtr<Texture> texture(TObject::Create<Texture>(path.stem().string()));
 		texture->SetData(texData, {});
-
-		objects.emplace_back(texture);
 		stbi_image_free(texData.Data);
+
+		return { texture };
 	}
 
-	void TextureImporter::HotReload(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
+	void TextureImporter::HotReload(const fs::path& path, std::vector<WPtrBase>& objects) const
 	{
+		(void)path;
 		(void)objects;
-		(void)assetInfo;
-		//TODO:...
-		//TextureData texData = LoadTextureData(assetInfo.AssetPath);
-		//if (!texData.Data)
-		//	return;
-		//Texture* tex = objects[""].GetObj()->static_as<Texture>();
-		//tex->Clear();
-		//tex->Create(texData, TextureParams{});
-		//stbi_image_free(texData.Data);
-	}
-
-	void TextureImporter::PostImport(FileAssetInfo& assetInfo, std::vector<WPtrBase>& objects)const
-	{
-		(void)assetInfo;
-		(void)objects;
+		//TODO...
 	}
 }
 
 REGISTER_IMPORTER(TextureImporter)
-
-

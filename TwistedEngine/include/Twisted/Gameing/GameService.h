@@ -1,33 +1,44 @@
 #pragma once
 #include "AppCore.h"
 #include "Twisted/Application/Service.h"
-#include "Twisted/Rendering/FrameBuffer.h"
-
 #include "Twisted/Gameing/World.h"
-
-#include "Twisted/Rendering/Renderers/GameRenderer.h"
+#include "Twisted/AssetsLayer/AssetUuid.h"
 #include "Utils/Event.h"
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 namespace Twisted
 {
-	class TWISTED_API GameService :public Service
+	class AssetsService;
+
+	class TWISTED_API GameService : public Service
 	{
 	public:
-		GameService(Application* app) :Service(app) 
-		{
+		GameService(Application* app) : Service(app) {}
+		~GameService();
 
-		}
+		// Creates a new transient world (owned by this service)
+		World* NewGameWorld(const std::string& name = "New World");
 
+		// Loads a world from disk, GameService takes ownership
+		World* LoadWorld(const fs::path& path);
+		World* LoadWorld(const AssetUuid& uuid, const AssetsService& assets);
 
-		void SetGameWorld(World& world);
-		void CreateEmptyWorld();
+		// Sets an externally-owned world (e.g. runtime-created) as active
+		void SetGameWorld(World* world);
 
-		World* GameWorld = nullptr;
-		GameRenderer renderer;
+		World* GetGameWorld() { return m_gameWorld; }
+		AssetUuid GetGameWorldUuid() const { return m_gameWorldUuid; }
 
-		unsigned int GameClearBits = 0;
-
-	public:
 		Event<World*> WorldChangeEvent;
+
+	private:
+		void SetActiveWorld(World* world, bool owned);
+
+		World* m_gameWorld = nullptr;
+		bool m_ownsWorld = false;
+		AssetUuid m_gameWorldUuid = AssetUuid::Invalid();
 	};
 }

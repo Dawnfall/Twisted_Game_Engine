@@ -29,7 +29,7 @@ namespace Twisted
 	template<>
 	inline void YamlDeserialize<NameComponent>(NameComponent& name, const YAML::Node& node)
 	{
-		name.Name = node["name"].as<std::string>();
+		name.Name = node["name"].as<std::string>("");
 	}
 	template<typename T>
 	inline void BinSerialize(const NameComponent& name, BinSerializer& buffer)

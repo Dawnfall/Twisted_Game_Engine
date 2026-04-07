@@ -7,6 +7,8 @@
 #include "Twisted/Gameing/ManagerBase.h"
 #include "Twisted/Gameing/AComponent.h"
 #include "Twisted/Gameing/Entity.h"
+
+namespace Twisted { class NameComponent; }
 #include "Twisted/TObject.h"
 
 #include "Utils/YamlUtils.h"
@@ -23,7 +25,7 @@ concept ManagerType = std::derived_from<T, Twisted::ManagerBase>;
 template<typename T>
 concept ComponentType = std::derived_from<T, Twisted::AComponent>;
 template<typename T>
-concept RemovableComponentType = std::derived_from<T, Twisted::AComponent> && (!std::same_as<T, Twisted::TransformComponent>);
+concept RemovableComponentType = std::derived_from<T, Twisted::AComponent> && (!std::same_as<T, Twisted::TransformComponent>) && (!std::same_as<T, Twisted::NameComponent>);
 
 namespace Twisted
 {
@@ -241,6 +243,16 @@ namespace Twisted
 
 		template<ComponentType T>
 		T* FindFirstOfType()
+		{
+			auto view = m_registry.view<T>();
+			if (!view.empty())
+				return &view.get<T>(*view.begin());
+
+			return nullptr;
+		}
+
+		template<ComponentType T>
+		const T* FindFirstOfType()const
 		{
 			auto view = m_registry.view<T>();
 			if (!view.empty())
