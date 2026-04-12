@@ -16,82 +16,81 @@
 #include "Twisted/Constants.h"
 #include "Project.h"
 
-#include "Twisted/Rendering/Mesh.h"
-#include "Twisted/Rendering/OpenGL/Mesh_OpenGL.h"
-
-#include "Twisted/Rendering/Shader.h"
-#include "Twisted/Rendering/OpenGL/Shader_OpenGL.h"
 
 namespace Twisted
 {
-	class TWISTED_API AssetsService :public Service
+	class TWISTED_API AssetsService : public Service
 	{
 	public:
-		AssetsService(Application* app) :Service(app) {}
+		AssetsService(Application* app) : Service(app) {}
 
-		AssetInfo* GetInfo(const fs::path& assetPath)const;
-		AssetInfo* GetInfo(const AssetUuid& uuid)const;
-		AssetInfo* GetObjectAssetInfo(const TObject* object)const;
-		TObject* GetAssetObject(AssetUuid uuid, const std::string& name);
+		AssetUuid GetUuid(const fs::path& assetPath) const;
+		AssetUuid GetObjectUuid(const TObject* object) const;
+
+		AssetInfo* GetInfo(const fs::path& assetPath) const;
+		AssetInfo* GetInfo(AssetUuid uuid) const;
+
+		TObject* GetObject(AssetUuid uuid, const std::string& name) const;
 
 		template<typename T = TObject>
-		T* GetAssetObject(AssetUuid uuid)
+		T* GetObject(AssetUuid uuid) const
 		{
-			auto it = m_assetObjects.find(uuid);
-			if (it != m_assetObjects.end() && !it->second.empty())
-				return dynamic_cast<T*>(it->second.front().GetObj());
+			auto it = m_assets.find(uuid);
+			if (it != m_assets.end() && !it->second.objects.empty())
+				return dynamic_cast<T*>(const_cast<TObject*>(it->second.objects.front().GetObj()));
 			return nullptr;
 		}
 
 		void AutoImportAssets();
-		std::vector<WPtrBase> ImportAssetDirect(const fs::path& assetPath)const;
+		std::vector<WPtrBase> ImportAssetDirect(const fs::path& assetPath) const;
 
 		template<typename T>
-		std::vector<T*> GetObjectsOfType()
+		std::vector<T*> GetObjectsOfType() const
 		{
 			std::vector<T*> objects;
-			for (auto& [uuid, assetObjects] : m_assetObjects)
-			{
-				for (auto& assetObj : assetObjects)
-				{
-					T* castObj = dynamic_cast<T*>(assetObj.GetObj());
-					if (castObj)
+			for (auto& [uuid, managed] : m_assets)
+				for (auto& obj : managed.objects)
+					if (T* castObj = dynamic_cast<T*>(const_cast<TObject*>(obj.GetObj())))
 						objects.emplace_back(castObj);
-				}
-			}
 			return objects;
 		}
 
 		bool SetProject(const fs::path& projectFolder);
 
 		Project& GetProject() { return m_project; }
-		const Project& GetProject()const { return m_project; }
+		const Project& GetProject() const { return m_project; }
 
-		std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info);
-		const std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info)const;
+		std::vector<WPtrBase>& GetObjects(AssetUuid uuid);
+		const std::vector<WPtrBase>& GetObjects(AssetUuid uuid) const;
 
 		void AddBuiltIn(AssetUuid uuid, TObject* obj);
 
-		void SaveAsset(const FileAssetInfo* info, const std::vector<WPtrBase>& objects);
+		bool Load(AssetUuid uuid);
+		bool IsLoaded(AssetUuid uuid) const;
+		bool Save(AssetUuid uuid);
 
 		bool CreateNewAsset(const fs::path& path);
-
-		//for non auto importer assets
 		void SaveAssetDirect(const fs::path& assetPath, const std::vector<WPtrBase>& objects);
 
-		void SaveAssetManaged(FileAssetInfo* info);
-
-		Event<const Project&,const Project&> ProjectChangeEvent;
-	private:
-
-		std::unordered_map<fs::path, SRef<AssetInfo>> m_assetsByPath;
-		std::unordered_map<AssetUuid, SRef<AssetInfo>> m_assetsByUuid;
-		std::unordered_map<AssetUuid, std::vector<WPtrBase>> m_assetObjects;
+		Event<const Project&, const Project&> ProjectChangeEvent;
 
 	private:
+		enum class AssetLoadState { Registered, Loaded, LoadFailed };
+
+		struct ManagedAsset
+		{
+			SRef<AssetInfo>       info;
+			std::vector<WPtrBase> objects;
+			AssetLoadState        state = AssetLoadState::Registered;
+		};
+
+		std::unordered_map<AssetUuid, ManagedAsset> m_assets;
+		std::unordered_map<fs::path, AssetUuid>     m_pathIndex;
+
 		Project m_project;
 
 		AssetInfo* CreateInfo(const fs::path& assetPath);
+		void SetUuidOnObjects(const std::vector<WPtrBase>& objects, AssetUuid uuid);
 		void DetectAllAssets(const fs::path& assetsFolder);
 		void DeleteLoneInfos(const fs::path& assetsFolder);
 		void RemoveDanglingAssetObjects(const fs::path& assetsFolder);

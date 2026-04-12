@@ -18,6 +18,9 @@ namespace Twisted
 
 		m_timeService = AddService<TimeService>();
 
+		for (auto& service : m_services)
+			service->OnInit();
+
 		for (auto& processor : m_processors)
 			processor->OnInit();
 
@@ -39,6 +42,9 @@ namespace Twisted
 
 		for (auto& processor : m_processors)
 			processor->OnTerminate();
+
+		for (auto& service : m_services)
+			service->OnTerminate();
 
 		m_processors.clear();
 		m_services.clear();

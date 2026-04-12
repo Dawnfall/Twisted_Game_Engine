@@ -183,7 +183,7 @@ namespace Twisted::Editor
 
 		AssetsService* assetsLayer = Application::GetInstance().GetService<AssetsService>();
 		AssetInfo* info = assetsLayer->GetInfo(assetPath);
-		auto& objects = assetsLayer->GetManagedAssetObjects(info);
+		auto& objects = assetsLayer->GetObjects(info ? info->GetUuid() : AssetUuid::Invalid());
 
 		ImGuiTreeNodeFlags flags = GetAssetFlags(objects.size(), (info) ? assetPath : "");
 

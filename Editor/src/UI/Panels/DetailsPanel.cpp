@@ -38,12 +38,10 @@ namespace Twisted::Editor
 			if (selectedPaths.size() >= 1)
 			{
 				auto assetsLayer = Application::GetInstance().GetService<AssetsService>();
-				auto info = assetsLayer->GetInfo(*selectedPaths.begin());
-				auto& objects = assetsLayer->GetManagedAssetObjects(info);
-
-				if (objects.size() >= 1)
+				AssetUuid uuid = assetsLayer->GetUuid(*selectedPaths.begin());
+				TObject* obj = assetsLayer->GetObject(uuid);
+				if (obj)
 				{
-					TObject* obj = objects.begin()->GetObj();
 					DetailsPainter* assetPainter = EditorRegistry::GetInstance().GetDetailsPainter(std::type_index(typeid(*obj)));
 					if (assetPainter)
 						assetPainter->Paint(obj);

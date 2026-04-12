@@ -34,15 +34,13 @@ namespace Twisted::Editor
 		void LoadLastWorld(AssetUuid wolrdUuid);
 		void SaveWorld(World* world);
 
-		EditorService* m_editorEventsService = nullptr;
+		EditorService* m_editorService = nullptr;
 		WindowsService* m_windowsService = nullptr;
 		AssetsService* m_assetsService = nullptr;
 		TimeService* m_timeService = nullptr;
 		GameService* m_gameService = nullptr;
 		RenderService* m_renderService = nullptr;
 
-		World* m_editorWorld = nullptr;
-		Entity m_editorCameraEnt = Entity::Invalid();
 
 		ClearParams m_clearParams;
 		unsigned int m_clearBits = 0;

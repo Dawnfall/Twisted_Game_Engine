@@ -17,10 +17,10 @@ set(TWISTED_ENGINE_SOURCES
     src/Twisted/Application/Application.cpp
     src/Twisted/AssetsLayer/AssetImporterRegistry.cpp
     src/Twisted/AssetsLayer/AssetInfo.cpp
+    src/Twisted/AssetsLayer/AssetUuid.cpp
     src/Twisted/AssetsLayer/AssetsService.cpp
     src/Twisted/AssetsLayer/Project.cpp
     src/Twisted/AssetsLayer/ProjectConfig.cpp
-    src/Twisted/AssetsLayer/Importers/AssetInfo.cpp
     src/Twisted/AssetsLayer/Importers/MaterialImpoter.cpp
     src/Twisted/AssetsLayer/Importers/ModelImporter.cpp
     src/Twisted/AssetsLayer/Importers/ShaderImporter.cpp
@@ -85,6 +85,7 @@ set(TWISTED_ENGINE_HEADERS
     include/Twisted/AssetsLayer/AssetImporterRegistry.h
     include/Twisted/AssetsLayer/AssetInfo.h
     include/Twisted/AssetsLayer/AssetUuid.h
+    include/Twisted/AssetsLayer/AssetUuidYaml.h
     include/Twisted/AssetsLayer/AssetsService.h
     include/Twisted/AssetsLayer/Project.h
     include/Twisted/AssetsLayer/ProjectConfig.h
@@ -205,6 +206,7 @@ find_package(rapidobj CONFIG REQUIRED)
 
 target_link_libraries(TwistedEngine PRIVATE
     OpenGL::GL
+    Rpcrt4
 #    Vulkan::Vulkan
     EnTT::EnTT
     glm::glm

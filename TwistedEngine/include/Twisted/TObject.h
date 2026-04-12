@@ -2,11 +2,14 @@
 
 #include "AppCore.h"
 #include "ObjectID.h"
+#include "Twisted/AssetsLayer/AssetUuid.h"
 #include <memory>
 #include <vector>
 
 namespace Twisted
 {
+	class AssetsService;
+
 	class TWISTED_API TObject
 	{
 	public:
@@ -36,11 +39,16 @@ namespace Twisted
 		void SetName(const std::string& name) { m_name = name; }
 		const std::string& GetName()const { return m_name; }
 
+		AssetUuid GetAssetUuid() const { return m_assetUuid; }
+
 		virtual void OnCreate() {}
 		virtual void OnDestroy() {}
 	private:
-		ObjectID m_id;
-		std::string m_name = "";
+		ObjectID    m_id;
+		std::string m_name       = "";
+		AssetUuid m_assetUuid;
+
+		friend class AssetsService;
 
 
 		//STATIC

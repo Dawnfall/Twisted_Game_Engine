@@ -99,17 +99,18 @@ namespace Twisted::Editor
 					World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
 					if (gameWorld)
 					{
-						if (std::filesystem::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
+						if (fs::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
 						{
 							path = path.replace_extension(".world");
-							std::vector<WPtrBase> assetObjects = { WPtr<World>(gameWorld) };
-							Application::GetInstance().GetService<AssetsService>()->SaveAssetDirect(path, {assetObjects});
+							Application::GetInstance().GetService<AssetsService>()->SaveAssetDirect(path, { WPtr<World>(gameWorld) });
 						}
 					}
 				}
 				if (ImGui::MenuItem("Save World"))
 				{
-					//TODO:... since world isnt managed by assetsLayer we need to track in manually
+					auto* assetsService = Application::GetInstance().GetService<AssetsService>();
+					World* world = Application::GetInstance().GetService<GameService>()->GetGameWorld();
+					assetsService->Save(assetsService->GetObjectUuid(world));
 				}
 				ImGui::EndMenu();
 			}

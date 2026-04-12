@@ -15,12 +15,13 @@ namespace Twisted::Editor
 	{
 		this->PanelResizeEvent.AddListener([this]() {
 			if (!m_editorService) return;
-			auto camera = m_editorService->GetEditorWorld()->ForceGetManager<CameraManager>().GetMainCamera();
+			auto* camera = m_editorService->GetEditorWorld()->ForceGetManager<CameraManager>().GetMainCamera();
 			if (!camera)
 				return;
-			auto fb = camera->Fb.get();
-			if (fb)
+			if (auto* fb = camera->Fb.get())
 				fb->SetSize(Size);
+			if (Size.y > 0)
+				camera->AspectRatio = (float)Size.x / (float)Size.y;
 			}
 		);
 	}

@@ -211,11 +211,7 @@ namespace Im
 			{
 				Twisted::AssetInfo* assetInfo = *static_cast<Twisted::AssetInfo**>(assetPayload->Data);
 				if (assetInfo)
-				{
-					auto& objects = Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetManagedAssetObjects(assetInfo);
-					if (!objects.empty())
-						obj = dynamic_cast<T*>(objects[0].GetObj());
-				}
+					obj = Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetObject<T>(assetInfo->GetUuid());
 			}
 			ImGui::EndDragDropTarget();
 		}

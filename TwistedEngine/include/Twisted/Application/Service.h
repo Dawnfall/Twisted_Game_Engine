@@ -15,6 +15,9 @@ namespace Twisted
 		Service& operator=(const Service& other) = delete;
 		Service& operator=(Service&& other) = delete;
 
+		virtual void OnInit() {};
+		virtual void OnTerminate() {};
+
 	protected:
 		Application* m_app;
 	};

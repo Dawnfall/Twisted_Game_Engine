@@ -34,13 +34,14 @@ namespace Twisted::Editor
 
 		void InitPanels();
 
-		// Fired when the active game world changes (including on auto-load at project open)
-		Event<World*> WorldLoadedEvent;
-
-		void Init(Window* window);
 		void Render(Window* window);
+		void SetWindow(Window* window);
+
+		void CreateWorld();
 
 	public:
+	
+		Event<World*> WorldLoadedEvent; // Fired when the active game world changes (including on auto-load at project open)
 		Event<fs::path> MakeNewFileEvent; //extension
 		Event<> ConfirmedQuitEvent;
 
@@ -49,6 +50,8 @@ namespace Twisted::Editor
 		Selection m_selection;
 
 		World* m_editorWorld = nullptr;
+		Entity m_editorCameraEnt = Entity::Invalid();
+
 		Window* m_window = nullptr;
 	};
 }

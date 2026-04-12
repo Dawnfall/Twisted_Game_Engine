@@ -6,7 +6,6 @@
 #include "Utils/WPtr.h"
 #include "Twisted/Rendering/Texture.h"
 #include "Utils/GlmUtils.h"
-#include "Twisted/AssetsLayer/AssetInfo.h"
 #include "EditorApp/EditorRegistry.h"
 #include "Twisted/AssetsLayer/AssetsService.h"
 #include "Twisted/Application/Application.h"
@@ -61,8 +60,7 @@ namespace Twisted::Editor
 		if (ImGui::Button("Save"))
 		{
 			auto assetsLayer = Application::GetInstance().GetService<AssetsService>();
-			AssetInfo* asset = assetsLayer->GetObjectAssetInfo(material);
-			assetsLayer->SaveAssetManaged(dynamic_cast<FileAssetInfo*>(asset));
+			assetsLayer->Save(assetsLayer->GetObjectUuid(material));
 		}
 	}
 }

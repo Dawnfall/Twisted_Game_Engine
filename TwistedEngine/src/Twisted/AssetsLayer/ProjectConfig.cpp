@@ -1,4 +1,5 @@
 #include "Twisted/AssetsLayer/ProjectConfig.h"
+#include "Twisted/AssetsLayer/AssetUuidYaml.h"
 #include "Debug/Logger.h"
 #include "Utils/YamlUtils.h"
 

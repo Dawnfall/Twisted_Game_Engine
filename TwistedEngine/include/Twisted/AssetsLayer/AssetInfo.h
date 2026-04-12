@@ -7,7 +7,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "AssetUuid.h"
+#include "AssetUuidYaml.h"
 #include "Utils/YamlUtils.h"
 #include "Twisted/ObjectID.h"
 

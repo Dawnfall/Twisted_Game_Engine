@@ -21,7 +21,7 @@ namespace Twisted::Editor
 	void EditorProcessor::OnInit()
 	{
 		m_assetsService = m_app->AddService<AssetsService>();
-		m_editorEventsService = m_app->AddService<EditorService>();
+		m_editorService = m_app->AddService<EditorService>();
 		m_windowsService = m_app->AddService<WindowsService>();
 		m_gameService = m_app->AddService<GameService>();
 		m_timeService = m_app->AddService<TimeService>();
@@ -29,17 +29,14 @@ namespace Twisted::Editor
 
 		EditorConfig::GetInstance().LoadConfig();
 
-		m_editorEventsService->ConfirmedQuitEvent.AddListener([this]() {
+		m_editorService->ConfirmedQuitEvent.AddListener([this]() {
 			m_app->Stop();
 			});
-	}
 
-	void EditorProcessor::OnBeforeRun()
-	{
 		m_gameService->WorldChangeEvent.AddListener([this](World* world) {
-			m_editorEventsService->GetSelection().ClearEntities();
+			m_editorService->GetSelection().ClearEntities();
 			SaveWorld(world);
-			m_editorEventsService->WorldLoadedEvent.Invoke(world);
+			m_editorService->WorldLoadedEvent.Invoke(world);
 			});
 
 		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& prevProject, const Project& newProject) {
@@ -50,19 +47,18 @@ namespace Twisted::Editor
 			m_assetsService->AutoImportAssets();
 
 			auto& config = m_assetsService->GetProject().GetConfig();
-			m_editorEventsService->InitPanels();
+			m_editorService->InitPanels();
 			if (prevProject.IsValid())
 				config.Save();
 			LoadLastWorld(newProject.GetConfig().lastWorld);
 			});
+	}
 
+	void EditorProcessor::OnBeforeRun()
+	{
 		CreateAppWindow();
-
-		m_editorWorld = m_editorEventsService->NewEditorWorld("Editor World");
-		m_editorCameraEnt = m_editorWorld->CreateNewEntityWithComponents<CameraComponent>();
-		m_editorWorld->AddSystem<EditorCameraSystem>();
-
-		m_editorEventsService->Init(m_windowsService->GetWindow());
+		m_editorService->CreateWorld();
+		m_editorService->SetWindow(m_windowsService->GetWindow());
 	}
 
 	void EditorProcessor::OnFrameBegin()
@@ -77,12 +73,25 @@ namespace Twisted::Editor
 
 	void EditorProcessor::OnFrame()
 	{
+		m_editorService->GetEditorWorld()->UpdateFrame(m_timeService->GetDeltaTime());
+
 		if (m_gameService->GetGameWorld())
 		{
-			RenderContext gameContext = ExtractContext(*m_gameService->GetGameWorld());
-			m_renderService->ForwardRender(gameContext);
+			RenderContext gamecontext;
+			gamecontext.camDatas   = CollectCameraData(*m_gameService->GetGameWorld());
+			gamecontext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
+			gamecontext.lightData  = CollectLightData(*m_gameService->GetGameWorld());
+			m_renderService->ForwardRender(gamecontext);
 		}
-		m_editorEventsService->Render(m_windowsService->GetWindow());
+		if (m_editorService->GetEditorWorld() && m_gameService->GetGameWorld())
+		{
+			RenderContext editorContext;
+			editorContext.camDatas = CollectCameraData(*m_editorService->GetEditorWorld());
+			editorContext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
+			editorContext.lightData = CollectLightData(*m_gameService->GetGameWorld());
+			m_renderService->ForwardRender(editorContext);
+		}
+		m_editorService->Render(m_windowsService->GetWindow());
 	}
 
 	void EditorProcessor::OnFrameEnd()
@@ -97,7 +106,7 @@ namespace Twisted::Editor
 			m_assetsService->GetProject().GetConfig().Save();
 
 		SaveEditorLayout();
-		m_editorEventsService->SaveEditor(m_windowsService->GetWindow());
+		m_editorService->SaveEditor(m_windowsService->GetWindow());
 
 		if (m_windowsService->GetWindow())
 			m_windowsService->DestroyWindow(m_windowsService->GetWindow());
@@ -135,21 +144,14 @@ namespace Twisted::Editor
 		if (m_assetsService->GetProject().IsValid())
 		{
 			auto& config = m_assetsService->GetProject().GetConfig();
-			auto worldAssetInfo = m_assetsService->GetObjectAssetInfo(world);
-			if (worldAssetInfo)
-				config.lastWorld = worldAssetInfo->GetUuid();
-			else
-				config.lastWorld = AssetUuid::Invalid();
+			config.lastWorld = m_assetsService->GetObjectUuid(world);
 			config.Save();
 		}
 	}
 
 	void EditorProcessor::LoadLastWorld(AssetUuid worldUuid)
 	{
-		World* world = m_assetsService->GetAssetObject<World>(worldUuid);
-		if (world)
-			m_gameService->SetGameWorld(world);
-		else
+		if (!m_gameService->LoadWorld(worldUuid))
 			m_gameService->NewGameWorld();
 	}
 }

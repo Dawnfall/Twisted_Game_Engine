@@ -4,6 +4,7 @@
 #include "Twisted/Windowing/Window.h"
 #include "UI/ImguiExtensions.h"
 #include "EditorApp/EditorRegistry.h"
+#include "EditorWorld/EditorCameraSystem.h"
 
 namespace Twisted::Editor
 {
@@ -21,6 +22,12 @@ namespace Twisted::Editor
 		return m_editorWorld;
 	}
 
+	void EditorService::CreateWorld()
+	{
+		m_editorWorld = NewEditorWorld("Editor World");
+		m_editorCameraEnt = m_editorWorld->CreateNewEntityWithComponents<CameraComponent>();
+		m_editorWorld->AddSystem<EditorCameraSystem>();
+	}
 
 	void EditorService::SaveEditor(Window* window)
 	{
@@ -40,7 +47,7 @@ namespace Twisted::Editor
 		EditorConfig::GetInstance().SaveConfig();
 	}
 
-	void EditorService::Init(Window* window)
+	void EditorService::SetWindow(Window* window)
 	{
 		Im::Init(window);
 		for (auto& panel : EditorRegistry::GetInstance().m_panels)

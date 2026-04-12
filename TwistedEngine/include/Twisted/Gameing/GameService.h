@@ -17,28 +17,25 @@ namespace Twisted
 	{
 	public:
 		GameService(Application* app) : Service(app) {}
-		~GameService();
+		~GameService() = default;
 
-		// Creates a new transient world (owned by this service)
+		// Creates a new transient world with no file backing
 		World* NewGameWorld(const std::string& name = "New World");
 
-		// Loads a world from disk, GameService takes ownership
+		// Loads a world asset through AssetsService
 		World* LoadWorld(const fs::path& path);
+		World* LoadWorld(AssetUuid uuid);
 
-		// Sets an externally-owned world (e.g. runtime-created) as active
+		// Sets an arbitrary world as active (caller manages lifetime if not in AssetsService)
 		void SetGameWorld(World* world);
 
 		World* GetGameWorld() { return m_gameWorld; }
-		AssetUuid GetGameWorldUuid() const { return m_gameWorldUuid; }
 
 		Event<World*> WorldChangeEvent;
 
 	private:
-		void SetActiveWorld(World* world, bool owned);
-		World* LoadWorldFromPath(const fs::path& path);
+		void SetActiveWorld(World* world);
 
 		World* m_gameWorld = nullptr;
-		bool m_ownsWorld = false;
-		AssetUuid m_gameWorldUuid = AssetUuid::Invalid();
 	};
 }
