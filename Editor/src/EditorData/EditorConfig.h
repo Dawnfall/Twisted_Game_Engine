@@ -2,6 +2,7 @@
 #include "Utils/GlmUtils.h"
 #include "Utils/FileUtils.h"
 #include "Utils/YamlUtils.h"
+#include "Utils/Utils.h"
 
 #include "Debug/Logger.h"
 
@@ -10,11 +11,23 @@
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
 #include <fstream>
+#include <vector>
+#include <string>
 
 namespace Twisted::Editor
 {
-	struct EditorConfig
+	class EditorConfig
 	{
+	public:
+		static EditorConfig& GetInstance()
+		{
+			static EditorConfig instance;
+			return instance;
+		}
+
+		EditorConfig(const EditorConfig&) = delete;
+		EditorConfig& operator=(const EditorConfig&) = delete;
+
 		YAML::Node m_rootNode;
 
 		void LoadConfig()
@@ -27,6 +40,7 @@ namespace Twisted::Editor
 			YamlUtils::saveNode(m_rootNode, Constants::CONFIG_FILE_PATH, "Error writing Config File!");
 		}
 
+		// Window
 		Vec2i GetWindowSize()
 		{
 			return m_rootNode[Constants::WIN_SIZE_NAME].as<Vec2i>(Constants::WINDOW_DEFAULT_SIZE);
@@ -39,7 +53,6 @@ namespace Twisted::Editor
 		{
 			return m_rootNode[Constants::WIN_MAXIMIZED_NAME].as<bool>(false);
 		}
-
 		void SetWindowSize(Vec2i size)
 		{
 			m_rootNode[Constants::WIN_SIZE_NAME] = size;
@@ -52,5 +65,29 @@ namespace Twisted::Editor
 		{
 			m_rootNode[Constants::WIN_MAXIMIZED_NAME] = maximized;
 		}
+
+		// Recent projects
+		std::vector<std::string> GetRecentProjects()
+		{
+			return m_rootNode[Constants::RECENT_PROJECTS_NAME].as<std::vector<std::string>>(std::vector<std::string>{});
+		}
+		void AddLatest(const std::string& project)
+		{
+			auto recent = GetRecentProjects();
+			Utils::RemoveElement<std::string>(recent, project);
+			recent.insert(recent.begin(), project);
+			if (recent.size() > 5)
+				recent.erase(recent.begin() + 5, recent.end());
+			m_rootNode[Constants::RECENT_PROJECTS_NAME] = recent;
+		}
+		void RemoveEntry(const std::string& project)
+		{
+			auto recent = GetRecentProjects();
+			Utils::RemoveElement<std::string>(recent, project);
+			m_rootNode[Constants::RECENT_PROJECTS_NAME] = recent;
+		}
+
+	private:
+		EditorConfig() = default;
 	};
 }

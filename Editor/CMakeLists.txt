@@ -13,8 +13,6 @@ set(EDITOR_SOURCES
     src/EditorApp/EditorService.cpp
     src/EditorApp/EditorService.h
     src/EditorData/EditorConfig.h
-    src/EditorData/LoadupConfig.h
-    src/EditorData/ProjectConfig.h
     src/EditorData/Selection.cpp
     src/EditorData/Selection.h
     src/EditorWorld/EditorCameraSystem.cpp
@@ -23,8 +21,6 @@ set(EDITOR_SOURCES
     src/UI/EditorPanel.h
     src/UI/ImguiExtensions.cpp
     src/UI/ImguiExtensions.h
-    src/UI/LayoutManager.cpp
-    src/UI/LayoutManager.h
     src/UI/UIWindow.cpp
     src/UI/UIWindow.h
     src/UI/Components/CCameraPainter.cpp

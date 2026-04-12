@@ -31,14 +31,15 @@ namespace Twisted
 		if (!newProject.IsValid())
 			return false;
 
-		m_project = newProject;
+		Project prevProj = std::move(m_project);
+		m_project = std::move(newProject);
 
 		Utils::CreateNewFile(m_project.GetProjectFilePath());
 		Utils::CreateFolder(m_project.GetAssetsFolder());
 		Utils::CreateFolder(m_project.GetInternalFolder());
 		Utils::CreateFolder(m_project.GetInternalMeshesFolder());
 
-		ProjectChangeEvent.Invoke(m_project);
+		ProjectChangeEvent.Invoke(prevProj, m_project);
 		return true;
 	}
 

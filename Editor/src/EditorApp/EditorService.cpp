@@ -25,19 +25,19 @@ namespace Twisted::Editor
 	void EditorService::SaveEditor(Window* window)
 	{
 		bool maximized = window->IsWindowMaximized();
-		GetConfig().SetWindowMaximized(maximized);
+		EditorConfig::GetInstance().SetWindowMaximized(maximized);
 		if (maximized)
 		{
 			auto restore = window->GetRestoreBounds();
-			GetConfig().SetWindowPos(restore.pos);
-			GetConfig().SetWindowSize(restore.size);
+			EditorConfig::GetInstance().SetWindowPos(restore.pos);
+			EditorConfig::GetInstance().SetWindowSize(restore.size);
 		}
 		else
 		{
-			GetConfig().SetWindowPos(window->GetPosition());
-			GetConfig().SetWindowSize(window->GetSize());
+			EditorConfig::GetInstance().SetWindowPos(window->GetPosition());
+			EditorConfig::GetInstance().SetWindowSize(window->GetSize());
 		}
-		GetConfig().SaveConfig();
+		EditorConfig::GetInstance().SaveConfig();
 	}
 
 	void EditorService::Init(Window* window)
@@ -50,6 +50,26 @@ namespace Twisted::Editor
 	void EditorService::Render(Window* window)
 	{
 		m_uiWindow.Render(window);
+	}
+
+	void EditorService::InitPanels()
+	{
+		auto& config = m_app->GetService<AssetsService>()->GetProject().GetConfig();
+
+		// Apply layout
+		if (!config.imguiIni.empty())
+			ImGui::LoadIniSettingsFromMemory(config.imguiIni.c_str(), config.imguiIni.size());
+		for (const auto& ps : config.panelStates)
+		{
+			for (auto& panel : EditorRegistry::GetInstance().m_panels)
+			{
+				if (panel->GetName() == ps.name)
+				{
+					panel->IsShowing = ps.showing;
+					break;
+				}
+			}
+		}
 	}
 
 }

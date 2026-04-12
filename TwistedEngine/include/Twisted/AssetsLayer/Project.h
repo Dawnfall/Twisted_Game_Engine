@@ -2,6 +2,7 @@
 
 #include "AppCore.h"
 #include "Twisted/Constants.h"
+#include "Twisted/AssetsLayer/ProjectConfig.h"
 
 #include <filesystem>
 #include <string>
@@ -22,11 +23,14 @@ namespace Twisted
 		fs::path GetInternalMeshesFolder()const { return m_rootPath / "Internal/Meshes"; }
 		fs::path GetAssetsFolder()const { return m_rootPath / "Assets"; }
 		std::string GetName()const { return m_rootPath.parent_path().filename().string(); }
-		fs::path GetPanelLayoutPath()const { return m_rootPath / "EditorLayout.layout"; }
 		fs::path GetProjectFilePath()const { return m_rootPath / PROJECT_FILE; }
+
+		ProjectConfig& GetConfig() { return m_config; }
+		const ProjectConfig& GetConfig() const { return m_config; }
 
 	private:
 		fs::path m_rootPath;
 		bool m_valid = false;
+		ProjectConfig m_config;
 	};
 }

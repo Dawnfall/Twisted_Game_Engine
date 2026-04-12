@@ -19,6 +19,7 @@ set(TWISTED_ENGINE_SOURCES
     src/Twisted/AssetsLayer/AssetInfo.cpp
     src/Twisted/AssetsLayer/AssetsService.cpp
     src/Twisted/AssetsLayer/Project.cpp
+    src/Twisted/AssetsLayer/ProjectConfig.cpp
     src/Twisted/AssetsLayer/Importers/AssetInfo.cpp
     src/Twisted/AssetsLayer/Importers/MaterialImpoter.cpp
     src/Twisted/AssetsLayer/Importers/ModelImporter.cpp
@@ -86,6 +87,7 @@ set(TWISTED_ENGINE_HEADERS
     include/Twisted/AssetsLayer/AssetUuid.h
     include/Twisted/AssetsLayer/AssetsService.h
     include/Twisted/AssetsLayer/Project.h
+    include/Twisted/AssetsLayer/ProjectConfig.h
     include/Twisted/AssetsLayer/Importers/MaterialImporter.h
     include/Twisted/AssetsLayer/Importers/ModelImporter.h
     include/Twisted/AssetsLayer/Importers/ShaderImporter.h

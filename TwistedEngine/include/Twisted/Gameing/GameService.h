@@ -24,7 +24,6 @@ namespace Twisted
 
 		// Loads a world from disk, GameService takes ownership
 		World* LoadWorld(const fs::path& path);
-		World* LoadWorld(const AssetUuid& uuid, const AssetsService& assets);
 
 		// Sets an externally-owned world (e.g. runtime-created) as active
 		void SetGameWorld(World* world);
@@ -36,6 +35,7 @@ namespace Twisted
 
 	private:
 		void SetActiveWorld(World* world, bool owned);
+		World* LoadWorldFromPath(const fs::path& path);
 
 		World* m_gameWorld = nullptr;
 		bool m_ownsWorld = false;

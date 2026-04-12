@@ -1,4 +1,5 @@
 #include "Twisted/AssetsLayer/Project.h"
+#include "Twisted/AssetsLayer/ProjectConfig.h"
 #include "Utils/FileUtils.h"
 #include "Debug/Logger.h"
 
@@ -17,5 +18,6 @@ namespace Twisted
 			return;
 		}
 		m_valid = true;
+		m_config.Load(m_rootPath / PROJECT_FILE);
 	}
 }

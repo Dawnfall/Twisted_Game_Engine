@@ -9,9 +9,12 @@
 #include "Twisted/Windowing/WindowCoreAPI.h"
 #include "Twisted/AssetsLayer/AssetsService.h"
 #include "Twisted/AssetsLayer/Project.h"
+#include "Twisted/AssetsLayer/ProjectConfig.h"
 #include "EditorWorld/EditorCameraSystem.h"
-#include "UI/LayoutManager.h"
 #include "Twisted/Rendering/RenderConvert.h"
+#include "EditorApp/EditorRegistry.h"
+
+#include <imgui.h>
 
 namespace Twisted::Editor
 {
@@ -23,59 +26,37 @@ namespace Twisted::Editor
 		m_gameService = m_app->AddService<GameService>();
 		m_timeService = m_app->AddService<TimeService>();
 		m_renderService = m_app->AddService<RenderService>();
-		 
-		m_editorEventsService->GetConfig().LoadConfig();
+
+		EditorConfig::GetInstance().LoadConfig();
 
 		m_editorEventsService->ConfirmedQuitEvent.AddListener([this]() {
 			m_app->Stop();
 			});
 	}
+
 	void EditorProcessor::OnBeforeRun()
 	{
-		m_app->GetService<GameService>()->WorldChangeEvent.AddListener([this](World* world) {
-			m_gameWorld = world;
+		m_gameService->WorldChangeEvent.AddListener([this](World* world) {
 			m_editorEventsService->GetSelection().ClearEntities();
-
-			ProjectConfig* config = m_editorEventsService->GetProjectConfig();
-			if (config)
-			{
-				AssetUuid uuid = m_gameService->GetGameWorldUuid();
-				if (uuid.IsValid())
-					config->SetLastWorld(uuid);
-				else
-					config->ClearLastWorld();
-				config->Save();
-			}
-
+			SaveWorld(world);
 			m_editorEventsService->WorldLoadedEvent.Invoke(world);
 			});
 
-		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& project) {
+		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& prevProject, const Project& newProject) {
 			m_app->GetService<WindowsService>()->GetWindow()->
 				SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + m_assetsService->GetProject().GetName());
-
-			LayoutManager::GetInstance().LoadLayout(m_assetsService->GetProject().GetPanelLayoutPath());
-
-			m_editorEventsService->LoadProjectConfig(project.GetProjectFilePath());
 
 			Collections::BuiltInRegistry::GetInstance().ImportAll();
 			m_assetsService->AutoImportAssets();
 
-			// Auto-load last active world
-			ProjectConfig* config = m_editorEventsService->GetProjectConfig();
-			if (config)
-			{
-				AssetUuid lastWorldUuid = config->GetLastWorldUuid();
-
-						m_gameService->LoadWorld(lastWorldUuid, *m_assetsService);
-			}
-
-			m_editorEventsService->ProjectLoadedEvent.Invoke(project);
+			auto& config = m_assetsService->GetProject().GetConfig();
+			m_editorEventsService->InitPanels();
+			if (prevProject.IsValid())
+				config.Save();
+			LoadLastWorld(newProject.GetConfig().lastWorld);
 			});
 
 		CreateAppWindow();
-
-		m_gameWorld = m_gameService->NewGameWorld();
 
 		m_editorWorld = m_editorEventsService->NewEditorWorld("Editor World");
 		m_editorCameraEnt = m_editorWorld->CreateNewEntityWithComponents<CameraComponent>();
@@ -96,31 +77,50 @@ namespace Twisted::Editor
 
 	void EditorProcessor::OnFrame()
 	{
-		RenderContext gameContext = ExtractContext(*m_gameWorld);
-		m_renderService->ForwardRender(gameContext);
-
+		if (m_gameService->GetGameWorld())
+		{
+			RenderContext gameContext = ExtractContext(*m_gameService->GetGameWorld());
+			m_renderService->ForwardRender(gameContext);
+		}
 		m_editorEventsService->Render(m_windowsService->GetWindow());
 	}
+
 	void EditorProcessor::OnFrameEnd()
 	{
 		if (m_windowsService->GetWindow())
 			m_windowsService->GetWindow()->SwapBuffers();
 	}
+
 	void EditorProcessor::OnTerminate()
 	{
 		if (m_assetsService->GetProject().IsValid())
-			LayoutManager::GetInstance().SaveLayout(m_assetsService->GetProject().GetPanelLayoutPath());
+			m_assetsService->GetProject().GetConfig().Save();
 
+		SaveEditorLayout();
 		m_editorEventsService->SaveEditor(m_windowsService->GetWindow());
 
 		if (m_windowsService->GetWindow())
 			m_windowsService->DestroyWindow(m_windowsService->GetWindow());
+	}
 
+	void EditorProcessor::SaveEditorLayout()
+	{
+		if (!m_assetsService->GetProject().IsValid())
+			return;
+
+		auto& config = m_assetsService->GetProject().GetConfig();
+
+		size_t iniSize = 0;
+		config.imguiIni = ImGui::SaveIniSettingsToMemory(&iniSize);
+		config.panelStates.clear();
+		for (const auto& panel : EditorRegistry::GetInstance().m_panels)
+			config.panelStates.push_back({ panel->GetName(), panel->IsShowing });
+		config.Save();
 	}
 
 	void EditorProcessor::CreateAppWindow()
 	{
-		auto& config = m_editorEventsService->GetConfig();
+		auto& config = EditorConfig::GetInstance();
 		m_windowsService->CreateNewWindow(Constants::EDITOR_WINDOW_TITLE, config.GetWindowSize(), config.GetWindowPos());
 		Window* window = m_windowsService->GetWindow();
 		window->CloseWindowEvent.AddListener([this]() { m_app->Stop(); });
@@ -129,4 +129,27 @@ namespace Twisted::Editor
 			window->Maximize();
 	}
 
+
+	void EditorProcessor::SaveWorld(World* world)
+	{
+		if (m_assetsService->GetProject().IsValid())
+		{
+			auto& config = m_assetsService->GetProject().GetConfig();
+			auto worldAssetInfo = m_assetsService->GetObjectAssetInfo(world);
+			if (worldAssetInfo)
+				config.lastWorld = worldAssetInfo->GetUuid();
+			else
+				config.lastWorld = AssetUuid::Invalid();
+			config.Save();
+		}
+	}
+
+	void EditorProcessor::LoadLastWorld(AssetUuid worldUuid)
+	{
+		World* world = m_assetsService->GetAssetObject<World>(worldUuid);
+		if (world)
+			m_gameService->SetGameWorld(world);
+		else
+			m_gameService->NewGameWorld();
+	}
 }

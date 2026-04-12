@@ -67,8 +67,6 @@ namespace Twisted
 		Project& GetProject() { return m_project; }
 		const Project& GetProject()const { return m_project; }
 
-		Event<const Project&> ProjectChangeEvent;
-
 		std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info);
 		const std::vector<WPtrBase>& GetManagedAssetObjects(AssetInfo* info)const;
 
@@ -83,6 +81,7 @@ namespace Twisted
 
 		void SaveAssetManaged(FileAssetInfo* info);
 
+		Event<const Project&,const Project&> ProjectChangeEvent;
 	private:
 
 		std::unordered_map<fs::path, SRef<AssetInfo>> m_assetsByPath;
@@ -98,7 +97,5 @@ namespace Twisted
 		void RemoveDanglingAssetObjects(const fs::path& assetsFolder);
 		void ImportManaged(const std::vector<FileAssetInfo*>& infos);
 		void RemoveAsset(FileAssetInfo* asset);
-
-
 	};
 }

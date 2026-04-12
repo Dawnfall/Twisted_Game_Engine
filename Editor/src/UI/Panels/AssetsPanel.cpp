@@ -99,8 +99,8 @@ namespace Twisted::Editor
 
 	void AssetsPanel::Init()
 	{
-		Twisted::Application::GetInstance().GetService<AssetsService>()->ProjectChangeEvent.AddListener([this](const Project& project) {
-			currentDir = project.GetAssetsFolder();
+		Twisted::Application::GetInstance().GetService<AssetsService>()->ProjectChangeEvent.AddListener([this](const Project& /*prevProject*/, const Project& newProject) {
+			currentDir = newProject.GetAssetsFolder();
 			});
 		Application::GetInstance().GetService<EditorService>()->MakeNewFileEvent.AddListener([this](fs::path defaultName) {
 			m_newFileName = Im::InputTextToken{};

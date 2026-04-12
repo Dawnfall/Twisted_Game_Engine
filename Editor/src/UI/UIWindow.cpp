@@ -60,7 +60,7 @@ namespace Twisted::Editor
 				if (ImGui::BeginMenu("Recent Projects"))
 				{
 					int count = 0;
-					for (const std::string& recentProjPath : Application::GetInstance().GetService<EditorService>()->GetLoadupConfig().GetRecentProjects())
+					for (const std::string& recentProjPath : EditorConfig::GetInstance().GetRecentProjects())
 					{
 						if (count++ >= 5)
 							break; // limit to 5 projects
@@ -201,11 +201,10 @@ namespace Twisted::Editor
 		if (fs::is_regular_file(path))
 			path = path.parent_path();
 
-		auto* editorLayer = Application::GetInstance().GetService<EditorService>();
 		if (Application::GetInstance().GetService<AssetsService>()->SetProject(path))
-			editorLayer->GetLoadupConfig().AddLatest(path.string());
+			EditorConfig::GetInstance().AddLatest(path.string());
 		else
-			editorLayer->GetLoadupConfig().RemoveEntry(path.string());
-		editorLayer->GetLoadupConfig().Save();
+			EditorConfig::GetInstance().RemoveEntry(path.string());
+		EditorConfig::GetInstance().SaveConfig();
 	}
 }

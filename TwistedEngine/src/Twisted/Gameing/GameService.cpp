@@ -21,34 +21,26 @@ namespace Twisted
 
 	World* GameService::LoadWorld(const fs::path& path)
 	{
-		WorldImporter importer;
-		auto objects = importer.Load(path);
-		if (objects.empty())
-			return nullptr;
-
-		World* world = static_cast<World*>(objects[0].GetObj());
 		m_gameWorldUuid = AssetUuid::Invalid();
-		SetActiveWorld(world, true);
-		return m_gameWorld;
-	}
-
-	World* GameService::LoadWorld(const AssetUuid& uuid, const AssetsService& assets)
-	{
-		const AssetInfo* info = assets.GetInfo(uuid);
-		const FileAssetInfo* fileInfo = dynamic_cast<const FileAssetInfo*>(info);
-		if (!fileInfo)
-			return nullptr;
-
-		World* world = LoadWorld(fileInfo->GetAssetPath());
-		if (world)
-			m_gameWorldUuid = uuid;
-		return world;
+		return LoadWorldFromPath(path);
 	}
 
 	void GameService::SetGameWorld(World* world)
 	{
 		m_gameWorldUuid = AssetUuid::Invalid();
 		SetActiveWorld(world, false);
+	}
+
+	World* GameService::LoadWorldFromPath(const fs::path& path)
+	{
+		WorldImporter importer;
+		auto objects = importer.Load(path);
+		if (objects.empty())
+			return nullptr;
+
+		World* world = static_cast<World*>(objects[0].GetObj());
+		SetActiveWorld(world, true);
+		return m_gameWorld;
 	}
 
 	void GameService::SetActiveWorld(World* world, bool owned)

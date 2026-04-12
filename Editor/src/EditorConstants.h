@@ -10,11 +10,11 @@ namespace Twisted::Editor::Constants
 {
 	// Project Selection
 	inline const std::filesystem::path PROJECT_ROOT = PROJECT_ROOT_PATH;
-	inline const std::filesystem::path LOADUP_CONFIG_PATH = PROJECT_ROOT / "Data/EditorConfig/loadupConfig.editor";
 	inline const std::filesystem::path CONFIG_FILE_PATH = PROJECT_ROOT / "Data/EditorConfig/editor.config";
 	inline const std::string WIN_SIZE_NAME = "window_size";
 	inline const std::string WIN_POS_NAME = "window_pos";
 	inline const std::string WIN_MAXIMIZED_NAME = "window_maximized";
+	inline const std::string RECENT_PROJECTS_NAME = "recent_projects";
 
 	// Window
 

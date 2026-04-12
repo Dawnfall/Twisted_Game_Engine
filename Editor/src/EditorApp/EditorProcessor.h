@@ -30,6 +30,9 @@ namespace Twisted::Editor
 
 	private:
 		void CreateAppWindow();
+		void SaveEditorLayout();
+		void LoadLastWorld(AssetUuid wolrdUuid);
+		void SaveWorld(World* world);
 
 		EditorService* m_editorEventsService = nullptr;
 		WindowsService* m_windowsService = nullptr;
@@ -38,7 +41,6 @@ namespace Twisted::Editor
 		GameService* m_gameService = nullptr;
 		RenderService* m_renderService = nullptr;
 
-		World* m_gameWorld = nullptr;
 		World* m_editorWorld = nullptr;
 		Entity m_editorCameraEnt = Entity::Invalid();
 

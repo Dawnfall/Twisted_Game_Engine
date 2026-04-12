@@ -5,8 +5,6 @@
 
 #include "EditorData/EditorConfig.h"
 #include "EditorData/Selection.h"
-#include "EditorData/LoadupConfig.h"
-#include "EditorData/ProjectConfig.h"
 #include "Utils/Event.h"
 #include "UI/UIWindow.h"
 
@@ -22,14 +20,9 @@ namespace Twisted::Editor
 	{
 	public:
 		EditorService(Application* app) :
-			Service(app),
-			m_loadupConfigData(Constants::LOADUP_CONFIG_PATH.string())
+			Service(app)
 		{}
 		~EditorService();
-
-		EditorConfig& GetConfig() { return m_editorConfig; }
-		LoadupConfig& GetLoadupConfig() { return m_loadupConfigData; }
-		ProjectConfig* GetProjectConfig() { return m_projectConfig ? &*m_projectConfig : nullptr; }
 
 		Selection& GetSelection() { return m_selection; }
 		UIWindow& GetUIWindow() { return m_uiWindow; }
@@ -38,10 +31,8 @@ namespace Twisted::Editor
 		World* NewEditorWorld(const std::string& name = "Editor World");
 
 		void SaveEditor(Window* window);
-		void LoadProjectConfig(const fs::path& projectFilePath) { m_projectConfig.emplace(projectFilePath); }
 
-		// Fired after a project is fully loaded (built-ins imported, assets imported, last world restored)
-		Event<const Project&> ProjectLoadedEvent;
+		void InitPanels();
 
 		// Fired when the active game world changes (including on auto-load at project open)
 		Event<World*> WorldLoadedEvent;
@@ -54,13 +45,8 @@ namespace Twisted::Editor
 		Event<> ConfirmedQuitEvent;
 
 	private:
-		
 		UIWindow m_uiWindow;
-
 		Selection m_selection;
-		LoadupConfig m_loadupConfigData;
-		EditorConfig m_editorConfig;
-		std::optional<ProjectConfig> m_projectConfig;
 
 		World* m_editorWorld = nullptr;
 		Window* m_window = nullptr;
