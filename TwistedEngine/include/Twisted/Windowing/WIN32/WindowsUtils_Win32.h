@@ -262,6 +262,57 @@ namespace Twisted
 		}
 		switch (msg)
 		{
+		case WM_NCHITTEST:
+		{
+			// Map cursor to client coords
+			POINT cursor{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+			ScreenToClient(hwnd, &cursor);
+			RECT client{};
+			GetClientRect(hwnd, &client);
+
+			const int borderSize = 8; // resize hot-zone thickness in pixels
+			bool maximized = IsZoomed(hwnd);
+
+			bool left   = !maximized && cursor.x < borderSize;
+			bool right  = !maximized && cursor.x >= client.right  - borderSize;
+			bool top    = !maximized && cursor.y < borderSize;
+			bool bottom = !maximized && cursor.y >= client.bottom - borderSize;
+
+			if (top    && left)  return HTTOPLEFT;
+			if (top    && right) return HTTOPRIGHT;
+			if (bottom && left)  return HTBOTTOMLEFT;
+			if (bottom && right) return HTBOTTOMRIGHT;
+			if (left)            return HTLEFT;
+			if (right)           return HTRIGHT;
+			if (top)             return HTTOP;
+			if (bottom)          return HTBOTTOM;
+
+			// Custom title bar drag region (excludes button area on the right)
+			int tbHeight = window->GetTitleBarHeight();
+			if (tbHeight > 0 && cursor.y < tbHeight)
+			{
+				int btnAreaWidth = tbHeight * 3; // 3 square buttons
+				if (cursor.x <= client.right - btnAreaWidth)
+					return HTCAPTION;
+			}
+
+			return HTCLIENT;
+		}
+		case WM_GETMINMAXINFO:
+		{
+			// Constrain maximized size to the work area (respects taskbar)
+			MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
+			HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+			MONITORINFO mi{ sizeof(mi) };
+			if (GetMonitorInfo(monitor, &mi))
+			{
+				mmi->ptMaxPosition.x = mi.rcWork.left - mi.rcMonitor.left;
+				mmi->ptMaxPosition.y = mi.rcWork.top  - mi.rcMonitor.top;
+				mmi->ptMaxSize.x     = mi.rcWork.right  - mi.rcWork.left;
+				mmi->ptMaxSize.y     = mi.rcWork.bottom - mi.rcWork.top;
+			}
+			return 0;
+		}
 		case WM_CLOSE:
 		{
 			WindowCloseEvent e;

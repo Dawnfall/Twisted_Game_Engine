@@ -35,9 +35,14 @@ namespace Twisted
 		void SetSize(Vec2i newSize);
 		void SetPosition(Vec2i newPosition);
 
+		void Minimize();
 		void Maximize();
+		void Restore();
 		void SetFullScreen(bool isFullScreen); //TODO:... for now only on mainMonitor
 		void SetWindowed(Vec2i size, Vec2i pos);
+
+		void SetTitleBarHeight(int height) { m_titleBarHeight = height; }
+		int  GetTitleBarHeight() const { return m_titleBarHeight; }
 
 		void* GetRawPointer();
 
@@ -57,6 +62,7 @@ namespace Twisted
 
 		std::unique_ptr<WindowBackend> m_backend = nullptr;
 		WindowsService* m_windowsService = nullptr;
+		int m_titleBarHeight = 0;
 	};
 }
 

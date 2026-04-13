@@ -26,19 +26,109 @@ namespace Twisted::Editor
 	{
 		Im::StartFrame();
 
+		RenderTitleBar(window);
 		RenderMenuBar(window);
 		RenderDockSpace();
 
 		Im::EndFrame();
 	}
 
+	void UIWindow::RenderTitleBar(Window* window)
+	{
+		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(ImVec2(displaySize.x, Constants::TITLE_BAR_HEIGHT));
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 0.0f));
+
+		constexpr ImGuiWindowFlags titleBarFlags =
+			ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoScrollbar |
+			ImGuiWindowFlags_NoScrollWithMouse |
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoBringToFrontOnFocus |
+			ImGuiWindowFlags_NoNavFocus |
+			ImGuiWindowFlags_NoMove;
+
+		if (ImGui::Begin("##TitleBar", nullptr, titleBarFlags))
+		{
+			// Vertically center the title text
+			float textY = (Constants::TITLE_BAR_HEIGHT - ImGui::GetTextLineHeight()) * 0.5f;
+			ImGui::SetCursorPosY(textY);
+			ImGui::Text("%s", Constants::EDITOR_WINDOW_TITLE.c_str());
+
+			// Window control buttons (3 square buttons flush to the right)
+			float btnSize = Constants::TITLE_BAR_HEIGHT;
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+
+			ImGui::SetCursorPos(ImVec2(displaySize.x - btnSize * 3, 0.0f));
+
+			if (ImGui::Button("_", ImVec2(btnSize, btnSize)))
+				window->Minimize();
+
+			ImGui::SameLine();
+			if (window->IsWindowMaximized())
+			{
+				if (ImGui::Button("[ ]", ImVec2(btnSize, btnSize)))
+					window->Restore();
+			}
+			else
+			{
+				if (ImGui::Button("[ ]", ImVec2(btnSize, btnSize)))
+					window->Maximize();
+			}
+
+			ImGui::SameLine();
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.1f, 0.1f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.65f, 0.0f, 0.0f, 1.0f));
+			if (ImGui::Button("X", ImVec2(btnSize, btnSize)))
+				window->CloseWindow();
+			ImGui::PopStyleColor(2);
+
+			ImGui::PopStyleVar(2);
+
+			// Keep WM_NCHITTEST in sync with actual rendered height
+			window->SetTitleBarHeight((int)Constants::TITLE_BAR_HEIGHT);
+		}
+		ImGui::End();
+		ImGui::PopStyleVar(3);
+	}
+
 	void UIWindow::RenderMenuBar(Window* window)
 	{
-		// Push style settings
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(15, 15));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15, 15));
-		// Create the menu bar
-		if (ImGui::BeginMainMenuBar())
+		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+		float menuBarHeight = ImGui::GetFontSize() + Constants::MENU_BAR_PADDING_Y * 2.0f;
+
+		ImGui::SetNextWindowPos(ImVec2(0.0f, Constants::TITLE_BAR_HEIGHT));
+		ImGui::SetNextWindowSize(ImVec2(displaySize.x, menuBarHeight));
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,  ImVec2(15, Constants::MENU_BAR_PADDING_Y));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,   ImVec2(15, Constants::MENU_BAR_PADDING_Y));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		constexpr ImGuiWindowFlags menuWinFlags =
+			ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoScrollbar |
+			ImGuiWindowFlags_NoScrollWithMouse |
+			ImGuiWindowFlags_NoCollapse |
+			ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoBringToFrontOnFocus |
+			ImGuiWindowFlags_NoNavFocus |
+			ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_MenuBar;
+
+		if (ImGui::Begin("##MenuBar", nullptr, menuWinFlags))
+		{
+			if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
@@ -137,21 +227,73 @@ namespace Twisted::Editor
 
 				ImGui::EndMenu();
 			}
+			// --- Centered Play / Pause / Stop buttons ---
+			{
+				constexpr float btnW     = 60.0f;
+				constexpr float btnH     = 0.0f;  // 0 = use default height
+				constexpr float spacing  = 4.0f;
+				constexpr float totalW   = btnW * 3 + spacing * 2;
+				float centerX = (displaySize.x - totalW) * 0.5f;
+				ImGui::SetCursorPosX(centerX);
+
+				auto* gameService = Application::GetInstance().GetService<GameService>();
+				GameState state   = gameService ? gameService->GetGameState() : GameState::Stopped;
+
+				// Play button — disabled while already playing
+				if (state == GameState::Playing)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+				}
+				bool playDisabled = (state == GameState::Playing);
+				if (playDisabled) ImGui::BeginDisabled();
+				if (ImGui::Button("Play", ImVec2(btnW, btnH)) && gameService)
+					gameService->Play();
+				if (playDisabled) ImGui::EndDisabled();
+				if (state == GameState::Playing) ImGui::PopStyleColor(3);
+
+				ImGui::SameLine(0.0f, spacing);
+
+				// Pause button — only active while playing
+				bool pauseDisabled = (state != GameState::Playing);
+				if (state == GameState::Paused)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
+				}
+				if (pauseDisabled) ImGui::BeginDisabled();
+				if (ImGui::Button("Pause", ImVec2(btnW, btnH)) && gameService)
+					gameService->Pause();
+				if (pauseDisabled) ImGui::EndDisabled();
+				if (state == GameState::Paused) ImGui::PopStyleColor(3);
+
+				ImGui::SameLine(0.0f, spacing);
+
+				// Stop button — disabled when already stopped
+				bool stopDisabled = (state == GameState::Stopped);
+				if (stopDisabled) ImGui::BeginDisabled();
+				if (ImGui::Button("Stop", ImVec2(btnW, btnH)) && gameService)
+					gameService->Stop();
+				if (stopDisabled) ImGui::EndDisabled();
+			}
+
+			ImGui::EndMenuBar();
 		}
-		ImGui::EndMainMenuBar();
-		ImGui::PopStyleVar(2); // Pop both FramePadding and ItemSpacing
+		}
+		ImGui::End();
+		ImGui::PopStyleVar(5);
 	}
 
 	void UIWindow::RenderDockSpace()
 	{
-		// Get viewport
-		//const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		float menuBarHeight = ImGui::GetFrameHeight() + 22; // Get the actual height of the menu bar
-
 		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+		float menuBarHeight = ImGui::GetFontSize() + Constants::MENU_BAR_PADDING_Y * 2.0f;
+		float topOffset = Constants::TITLE_BAR_HEIGHT + menuBarHeight;
 
-		ImGui::SetNextWindowPos(ImVec2(0, menuBarHeight));
-		ImGui::SetNextWindowSize(ImVec2(displaySize.x, displaySize.y - menuBarHeight));
+		ImGui::SetNextWindowPos(ImVec2(0, topOffset));
+		ImGui::SetNextWindowSize(ImVec2(displaySize.x, displaySize.y - topOffset));
 		ImGui::SetNextWindowBgAlpha(1.0f);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);

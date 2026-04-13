@@ -36,6 +36,10 @@ namespace Twisted::Editor::Constants
 		ImGuiWindowFlags_NoCollapse;     // optional: prevent collapsing
 	//| ImGuiWindowFlags_NoDocking;   // prevents undocking
 
+	// Menu Bar
+	inline constexpr float TITLE_BAR_HEIGHT = 28.0f;
+	inline constexpr float MENU_BAR_PADDING_Y = 8.0f;
+
 	inline ImGuiWindowFlags dockFlags =
 		ImGuiWindowFlags_NoTitleBar
 		| ImGuiWindowFlags_NoCollapse

@@ -13,6 +13,13 @@ namespace Twisted
 {
 	class AssetsService;
 
+	enum class GameState
+	{
+		Stopped,
+		Playing,
+		Paused,
+	};
+
 	class TWISTED_API GameService : public Service
 	{
 	public:
@@ -31,11 +38,19 @@ namespace Twisted
 
 		World* GetGameWorld() { return m_gameWorld; }
 
-		Event<World*> WorldChangeEvent;
+		// Playback control
+		void Play();
+		void Pause();
+		void Stop();
+		GameState GetGameState() const { return m_gameState; }
+
+		Event<World*>     WorldChangeEvent;
+		Event<GameState>  GameStateChangeEvent;
 
 	private:
 		void SetActiveWorld(World* world);
 
-		World* m_gameWorld = nullptr;
+		World*     m_gameWorld  = nullptr;
+		GameState  m_gameState  = GameState::Stopped;
 	};
 }

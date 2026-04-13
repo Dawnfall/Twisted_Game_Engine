@@ -41,7 +41,6 @@ namespace Twisted::Editor
 
 	public:
 	
-		Event<World*> WorldLoadedEvent; // Fired when the active game world changes (including on auto-load at project open)
 		Event<fs::path> MakeNewFileEvent; //extension
 		Event<> ConfirmedQuitEvent;
 

@@ -36,6 +36,30 @@ namespace Twisted
 		SetActiveWorld(world);
 	}
 
+	void GameService::Play()
+	{
+		if (m_gameState == GameState::Playing)
+			return;
+		m_gameState = GameState::Playing;
+		GameStateChangeEvent.Invoke(m_gameState);
+	}
+
+	void GameService::Pause()
+	{
+		if (m_gameState != GameState::Playing)
+			return;
+		m_gameState = GameState::Paused;
+		GameStateChangeEvent.Invoke(m_gameState);
+	}
+
+	void GameService::Stop()
+	{
+		if (m_gameState == GameState::Stopped)
+			return;
+		m_gameState = GameState::Stopped;
+		GameStateChangeEvent.Invoke(m_gameState);
+	}
+
 	void GameService::SetActiveWorld(World* world)
 	{
 		if (m_gameWorld)

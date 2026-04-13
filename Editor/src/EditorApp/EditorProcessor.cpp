@@ -36,7 +36,6 @@ namespace Twisted::Editor
 		m_gameService->WorldChangeEvent.AddListener([this](World* world) {
 			m_editorService->GetSelection().ClearEntities();
 			SaveWorld(world);
-			m_editorService->WorldLoadedEvent.Invoke(world);
 			});
 
 		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& prevProject, const Project& newProject) {

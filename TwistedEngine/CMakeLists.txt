@@ -214,6 +214,7 @@ target_link_libraries(TwistedEngine PRIVATE
     spdlog::spdlog
     yaml-cpp::yaml-cpp
     rapidobj::rapidobj
+    dwmapi
     #ShaderParser
 )
 

@@ -9,6 +9,7 @@
 #include <Windows.h>
 #include <windowsx.h>
 #include <GL/wglext.h>
+#include <dwmapi.h>
 #include <tuple>
 
 
@@ -65,6 +66,10 @@ namespace Twisted
 		TWISTED_INFO("GraphicsContext_win32 successfully initialized!");
 
 		ShowWindow(hwnd, SW_SHOW);
+
+		// Restore DWM drop shadow for borderless window
+		MARGINS margins{ 1, 1, 1, 1 };
+		DwmExtendFrameIntoClientArea(hwnd, &margins);
 
 		TWISTED_INFO("Win32 Window Created");
 	}
@@ -155,21 +160,31 @@ namespace Twisted
 		return { GetPosition(), GetSize() };
 	}
 
+	void Window::Minimize()
+	{
+		if (m_backend->hwnd)
+			ShowWindow(m_backend->hwnd, SW_MINIMIZE);
+	}
+
 	void Window::Maximize()
 	{
 		if (m_backend->hwnd)
 			ShowWindow(m_backend->hwnd, SW_SHOWMAXIMIZED);
 	}
 
+	void Window::Restore()
+	{
+		if (m_backend->hwnd)
+			ShowWindow(m_backend->hwnd, SW_RESTORE);
+	}
+
 	void Window::SetFullScreen(bool isFullScreen)
 	{
-		DWORD style = GetWindowLong(m_backend->hwnd, GWL_STYLE);
+		if (!m_backend->hwnd)
+			return;
+
 		if (isFullScreen)
 		{
-			// Remove border, title bar
-			SetWindowLong(m_backend->hwnd, GWL_STYLE, style & ~(WS_OVERLAPPEDWINDOW));
-
-			// Get monitor size
 			MONITORINFO mi = { sizeof(mi) };
 			if (GetMonitorInfo(MonitorFromWindow(m_backend->hwnd, MONITOR_DEFAULTTOPRIMARY), &mi))
 			{
@@ -182,8 +197,6 @@ namespace Twisted
 		}
 		else
 		{
-			// Restore window style
-			SetWindowLong(m_backend->hwnd, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
 			SetWindowPos(m_backend->hwnd, HWND_NOTOPMOST, 100, 100, 1280, 720,
 				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 		}
@@ -412,7 +425,7 @@ namespace Twisted
 			0,
 			wc.lpszClassName,
 			title.c_str(),
-			WS_OVERLAPPEDWINDOW,
+			WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
 			position.x, position.y, size.x, size.y,
 			nullptr, nullptr,
 			wc.hInstance,
