@@ -1,6 +1,6 @@
 {
   "name": "twisted-engine",
-  "builtin-baseline": "640e297f1b67c4eb5a71d202a6a19355645676b5",
+  "builtin-baseline": "3c4706f7aba0155cb34c366b5ef3397e75e0d14e",
   "dependencies": [
     "entt",
     "glad",
