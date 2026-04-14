@@ -1,5 +1,5 @@
-#ifdef _WIN32
-#include "Win32Utils.h"
+#include "Twisted/Windowing/WIN32/Win32Utils.h"
+#include "Twisted/Windowing/WIN32/Window_Win32.h"
 
 #include <shobjidl.h>
 
@@ -157,7 +157,7 @@ namespace Twisted::Windows
     bool ShowConfirmDialog(Window& window, const std::wstring& message, const std::wstring& title)
     {
         int result = MessageBoxW(
-            static_cast<HWND>(window.GetBackend()->hwnd),
+            window.GetBackend()->hwnd,
             message.c_str(),
             title.c_str(),
             MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2
@@ -165,7 +165,6 @@ namespace Twisted::Windows
         return result == IDYES;
     }
 }
-#endif // _WIN32
 
 //std::string OpenFileBrowser(Window& window, const std::string& filter)
 //{
