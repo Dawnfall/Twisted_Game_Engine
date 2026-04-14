@@ -101,7 +101,7 @@ namespace Twisted
 			return TextureValue{};
 		default:
 			TWISTED_ERROR("Unsupported shader uniform value type");
-			throw std::exception("Unsupported type");
+			throw std::runtime_error("Unsupported type");
 		}
 	}
 

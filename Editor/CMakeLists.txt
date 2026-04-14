@@ -63,6 +63,12 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 # Create executable
 # ------------------------------
 
+if(WIN32)
+    list(APPEND EDITOR_SOURCES src/UI/ImguiExtensions_Win32.cpp)
+else()
+    list(APPEND EDITOR_SOURCES src/UI/ImguiExtensions_GLFW.cpp)
+endif()
+
 add_executable(Editor ${EDITOR_SOURCES})
 
 set_target_properties(Editor PROPERTIES
@@ -98,6 +104,11 @@ target_link_libraries(Editor PRIVATE
     imguizmo
     yaml-cpp::yaml-cpp
 )
+
+if(NOT WIN32)
+    find_package(glfw3 CONFIG REQUIRED)
+    target_link_libraries(Editor PRIVATE glfw)
+endif()
 
 # ------------------------------
 # Backend sources depending on GLFW usage

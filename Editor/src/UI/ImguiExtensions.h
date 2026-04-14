@@ -6,9 +6,9 @@
 #include "imgui_internal.h"
 
 //#include "Twisted/Gameing/AComponent.h"
-//#include "Twisted/Gameing/World.h"
 #include "Twisted/TObject.h"
 #include "Twisted/Gameing/Entity.h"
+#include "Twisted/Gameing/World.h"
 #include "Twisted/Windowing/Window.h"
 #include "Twisted/Rendering/Texture.h"
 #include "EditorConstants.h"
@@ -70,7 +70,7 @@ namespace Im
 		if (ImGui::BeginDragDropSource())
 		{
 			ImGui::SetDragDropPayload(type.c_str(), &obj, sizeof(T));
-			ImGui::Text(dragText.c_str());
+			ImGui::TextUnformatted(dragText.c_str());
 			ImGui::EndDragDropSource();
 		}
 	}
@@ -136,7 +136,7 @@ namespace Im
 
 		if (ImGui::BeginPopup(popupID.c_str()))
 		{
-			ImGui::Text(label.c_str());
+			ImGui::TextUnformatted(label.c_str());
 			ImGui::Separator();
 
 			Twisted::AssetsService* assets = Twisted::Application::GetInstance().GetService<Twisted::AssetsService>();

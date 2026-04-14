@@ -5,7 +5,6 @@
 #include "Data/Vertex.h"
 #include "Utils/WPtrBase.h"
 
-#include <rapidobj/rapidobj.hpp>
 #include <filesystem>
 #include <vector>
 #include <string>

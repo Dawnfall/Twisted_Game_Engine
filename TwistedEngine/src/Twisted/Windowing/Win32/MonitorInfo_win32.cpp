@@ -1,4 +1,8 @@
 ﻿#include "AppCore.h"
+<<<<<<< Updated upstream:TwistedEngine/src/Twisted/Windowing/Native/MonitorInfo_win32.cpp
+=======
+#ifdef _WIN32
+>>>>>>> Stashed changes:src/TwistedEngine/Twisted/Windowing/Native/MonitorInfo_win32.cpp
 
 #include "Twisted/Windowing/MonitorInfo.h"
 #include <Windows.h>

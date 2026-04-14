@@ -6,14 +6,14 @@
 //************
 // DLLimport / DLLexport
 
-#ifdef WIN32
+#ifdef _WIN32
 	#ifdef TWISTED_ENGINE
-		#define TWISTED_API __declspec(dllexport)	
+		#define TWISTED_API __declspec(dllexport)
 	#else
-		#define TWISTED_API __declspec(dllimport)		
+		#define TWISTED_API __declspec(dllimport)
 	#endif
 #else
-	#error "Twisted Engine only supports Windows!"
+	#define TWISTED_API __attribute__((visibility("default")))
 #endif
 
 //**************
@@ -21,10 +21,11 @@
 
 #ifdef TWISTED_DEBUG
 	#define TWISTED_ENABLE_ASSERTS
-	#ifdef TWISTED_WINDOWS
+	#ifdef _WIN32
 		#define TWISTED_DEBUG_BREAK() __debugbreak()
 	#else
-		#define TWISTED_DEBUG_BREAK()	
+		#include <signal.h>
+		#define TWISTED_DEBUG_BREAK() raise(SIGTRAP)
 	#endif
 #else
 	#define TWISTED_DEBUG_BREAK()
@@ -44,8 +45,8 @@
 //}
 
 //static_assert((!std::is_same<CTransform, ComponentTypes>::value && ...), "Component types must not be CTransform");
-//#define TWISTED_ASSERT_NOT_OF_TYPE(EXCLUDED_TYPE, ...) \
-//    static_assert(none_are_same<EXCLUDED_TYPE, __VA_ARGS__>(), \
+//#define TWISTED_ASSERT_NOT_OF_TYPE(EXCLUDED_TYPE, ...)
+//    static_assert(none_are_same<EXCLUDED_TYPE, __VA_ARGS__>(),
 //                  "Component types must not be " #EXCLUDED_TYPE)
 
 

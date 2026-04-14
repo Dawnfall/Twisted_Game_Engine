@@ -11,6 +11,18 @@
       }
     },
     {
+      "name": "vs2026",
+      "hidden": false,
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build/vs2026",
+      "cacheVariables": {
+        "CMAKE_GENERATOR_PLATFORM": "x64",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
+      }
+    },
+    {
       "name": "vs",
       "displayName": "Windows (Visual Studio)",
       "inherits": "base",
@@ -48,6 +60,28 @@
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       }
+    },
+    {
+      "name": "linux-debug",
+      "hidden": false,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "linux-release",
+      "hidden": false,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -66,7 +100,11 @@
       "configurePreset": "vs",
       "configuration": "Release"
     },
-
+    {
+      "name": "vs2026-Deploy",
+      "configurePreset": "vs2026",
+      "configuration": "Deploy"
+    },
     {
       "name": "Debug-linux",
       "configurePreset": "linux",
@@ -81,6 +119,14 @@
       "name": "Release-linux",
       "configurePreset": "linux",
       "configuration": "Release"
+    },
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
     }
   ]
 }

@@ -1,4 +1,5 @@
-﻿#pragma once
+#pragma once
+#ifdef _WIN32
 #include "AppCore.h"
 #include <string>
 #include <filesystem>
@@ -7,7 +8,7 @@
 
 #include "Window.h"
 
-namespace Twisted::Native
+namespace Twisted::Windows
 {
 	TWISTED_API std::filesystem::path OpenFileDialog(Window& window, const std::vector<std::pair<std::wstring, std::wstring>>& filter);
 	TWISTED_API std::filesystem::path OpenFolderDialog(Window& window);
@@ -15,4 +16,4 @@ namespace Twisted::Native
 
 	TWISTED_API bool ShowConfirmDialog(Window& window, const std::wstring& message, const std::wstring& title);
 }
-
+#endif

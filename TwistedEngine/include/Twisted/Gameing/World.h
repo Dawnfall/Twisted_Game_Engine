@@ -246,7 +246,7 @@ namespace Twisted
 		{
 			auto view = m_registry.view<T>();
 			if (!view.empty())
-				return &view.get<T>(*view.begin());
+				return &view.template get<T>(*view.begin());
 
 			return nullptr;
 		}
@@ -256,7 +256,7 @@ namespace Twisted
 		{
 			auto view = m_registry.view<T>();
 			if (!view.empty())
-				return &view.get<T>(*view.begin());
+				return &view.template get<T>(*view.begin());
 
 			return nullptr;
 		}

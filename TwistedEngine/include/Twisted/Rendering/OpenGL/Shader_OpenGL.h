@@ -31,7 +31,6 @@ namespace Twisted
 		}
 	};
 
-	inline const ShaderReflection& Shader::GetReflection() const { return m_backend->m_reflection; }
 }
 
 

@@ -4,11 +4,11 @@
   "dependencies": [
     "entt",
     "glad",
-    "glfw3",
     "glm",
+    { "name": "glfw3", "platform": "!windows" },
     "spdlog",
     "stb",
     "yaml-cpp",
-    "rapidobj"
+    "assimp"
   ]
 }

@@ -218,7 +218,7 @@ namespace Twisted::Editor
 		TransformComponent& transform = entity.GetWorld()->GetComponent<TransformComponent>(entity.GetID());
 
 		// Insert a dummy drop zone BEFORE the node for unparenting
-		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+		[[maybe_unused]] ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 		ImVec2 dropZoneSize(ImGui::GetContentRegionAvail().x, 4.0f);
 
 		std::string id = (isAfter) ? "##drop_zone_after_" : "##drop_zone_before_";

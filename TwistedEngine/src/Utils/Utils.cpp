@@ -3,12 +3,9 @@
 #include "Debug/Logger.h"
 
 #include <regex>
-#include <windows.h>
-#include <objbase.h>
 
 #include <string.h>
 #include <vector>
-#include <corecrt.h>
 namespace Twisted::Utils
 {
 	
@@ -49,8 +46,8 @@ namespace Twisted::Utils
 
 	void StringToArray(const std::string& str, char* buffer, size_t bufferSize)
 	{
-		strncpy_s(buffer, bufferSize, str.c_str(), _TRUNCATE);
-		buffer[bufferSize - 1] = '\0'; // Ensure null-termination
+		strncpy(buffer, str.c_str(), bufferSize - 1);
+		buffer[bufferSize - 1] = '\0';
 	}
 }
 

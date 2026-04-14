@@ -30,7 +30,7 @@ namespace Twisted
 		virtual void CreateNew([[maybe_unused]] const fs::path& path) const {}
 		virtual bool Save([[maybe_unused]] const fs::path& path, [[maybe_unused]] const std::vector<WPtrBase>& objects) const
 		{
-			throw std::exception("saving not implemented for this class");
+			throw std::runtime_error("saving not implemented for this class");
 		}
 	};
 }

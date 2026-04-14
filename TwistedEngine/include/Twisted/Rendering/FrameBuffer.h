@@ -61,7 +61,7 @@ namespace Twisted
     private:
         friend struct FramebufferBackend;
 
-        URef<FramebufferBackend> m_backend = nullptr;
+        URef<FramebufferBackend> m_backend;
 
         Vec2i Size{ 0, 0 };
         uint32_t Version = 0;

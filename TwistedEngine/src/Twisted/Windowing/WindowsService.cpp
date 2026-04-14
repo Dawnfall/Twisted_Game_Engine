@@ -1,6 +1,11 @@
 #include "Twisted/Windowing/WindowsService.h"
 #include "Twisted/Windowing/Input.h"
+
+#ifdef _WIN32
 #include "Twisted/Windowing/WIN32/WindowsUtils_Win32.h"
+#else
+#include <GLFW/glfw3.h>
+#endif
 
 namespace Twisted
 {
@@ -8,6 +13,7 @@ namespace Twisted
 	{
 		Input::GetInstance().BeginFrame();
 
+#ifdef _WIN32
 		MSG msg;
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -15,6 +21,9 @@ namespace Twisted
 			PollMsgEvent.Invoke(&msg);
 			DispatchMessage(&msg);
 		}
+#else
+		glfwPollEvents();
+#endif
 	}
 
 	void WindowsService::DispatchEvent(const KeyEvent& e)
@@ -52,7 +61,9 @@ namespace Twisted
 	Window* WindowsService::CreateNewWindow(const std::string& title, const Vec2i& size, const Vec2i& position)
 	{
 		m_window = std::make_unique<Window>(this, title, size, position);
+#ifdef _WIN32
 		SetWindowLongPtr((HWND)m_window->GetRawPointer(), GWLP_USERDATA, (LONG_PTR)m_window.get());
+#endif
 		return m_window.get();
 	}
 	void WindowsService::DestroyWindow(Window* window)

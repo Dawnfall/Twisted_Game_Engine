@@ -4,6 +4,10 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <format>
+#if defined(__GNUC__) || defined(__clang__)
+#include <cxxabi.h>
+#endif
 //struct Resource 
 //{
 //    std::string fileName;

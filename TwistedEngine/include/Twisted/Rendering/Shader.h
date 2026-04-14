@@ -33,7 +33,7 @@ namespace Twisted
 
 		ShaderBackend* GetBackend() { return m_backend.get(); }
 	private:
-		URef<ShaderBackend> m_backend = nullptr;
+		URef<ShaderBackend> m_backend;
 	};
 
 }

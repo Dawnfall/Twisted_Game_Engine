@@ -6,7 +6,6 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
-#include <corecrt.h>
 #include <vector>
 #include <system_error>
 #include <sstream>
@@ -88,17 +87,18 @@ namespace Twisted::Utils
 	std::vector<fs::path> GetAllDrives()
 	{
 		std::vector<fs::path> drives;
-
+#ifdef _WIN32
 		char drive = 'A';
 		while (drive <= 'Z')
 		{
 			std::string drivePath = std::string(1, drive) + ":\\";
 			if (fs::exists(drivePath))
-			{
 				drives.push_back(drivePath);
-			}
 			++drive;
 		}
+#else
+		drives.push_back("/");
+#endif
 		return drives;
 	}
 

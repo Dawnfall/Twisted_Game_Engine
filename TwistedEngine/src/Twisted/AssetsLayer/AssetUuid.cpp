@@ -1,25 +1,21 @@
 #include "Twisted/AssetsLayer/AssetUuid.h"
 
-#include <objbase.h>
-#include <rpc.h>
-#pragma comment(lib, "Rpcrt4.lib")
+#include <random>
 
 namespace Twisted
 {
 	AssetUuid AssetUuid::generate()
 	{
-		GUID g;
-		if (UuidCreate(&g) != RPC_S_OK)
-			throw std::runtime_error("Failed to generate UUID");
+		static std::mt19937_64 gen{ std::random_device{}() };
+		static std::uniform_int_distribution<uint64_t> dist;
 
-		uint64_t hi =
-			(static_cast<uint64_t>(g.Data1) << 32) |
-			(static_cast<uint64_t>(g.Data2) << 16) |
-			static_cast<uint64_t>(g.Data3);
+		uint64_t hi = dist(gen);
+		uint64_t lo = dist(gen);
 
-		uint64_t lo = 0;
-		for (int i = 0; i < 8; ++i)
-			lo = (lo << 8) | g.Data4[i];
+		// RFC 4122 v4: version bits
+		hi = (hi & 0xFFFFFFFFFFFF0FFFULL) | 0x0000000000004000ULL;
+		// variant bits
+		lo = (lo & 0x3FFFFFFFFFFFFFFFULL) | 0x8000000000000000ULL;
 
 		return AssetUuid{ hi, lo };
 	}

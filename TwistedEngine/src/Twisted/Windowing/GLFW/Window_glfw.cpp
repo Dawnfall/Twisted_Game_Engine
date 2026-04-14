@@ -1,585 +1,431 @@
-﻿#ifdef TWISTED_GLFW
-
+#include "Twisted/Windowing/GLFW/Window_GLFW.h"
 #include "Twisted/Windowing/Window.h"
-
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h> // Must be included after glfw3.h
-#include <string>
-
-#include "Utils/GlmUtils.h"
+#include "Twisted/Windowing/WindowsService.h"
+#include "Twisted/Windowing/WindowEvents.h"
 #include "Debug/Logger.h"
-#include "Twisted/Windowing/Input.h"
-#include "Twisted/Windowing/KeyCodes.h"
-#include "Twisted/Windowing/GraphicsContext.h"
-#include "Twisted/Windowing/ButtonCodes.h"
-#include <memory>
-
-inline static Twisted::MouseButton glfwToTwistedButton(int glfwButton) noexcept
-{
-	switch (glfwButton)
-	{
-	case GLFW_MOUSE_BUTTON_LEFT:   return Twisted::MouseButton::Left;
-	case GLFW_MOUSE_BUTTON_RIGHT:  return Twisted::MouseButton::Right;
-	case GLFW_MOUSE_BUTTON_MIDDLE: return Twisted::MouseButton::Middle;
-	case GLFW_MOUSE_BUTTON_4:      return Twisted::MouseButton::Button4;
-	case GLFW_MOUSE_BUTTON_5:      return Twisted::MouseButton::Button5;
-	case GLFW_MOUSE_BUTTON_6:      return Twisted::MouseButton::Button6;
-	case GLFW_MOUSE_BUTTON_7:      return Twisted::MouseButton::Button7;
-	case GLFW_MOUSE_BUTTON_8:      return Twisted::MouseButton::Button8;
-	default:
-	{
-		TWISTED_WARN("Unsupporeted GLFW Button");
-		return Twisted::MouseButton::Invalid; // fallback
-	}
-	}
-}
-
-inline static int twistedToGlfwButton(Twisted::MouseButton button) noexcept
-{
-	switch (button)
-	{
-	case Twisted::MouseButton::Left:   return GLFW_MOUSE_BUTTON_LEFT;
-	case Twisted::MouseButton::Right:  return GLFW_MOUSE_BUTTON_RIGHT;
-	case Twisted::MouseButton::Middle: return GLFW_MOUSE_BUTTON_MIDDLE;
-	case Twisted::MouseButton::Button4:return GLFW_MOUSE_BUTTON_4;
-	case Twisted::MouseButton::Button5:return GLFW_MOUSE_BUTTON_5;
-	case Twisted::MouseButton::Button6:return GLFW_MOUSE_BUTTON_6;
-	case Twisted::MouseButton::Button7:return GLFW_MOUSE_BUTTON_7;
-	case Twisted::MouseButton::Button8:return GLFW_MOUSE_BUTTON_8;
-	default:
-	{
-		TWISTED_WARN("Unsupported Twisted Button");
-		return -1;
-	}
-	}
-}
-
-[[nodiscard]] inline static Twisted::Key glfwToTwistedKey(int glfwKey) noexcept
-{
-	switch (glfwKey)
-	{
-	case GLFW_KEY_SPACE: return Twisted::Key::Space;
-	case GLFW_KEY_APOSTROPHE: return Twisted::Key::Apostrophe;
-	case GLFW_KEY_COMMA: return Twisted::Key::Comma;
-	case GLFW_KEY_MINUS: return Twisted::Key::Minus;
-	case GLFW_KEY_PERIOD: return Twisted::Key::Period;
-	case GLFW_KEY_SLASH: return Twisted::Key::Slash;
-	case GLFW_KEY_0: return Twisted::Key::D0;
-	case GLFW_KEY_1: return Twisted::Key::D1;
-	case GLFW_KEY_2: return Twisted::Key::D2;
-	case GLFW_KEY_3: return Twisted::Key::D3;
-	case GLFW_KEY_4: return Twisted::Key::D4;
-	case GLFW_KEY_5: return Twisted::Key::D5;
-	case GLFW_KEY_6: return Twisted::Key::D6;
-	case GLFW_KEY_7: return Twisted::Key::D7;
-	case GLFW_KEY_8: return Twisted::Key::D8;
-	case GLFW_KEY_9: return Twisted::Key::D9;
-	case GLFW_KEY_SEMICOLON: return Twisted::Key::Semicolon;
-	case GLFW_KEY_EQUAL: return Twisted::Key::Equal;
-	case GLFW_KEY_A: return Twisted::Key::A;
-	case GLFW_KEY_B: return Twisted::Key::B;
-	case GLFW_KEY_C: return Twisted::Key::C;
-	case GLFW_KEY_D: return Twisted::Key::D;
-	case GLFW_KEY_E: return Twisted::Key::E;
-	case GLFW_KEY_F: return Twisted::Key::F;
-	case GLFW_KEY_G: return Twisted::Key::G;
-	case GLFW_KEY_H: return Twisted::Key::H;
-	case GLFW_KEY_I: return Twisted::Key::I;
-	case GLFW_KEY_J: return Twisted::Key::J;
-	case GLFW_KEY_K: return Twisted::Key::K;
-	case GLFW_KEY_L: return Twisted::Key::L;
-	case GLFW_KEY_M: return Twisted::Key::M;
-	case GLFW_KEY_N: return Twisted::Key::N;
-	case GLFW_KEY_O: return Twisted::Key::O;
-	case GLFW_KEY_P: return Twisted::Key::P;
-	case GLFW_KEY_Q: return Twisted::Key::Q;
-	case GLFW_KEY_R: return Twisted::Key::R;
-	case GLFW_KEY_S: return Twisted::Key::S;
-	case GLFW_KEY_T: return Twisted::Key::T;
-	case GLFW_KEY_U: return Twisted::Key::U;
-	case GLFW_KEY_V: return Twisted::Key::V;
-	case GLFW_KEY_W: return Twisted::Key::W;
-	case GLFW_KEY_X: return Twisted::Key::X;
-	case GLFW_KEY_Y: return Twisted::Key::Y;
-	case GLFW_KEY_Z: return Twisted::Key::Z;
-	case GLFW_KEY_LEFT_BRACKET: return Twisted::Key::LeftBracket;
-	case GLFW_KEY_BACKSLASH: return Twisted::Key::Backslash;
-	case GLFW_KEY_RIGHT_BRACKET: return Twisted::Key::RightBracket;
-	case GLFW_KEY_GRAVE_ACCENT: return Twisted::Key::GraveAccent;
-	case GLFW_KEY_WORLD_1: return Twisted::Key::World1;
-	case GLFW_KEY_WORLD_2: return Twisted::Key::World2;
-	case GLFW_KEY_ESCAPE: return Twisted::Key::Escape;
-	case GLFW_KEY_ENTER: return Twisted::Key::Enter;
-	case GLFW_KEY_TAB: return Twisted::Key::Tab;
-	case GLFW_KEY_BACKSPACE: return Twisted::Key::Backspace;
-	case GLFW_KEY_INSERT: return Twisted::Key::Insert;
-	case GLFW_KEY_DELETE: return Twisted::Key::Delete;
-	case GLFW_KEY_RIGHT: return Twisted::Key::Right;
-	case GLFW_KEY_LEFT: return Twisted::Key::Left;
-	case GLFW_KEY_DOWN: return Twisted::Key::Down;
-	case GLFW_KEY_UP: return Twisted::Key::Up;
-	case GLFW_KEY_PAGE_UP: return Twisted::Key::PageUp;
-	case GLFW_KEY_PAGE_DOWN: return Twisted::Key::PageDown;
-	case GLFW_KEY_HOME: return Twisted::Key::Home;
-	case GLFW_KEY_END: return Twisted::Key::End;
-	case GLFW_KEY_CAPS_LOCK: return Twisted::Key::CapsLock;
-	case GLFW_KEY_SCROLL_LOCK: return Twisted::Key::ScrollLock;
-	case GLFW_KEY_NUM_LOCK: return Twisted::Key::NumLock;
-	case GLFW_KEY_PRINT_SCREEN: return Twisted::Key::PrintScreen;
-	case GLFW_KEY_PAUSE: return Twisted::Key::Pause;
-	case GLFW_KEY_F1: return Twisted::Key::F1;
-	case GLFW_KEY_F2: return Twisted::Key::F2;
-	case GLFW_KEY_F3: return Twisted::Key::F3;
-	case GLFW_KEY_F4: return Twisted::Key::F4;
-	case GLFW_KEY_F5: return Twisted::Key::F5;
-	case GLFW_KEY_F6: return Twisted::Key::F6;
-	case GLFW_KEY_F7: return Twisted::Key::F7;
-	case GLFW_KEY_F8: return Twisted::Key::F8;
-	case GLFW_KEY_F9: return Twisted::Key::F9;
-	case GLFW_KEY_F10: return Twisted::Key::F10;
-	case GLFW_KEY_F11: return Twisted::Key::F11;
-	case GLFW_KEY_F12: return Twisted::Key::F12;
-	case GLFW_KEY_F13: return Twisted::Key::F13;
-	case GLFW_KEY_F14: return Twisted::Key::F14;
-	case GLFW_KEY_F15: return Twisted::Key::F15;
-	case GLFW_KEY_F16: return Twisted::Key::F16;
-	case GLFW_KEY_F17: return Twisted::Key::F17;
-	case GLFW_KEY_F18: return Twisted::Key::F18;
-	case GLFW_KEY_F19: return Twisted::Key::F19;
-	case GLFW_KEY_F20: return Twisted::Key::F20;
-	case GLFW_KEY_F21: return Twisted::Key::F21;
-	case GLFW_KEY_F22: return Twisted::Key::F22;
-	case GLFW_KEY_F23: return Twisted::Key::F23;
-	case GLFW_KEY_F24: return Twisted::Key::F24;
-	case GLFW_KEY_F25: return Twisted::Key::F25;
-	case GLFW_KEY_KP_0: return Twisted::Key::KP_0;
-	case GLFW_KEY_KP_1: return Twisted::Key::KP_1;
-	case GLFW_KEY_KP_2: return Twisted::Key::KP_2;
-	case GLFW_KEY_KP_3: return Twisted::Key::KP_3;
-	case GLFW_KEY_KP_4: return Twisted::Key::KP_4;
-	case GLFW_KEY_KP_5: return Twisted::Key::KP_5;
-	case GLFW_KEY_KP_6: return Twisted::Key::KP_6;
-	case GLFW_KEY_KP_7: return Twisted::Key::KP_7;
-	case GLFW_KEY_KP_8: return Twisted::Key::KP_8;
-	case GLFW_KEY_KP_9: return Twisted::Key::KP_9;
-	case GLFW_KEY_KP_DECIMAL: return Twisted::Key::KP_Decimal;
-	case GLFW_KEY_KP_DIVIDE: return Twisted::Key::KP_Divide;
-	case GLFW_KEY_KP_MULTIPLY: return Twisted::Key::KP_Multiply;
-	case GLFW_KEY_KP_SUBTRACT: return Twisted::Key::KP_Subtract;
-	case GLFW_KEY_KP_ADD: return Twisted::Key::KP_Add;
-	case GLFW_KEY_KP_ENTER: return Twisted::Key::KP_Enter;
-	case GLFW_KEY_KP_EQUAL: return Twisted::Key::KP_Equal;
-	case GLFW_KEY_LEFT_SHIFT: return Twisted::Key::LeftShift;
-	case GLFW_KEY_LEFT_CONTROL: return Twisted::Key::LeftControl;
-	case GLFW_KEY_LEFT_ALT: return Twisted::Key::LeftAlt;
-	case GLFW_KEY_LEFT_SUPER: return Twisted::Key::LeftSuper;
-	case GLFW_KEY_RIGHT_SHIFT: return Twisted::Key::RightShift;
-	case GLFW_KEY_RIGHT_CONTROL: return Twisted::Key::RightControl;
-	case GLFW_KEY_RIGHT_ALT: return Twisted::Key::RightAlt;
-	case GLFW_KEY_RIGHT_SUPER: return Twisted::Key::RightSuper;
-	case GLFW_KEY_MENU: return Twisted::Key::Menu;
-	default:
-	{
-		TWISTED_WARN("Unsupported GLFW Key");
-		return Twisted::Key::Invalid;
-	}
-	}
-}
-
-[[nodiscard]] inline static int twistedToGlfwKey(Twisted::Key key) noexcept
-{
-	switch (key)
-	{
-	case Twisted::Key::Space: return GLFW_KEY_SPACE;
-	case Twisted::Key::Apostrophe: return GLFW_KEY_APOSTROPHE;
-	case Twisted::Key::Comma: return GLFW_KEY_COMMA;
-	case Twisted::Key::Minus: return GLFW_KEY_MINUS;
-	case Twisted::Key::Period: return GLFW_KEY_PERIOD;
-	case Twisted::Key::Slash: return GLFW_KEY_SLASH;
-	case Twisted::Key::D0: return GLFW_KEY_0;
-	case Twisted::Key::D1: return GLFW_KEY_1;
-	case Twisted::Key::D2: return GLFW_KEY_2;
-	case Twisted::Key::D3: return GLFW_KEY_3;
-	case Twisted::Key::D4: return GLFW_KEY_4;
-	case Twisted::Key::D5: return GLFW_KEY_5;
-	case Twisted::Key::D6: return GLFW_KEY_6;
-	case Twisted::Key::D7: return GLFW_KEY_7;
-	case Twisted::Key::D8: return GLFW_KEY_8;
-	case Twisted::Key::D9: return GLFW_KEY_9;
-	case Twisted::Key::Semicolon: return GLFW_KEY_SEMICOLON;
-	case Twisted::Key::Equal: return GLFW_KEY_EQUAL;
-	case Twisted::Key::A: return GLFW_KEY_A;
-	case Twisted::Key::B: return GLFW_KEY_B;
-	case Twisted::Key::C: return GLFW_KEY_C;
-	case Twisted::Key::D: return GLFW_KEY_D;
-	case Twisted::Key::E: return GLFW_KEY_E;
-	case Twisted::Key::F: return GLFW_KEY_F;
-	case Twisted::Key::G: return GLFW_KEY_G;
-	case Twisted::Key::H: return GLFW_KEY_H;
-	case Twisted::Key::I: return GLFW_KEY_I;
-	case Twisted::Key::J: return GLFW_KEY_J;
-	case Twisted::Key::K: return GLFW_KEY_K;
-	case Twisted::Key::L: return GLFW_KEY_L;
-	case Twisted::Key::M: return GLFW_KEY_M;
-	case Twisted::Key::N: return GLFW_KEY_N;
-	case Twisted::Key::O: return GLFW_KEY_O;
-	case Twisted::Key::P: return GLFW_KEY_P;
-	case Twisted::Key::Q: return GLFW_KEY_Q;
-	case Twisted::Key::R: return GLFW_KEY_R;
-	case Twisted::Key::S: return GLFW_KEY_S;
-	case Twisted::Key::T: return GLFW_KEY_T;
-	case Twisted::Key::U: return GLFW_KEY_U;
-	case Twisted::Key::V: return GLFW_KEY_V;
-	case Twisted::Key::W: return GLFW_KEY_W;
-	case Twisted::Key::X: return GLFW_KEY_X;
-	case Twisted::Key::Y: return GLFW_KEY_Y;
-	case Twisted::Key::Z: return GLFW_KEY_Z;
-	case Twisted::Key::LeftBracket: return GLFW_KEY_LEFT_BRACKET;
-	case Twisted::Key::Backslash: return GLFW_KEY_BACKSLASH;
-	case Twisted::Key::RightBracket: return GLFW_KEY_RIGHT_BRACKET;
-	case Twisted::Key::GraveAccent: return GLFW_KEY_GRAVE_ACCENT;
-	case Twisted::Key::World1: return GLFW_KEY_WORLD_1;
-	case Twisted::Key::World2: return GLFW_KEY_WORLD_2;
-	case Twisted::Key::Escape: return GLFW_KEY_ESCAPE;
-	case Twisted::Key::Enter: return GLFW_KEY_ENTER;
-	case Twisted::Key::Tab: return GLFW_KEY_TAB;
-	case Twisted::Key::Backspace: return GLFW_KEY_BACKSPACE;
-	case Twisted::Key::Insert: return GLFW_KEY_INSERT;
-	case Twisted::Key::Delete: return GLFW_KEY_DELETE;
-	case Twisted::Key::Right: return GLFW_KEY_RIGHT;
-	case Twisted::Key::Left: return GLFW_KEY_LEFT;
-	case Twisted::Key::Down: return GLFW_KEY_DOWN;
-	case Twisted::Key::Up: return GLFW_KEY_UP;
-	case Twisted::Key::PageUp: return GLFW_KEY_PAGE_UP;
-	case Twisted::Key::PageDown: return GLFW_KEY_PAGE_DOWN;
-	case Twisted::Key::Home: return GLFW_KEY_HOME;
-	case Twisted::Key::End: return GLFW_KEY_END;
-	case Twisted::Key::CapsLock: return GLFW_KEY_CAPS_LOCK;
-	case Twisted::Key::ScrollLock: return GLFW_KEY_SCROLL_LOCK;
-	case Twisted::Key::NumLock: return GLFW_KEY_NUM_LOCK;
-	case Twisted::Key::PrintScreen: return GLFW_KEY_PRINT_SCREEN;
-	case Twisted::Key::Pause: return GLFW_KEY_PAUSE;
-	case Twisted::Key::F1: return GLFW_KEY_F1;
-	case Twisted::Key::F2: return GLFW_KEY_F2;
-	case Twisted::Key::F3: return GLFW_KEY_F3;
-	case Twisted::Key::F4: return GLFW_KEY_F4;
-	case Twisted::Key::F5: return GLFW_KEY_F5;
-	case Twisted::Key::F6: return GLFW_KEY_F6;
-	case Twisted::Key::F7: return GLFW_KEY_F7;
-	case Twisted::Key::F8: return GLFW_KEY_F8;
-	case Twisted::Key::F9: return GLFW_KEY_F9;
-	case Twisted::Key::F10: return GLFW_KEY_F10;
-	case Twisted::Key::F11: return GLFW_KEY_F11;
-	case Twisted::Key::F12: return GLFW_KEY_F12;
-	case Twisted::Key::F13: return GLFW_KEY_F13;
-	case Twisted::Key::F14: return GLFW_KEY_F14;
-	case Twisted::Key::F15: return GLFW_KEY_F15;
-	case Twisted::Key::F16: return GLFW_KEY_F16;
-	case Twisted::Key::F17: return GLFW_KEY_F17;
-	case Twisted::Key::F18: return GLFW_KEY_F18;
-	case Twisted::Key::F19: return GLFW_KEY_F19;
-	case Twisted::Key::F20: return GLFW_KEY_F20;
-	case Twisted::Key::F21: return GLFW_KEY_F21;
-	case Twisted::Key::F22: return GLFW_KEY_F22;
-	case Twisted::Key::F23: return GLFW_KEY_F23;
-	case Twisted::Key::F24: return GLFW_KEY_F24;
-	case Twisted::Key::F25: return GLFW_KEY_F25;
-	case Twisted::Key::KP_0: return GLFW_KEY_KP_0;
-	case Twisted::Key::KP_1: return GLFW_KEY_KP_1;
-	case Twisted::Key::KP_2: return GLFW_KEY_KP_2;
-	case Twisted::Key::KP_3: return GLFW_KEY_KP_3;
-	case Twisted::Key::KP_4: return GLFW_KEY_KP_4;
-	case Twisted::Key::KP_5: return GLFW_KEY_KP_5;
-	case Twisted::Key::KP_6: return GLFW_KEY_KP_6;
-	case Twisted::Key::KP_7: return GLFW_KEY_KP_7;
-	case Twisted::Key::KP_8: return GLFW_KEY_KP_8;
-	case Twisted::Key::KP_9: return GLFW_KEY_KP_9;
-	case Twisted::Key::KP_Decimal: return GLFW_KEY_KP_DECIMAL;
-	case Twisted::Key::KP_Divide: return GLFW_KEY_KP_DIVIDE;
-	case Twisted::Key::KP_Multiply: return GLFW_KEY_KP_MULTIPLY;
-	case Twisted::Key::KP_Subtract: return GLFW_KEY_KP_SUBTRACT;
-	case Twisted::Key::KP_Add: return GLFW_KEY_KP_ADD;
-	case Twisted::Key::KP_Enter: return GLFW_KEY_KP_ENTER;
-	case Twisted::Key::KP_Equal: return GLFW_KEY_KP_EQUAL;
-	case Twisted::Key::LeftShift: return GLFW_KEY_LEFT_SHIFT;
-	case Twisted::Key::LeftControl: return GLFW_KEY_LEFT_CONTROL;
-	case Twisted::Key::LeftAlt: return GLFW_KEY_LEFT_ALT;
-	case Twisted::Key::LeftSuper: return GLFW_KEY_LEFT_SUPER;
-	case Twisted::Key::RightShift: return GLFW_KEY_RIGHT_SHIFT;
-	case Twisted::Key::RightControl: return GLFW_KEY_RIGHT_CONTROL;
-	case Twisted::Key::RightAlt: return GLFW_KEY_RIGHT_ALT;
-	case Twisted::Key::RightSuper: return GLFW_KEY_RIGHT_SUPER;
-	case Twisted::Key::Menu: return GLFW_KEY_MENU;
-	default:
-	{
-		TWISTED_WARN("Unsupported Twisted Key");
-		return -1;
-	}
-	}
-}
-
+#include <glad/glad.h>
 
 namespace Twisted
 {
-	static void setCallbacks(Window& window)
-	{
-		glfwSetWindowCloseCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
-			[](GLFWwindow* pointer)
-			{
-				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-				window->CloseWindowEvent.Invoke();
-			});
-		glfwSetWindowSizeCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
-			[](GLFWwindow* pointer, int newWidth, int newHeight)
-			{
-				Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-				window->WindowResizeEvent.Invoke(Vec2i{ newWidth,newHeight });
-			});
-		glfwSetKeyCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
-			[]([[maybe_unused]] GLFWwindow* pointer, int glfwKey, [[maybe_unused]] int glfwScancode, int glfwAction, [[maybe_unused]] int glfwMods)
-			{
-				//Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
 
-				Twisted::Key key = glfwToTwistedKey(glfwKey);
+// ---------------------------------------------------------------------------
+// Key / button translation
+// ---------------------------------------------------------------------------
 
-				bool isDown;
-				if (glfwAction == GLFW_PRESS)
-					isDown = true;
-				else if (glfwAction == GLFW_RELEASE)
-					isDown = false;
-				else
-					return;
-
-				Input::GetInstance().UpdateKey(key, isDown);
-			});
-		glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(window.GetRawPointer()),
-			[]([[maybe_unused]] GLFWwindow* pointer, int glfwButton, int glfwAction, [[maybe_unused]] int glfwMods)
-			{
-				//Window* window = static_cast<Window*>(glfwGetWindowUserPointer(pointer));
-
-				Twisted::MouseButton button = glfwToTwistedButton(glfwButton);
-				bool isDown;
-				if (glfwAction == GLFW_PRESS)
-					isDown = true;
-				else if (glfwAction == GLFW_RELEASE)
-					isDown = false;
-				else
-					return;
-				Input::GetInstance().UpdateMouseButton(button, isDown);
-			});
-	}
-
-	Window::Window(WindowsService* service, const std::string& title, Vec2i size, Vec2i position)
-	{
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-		GLFWwindow* windowPointer = nullptr;
-		windowPointer = glfwCreateWindow(size.x, size.y, title.c_str(), nullptr, NULL);
-		if (!windowPointer)
-		{
-			TWISTED_ERROR("CreateNewWindow() failure! GLFW window pointer creation failure");
-			return;
-		}
-		m_pointer = windowPointer;
-		glfwMakeContextCurrent(windowPointer);
-		glfwSetWindowUserPointer(windowPointer, this);
-
-		m_context = std::make_unique<GraphicsContext>(windowPointer);
-		InitRenderer();
-
-		setCallbacks(*this);
-		glfwSetWindowPos(windowPointer, position.x, position.y);
-		TWISTED_INFO("Window Created");
-	}
-
-	Window::~Window()
-	{
-		glfwDestroyWindow(static_cast<GLFWwindow*>(m_pointer));
-	}
-
-	Vec2i Window::GetSize()const
-	{
-		Vec2i size{};
-		glfwGetWindowSize(static_cast<GLFWwindow*>(m_pointer), &size.x, &size.y);
-		return size;
-	}
-	Vec2i Window::GetPosition()const
-	{
-		Vec2i pos;
-		glfwGetWindowPos(static_cast<GLFWwindow*>(m_pointer), &pos.x, &pos.y);
-		return pos;
-	}
-	std::string Window::GetTitle()const
-	{
-		const char* title = glfwGetWindowTitle(static_cast<GLFWwindow*>(m_pointer));
-		return std::string(title);
-	}
-
-	void Window::SetTitle(const std::string& newTitle)
-	{
-		glfwSetWindowTitle(static_cast<GLFWwindow*>(m_pointer), newTitle.c_str());
-	}
-	void Window::SetSize(Vec2i newSize)
-	{
-		glfwSetWindowSize(static_cast<GLFWwindow*>(m_pointer), newSize.x, newSize.y);
-	}
-	void Window::SetPosition(Vec2i newPosition)
-	{
-		glfwSetWindowPos(static_cast<GLFWwindow*>(m_pointer), newPosition.x, newPosition.y);
-	}
-
-
-
-	void Window::SetFullScreen(bool isFullScreen) //TODO... borderless fullscreen
-	{
-		if (isFullScreen)
-		{
-			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
-			glfwSetWindowMonitor(
-				static_cast<GLFWwindow*>(m_pointer),
-				monitor,           // fullscreen monitor
-				0, 0,              // position (ignored in fullscreen)
-				mode->width,
-				mode->height,
-				mode->refreshRate
-			);
-		}
-		else
-		{
-			// Save before switching
-			int windowedX, windowedY, windowedWidth, windowedHeight;
-			glfwGetWindowPos(static_cast<GLFWwindow*>(m_pointer), &windowedX, &windowedY);
-			glfwGetWindowSize(static_cast<GLFWwindow*>(m_pointer), &windowedWidth, &windowedHeight);
-
-			// ... go fullscreen ...
-
-			// Later, restore
-			glfwSetWindowMonitor(
-				static_cast<GLFWwindow*>(m_pointer),
-				nullptr,              // back to windowed
-				windowedX,
-				windowedY,
-				windowedWidth,
-				windowedHeight,
-				0                     // refreshRate = 0 = default
-			);
-		}
-	}
-
-	void Window::SetWindowed(Vec2i size, Vec2i pos)
-	{
-		glfwSetWindowMonitor(static_cast<GLFWwindow*>(m_pointer), nullptr, pos.x, pos.y, size.x, size.y, GLFW_DONT_CARE);
-	}
-
-	bool Window::CloseWindow()
-	{
-		glfwSetWindowShouldClose(static_cast<GLFWwindow*>(m_pointer), GLFW_TRUE);
-
-		TWISTED_INFO("Window closed");
-		return true;
-	}
-
-	void Window::Maximize()
-	{
-		glfwMaximizeWindow(static_cast<GLFWwindow*>(m_pointer));
-	}
-
-	void* Window::GetRawPointer()
-	{
-		return static_cast<GLFWwindow*>(m_pointer);
-	}
-
-	void* Window::GetNativeHandle()
-	{
-		return glfwGetWin32Window(static_cast<GLFWwindow*>(m_pointer));
-	}
-
-	static void openGLErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length,
-		const GLchar* message, [[maybe_unused]] const void* userParam)
-	{
-		// ignore non-significant error/warning codes
-		if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
-
-		std::string msg = std::format("Debug message({}) : {}\n", id, message);
-
-		switch (source)
-		{
-		case GL_DEBUG_SOURCE_API:             msg += "Source: API"; break;
-		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   msg += "Source: Window System"; break;
-		case GL_DEBUG_SOURCE_SHADER_COMPILER: msg += "Source: Shader Compiler"; break;
-		case GL_DEBUG_SOURCE_THIRD_PARTY:     msg += "Source: Third Party"; break;
-		case GL_DEBUG_SOURCE_APPLICATION:     msg += "Source: Application"; break;
-		case GL_DEBUG_SOURCE_OTHER:           msg += "Source: Other"; break;
-		} msg += "\n";
-
-		switch (type)
-		{
-		case GL_DEBUG_TYPE_ERROR:               msg += "Type: Error"; break;
-		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: msg += "Type: Deprecated Behaviour"; break;
-		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  msg += "Type: Undefined Behaviour"; break;
-		case GL_DEBUG_TYPE_PORTABILITY:         msg += "Type: Portability"; break;
-		case GL_DEBUG_TYPE_PERFORMANCE:         msg += "Type: Performance"; break;
-		case GL_DEBUG_TYPE_MARKER:              msg += "Type: Marker"; break;
-		case GL_DEBUG_TYPE_PUSH_GROUP:          msg += "Type: Push Group"; break;
-		case GL_DEBUG_TYPE_POP_GROUP:           msg += "Type: Pop Group"; break;
-		case GL_DEBUG_TYPE_OTHER:               msg += "Type: Other"; break;
-		} msg += "\n";
-
-		switch (severity)
-		{
-		case GL_DEBUG_SEVERITY_HIGH:         msg += "Severity: high"; break;
-		case GL_DEBUG_SEVERITY_MEDIUM:       msg += "Severity: medium"; break;
-		case GL_DEBUG_SEVERITY_LOW:          msg += "Severity: low"; break;
-		case GL_DEBUG_SEVERITY_NOTIFICATION: msg += "Severity: notification"; break;
-		} msg += "\n";
-
-		TWISTED_WARN(msg);
-
-		//fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-		//	(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-		//	type, severity, message);
-	}
-
-	static bool InitRenderer()
-	{
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-			TWISTED_ERROR("GLAD init failure");
-			return false;
-		}
-
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(openGLErrorCallback, 0);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-
-		TWISTED_INFO("OpenGL init success");
-		return true;
-	}
-
-	void Window::SetVSync(int deltaFrames)
-	{
-		glfwSwapInterval(deltaFrames);
-	}
-
-	void Window::SwapBuffers()
-	{
-		glfwSwapBuffers(static_cast<GLFWwindow*>(m_windowHandle));
-	}
-
-	void Window::Clear(const Color& color)
-	{
-		(void)color;
-		//Render::FrameBuffer::ClearBuffers();
-		//glClearColor(color.r, color.g, color.b, color.a);
-		//glClear(GL_COLOR_BUFFER_BIT);
-	}
+static Key glfwToTwistedKey(int k) noexcept
+{
+    switch (k)
+    {
+    case GLFW_KEY_SPACE:         return Key::Space;
+    case GLFW_KEY_APOSTROPHE:    return Key::Apostrophe;
+    case GLFW_KEY_COMMA:         return Key::Comma;
+    case GLFW_KEY_MINUS:         return Key::Minus;
+    case GLFW_KEY_PERIOD:        return Key::Period;
+    case GLFW_KEY_SLASH:         return Key::Slash;
+    case GLFW_KEY_0:             return Key::D0;
+    case GLFW_KEY_1:             return Key::D1;
+    case GLFW_KEY_2:             return Key::D2;
+    case GLFW_KEY_3:             return Key::D3;
+    case GLFW_KEY_4:             return Key::D4;
+    case GLFW_KEY_5:             return Key::D5;
+    case GLFW_KEY_6:             return Key::D6;
+    case GLFW_KEY_7:             return Key::D7;
+    case GLFW_KEY_8:             return Key::D8;
+    case GLFW_KEY_9:             return Key::D9;
+    case GLFW_KEY_SEMICOLON:     return Key::Semicolon;
+    case GLFW_KEY_EQUAL:         return Key::Equal;
+    case GLFW_KEY_A:             return Key::A;
+    case GLFW_KEY_B:             return Key::B;
+    case GLFW_KEY_C:             return Key::C;
+    case GLFW_KEY_D:             return Key::D;
+    case GLFW_KEY_E:             return Key::E;
+    case GLFW_KEY_F:             return Key::F;
+    case GLFW_KEY_G:             return Key::G;
+    case GLFW_KEY_H:             return Key::H;
+    case GLFW_KEY_I:             return Key::I;
+    case GLFW_KEY_J:             return Key::J;
+    case GLFW_KEY_K:             return Key::K;
+    case GLFW_KEY_L:             return Key::L;
+    case GLFW_KEY_M:             return Key::M;
+    case GLFW_KEY_N:             return Key::N;
+    case GLFW_KEY_O:             return Key::O;
+    case GLFW_KEY_P:             return Key::P;
+    case GLFW_KEY_Q:             return Key::Q;
+    case GLFW_KEY_R:             return Key::R;
+    case GLFW_KEY_S:             return Key::S;
+    case GLFW_KEY_T:             return Key::T;
+    case GLFW_KEY_U:             return Key::U;
+    case GLFW_KEY_V:             return Key::V;
+    case GLFW_KEY_W:             return Key::W;
+    case GLFW_KEY_X:             return Key::X;
+    case GLFW_KEY_Y:             return Key::Y;
+    case GLFW_KEY_Z:             return Key::Z;
+    case GLFW_KEY_LEFT_BRACKET:  return Key::LeftBracket;
+    case GLFW_KEY_BACKSLASH:     return Key::Backslash;
+    case GLFW_KEY_RIGHT_BRACKET: return Key::RightBracket;
+    case GLFW_KEY_GRAVE_ACCENT:  return Key::GraveAccent;
+    case GLFW_KEY_WORLD_1:       return Key::World1;
+    case GLFW_KEY_WORLD_2:       return Key::World2;
+    case GLFW_KEY_ESCAPE:        return Key::Escape;
+    case GLFW_KEY_ENTER:         return Key::Enter;
+    case GLFW_KEY_TAB:           return Key::Tab;
+    case GLFW_KEY_BACKSPACE:     return Key::Backspace;
+    case GLFW_KEY_INSERT:        return Key::Insert;
+    case GLFW_KEY_DELETE:        return Key::Delete;
+    case GLFW_KEY_RIGHT:         return Key::Right;
+    case GLFW_KEY_LEFT:          return Key::Left;
+    case GLFW_KEY_DOWN:          return Key::Down;
+    case GLFW_KEY_UP:            return Key::Up;
+    case GLFW_KEY_PAGE_UP:       return Key::PageUp;
+    case GLFW_KEY_PAGE_DOWN:     return Key::PageDown;
+    case GLFW_KEY_HOME:          return Key::Home;
+    case GLFW_KEY_END:           return Key::End;
+    case GLFW_KEY_CAPS_LOCK:     return Key::CapsLock;
+    case GLFW_KEY_SCROLL_LOCK:   return Key::ScrollLock;
+    case GLFW_KEY_NUM_LOCK:      return Key::NumLock;
+    case GLFW_KEY_PRINT_SCREEN:  return Key::PrintScreen;
+    case GLFW_KEY_PAUSE:         return Key::Pause;
+    case GLFW_KEY_F1:            return Key::F1;
+    case GLFW_KEY_F2:            return Key::F2;
+    case GLFW_KEY_F3:            return Key::F3;
+    case GLFW_KEY_F4:            return Key::F4;
+    case GLFW_KEY_F5:            return Key::F5;
+    case GLFW_KEY_F6:            return Key::F6;
+    case GLFW_KEY_F7:            return Key::F7;
+    case GLFW_KEY_F8:            return Key::F8;
+    case GLFW_KEY_F9:            return Key::F9;
+    case GLFW_KEY_F10:           return Key::F10;
+    case GLFW_KEY_F11:           return Key::F11;
+    case GLFW_KEY_F12:           return Key::F12;
+    case GLFW_KEY_F13:           return Key::F13;
+    case GLFW_KEY_F14:           return Key::F14;
+    case GLFW_KEY_F15:           return Key::F15;
+    case GLFW_KEY_F16:           return Key::F16;
+    case GLFW_KEY_F17:           return Key::F17;
+    case GLFW_KEY_F18:           return Key::F18;
+    case GLFW_KEY_F19:           return Key::F19;
+    case GLFW_KEY_F20:           return Key::F20;
+    case GLFW_KEY_F21:           return Key::F21;
+    case GLFW_KEY_F22:           return Key::F22;
+    case GLFW_KEY_F23:           return Key::F23;
+    case GLFW_KEY_F24:           return Key::F24;
+    case GLFW_KEY_F25:           return Key::F25;
+    case GLFW_KEY_KP_0:          return Key::KP_0;
+    case GLFW_KEY_KP_1:          return Key::KP_1;
+    case GLFW_KEY_KP_2:          return Key::KP_2;
+    case GLFW_KEY_KP_3:          return Key::KP_3;
+    case GLFW_KEY_KP_4:          return Key::KP_4;
+    case GLFW_KEY_KP_5:          return Key::KP_5;
+    case GLFW_KEY_KP_6:          return Key::KP_6;
+    case GLFW_KEY_KP_7:          return Key::KP_7;
+    case GLFW_KEY_KP_8:          return Key::KP_8;
+    case GLFW_KEY_KP_9:          return Key::KP_9;
+    case GLFW_KEY_KP_DECIMAL:    return Key::KP_Decimal;
+    case GLFW_KEY_KP_DIVIDE:     return Key::KP_Divide;
+    case GLFW_KEY_KP_MULTIPLY:   return Key::KP_Multiply;
+    case GLFW_KEY_KP_SUBTRACT:   return Key::KP_Subtract;
+    case GLFW_KEY_KP_ADD:        return Key::KP_Add;
+    case GLFW_KEY_KP_ENTER:      return Key::KP_Enter;
+    case GLFW_KEY_KP_EQUAL:      return Key::KP_Equal;
+    case GLFW_KEY_LEFT_SHIFT:    return Key::LeftShift;
+    case GLFW_KEY_LEFT_CONTROL:  return Key::LeftControl;
+    case GLFW_KEY_LEFT_ALT:      return Key::LeftAlt;
+    case GLFW_KEY_LEFT_SUPER:    return Key::LeftSuper;
+    case GLFW_KEY_RIGHT_SHIFT:   return Key::RightShift;
+    case GLFW_KEY_RIGHT_CONTROL: return Key::RightControl;
+    case GLFW_KEY_RIGHT_ALT:     return Key::RightAlt;
+    case GLFW_KEY_RIGHT_SUPER:   return Key::RightSuper;
+    case GLFW_KEY_MENU:          return Key::Menu;
+    default:                     return Key::Invalid;
+    }
 }
 
-#endif
+static MouseButton glfwToTwistedButton(int b) noexcept
+{
+    switch (b)
+    {
+    case GLFW_MOUSE_BUTTON_LEFT:   return MouseButton::Left;
+    case GLFW_MOUSE_BUTTON_RIGHT:  return MouseButton::Right;
+    case GLFW_MOUSE_BUTTON_MIDDLE: return MouseButton::Middle;
+    case GLFW_MOUSE_BUTTON_4:      return MouseButton::Button4;
+    case GLFW_MOUSE_BUTTON_5:      return MouseButton::Button5;
+    case GLFW_MOUSE_BUTTON_6:      return MouseButton::Button6;
+    case GLFW_MOUSE_BUTTON_7:      return MouseButton::Button7;
+    case GLFW_MOUSE_BUTTON_8:      return MouseButton::Button8;
+    default:                       return MouseButton::Invalid;
+    }
+}
 
+// ---------------------------------------------------------------------------
+// WindowBackend
+// ---------------------------------------------------------------------------
 
+WindowBackend::WindowBackend(WindowsService* service,
+    const std::string& title, Vec2i size, Vec2i position)
+{
+    static bool glfwInitialized = false;
+    if (!glfwInitialized)
+    {
+        if (!glfwInit())
+        {
+            TWISTED_ERROR("glfwInit() failed");
+            return;
+        }
+        glfwInitialized = true;
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
+    glfwWindow = glfwCreateWindow(size.x, size.y, title.c_str(), nullptr, nullptr);
+    if (!glfwWindow)
+    {
+        TWISTED_ERROR("glfwCreateWindow() failed");
+        return;
+    }
+
+    glfwSetWindowPos(glfwWindow, position.x, position.y);
+    glfwMakeContextCurrent(glfwWindow);
+
+    // Store service pointer for callbacks via user pointer
+    glfwSetWindowUserPointer(glfwWindow, service);
+
+    // Load GLAD
+    static bool gladLoaded = false;
+    if (!gladLoaded)
+    {
+        if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+        {
+            TWISTED_ERROR("GLAD initialization failed");
+            return;
+        }
+        gladLoaded = true;
+    }
+
+    // --- Callbacks ---
+
+    glfwSetKeyCallback(glfwWindow,
+        [](GLFWwindow* w, int key, int /*scancode*/, int action, int /*mods*/)
+        {
+            if (action == GLFW_REPEAT) return;
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            KeyEvent e;
+            e.key   = glfwToTwistedKey(key);
+            e.state = (action == GLFW_PRESS) ? KeyState::PRESSED : KeyState::RELEASED;
+            svc->DispatchEvent(e);
+        });
+
+    glfwSetMouseButtonCallback(glfwWindow,
+        [](GLFWwindow* w, int button, int action, int /*mods*/)
+        {
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            MouseButtonEvent e;
+            e.button = glfwToTwistedButton(button);
+            e.state  = (action == GLFW_PRESS) ? KeyState::PRESSED : KeyState::RELEASED;
+            svc->DispatchEvent(e);
+        });
+
+    glfwSetCursorPosCallback(glfwWindow,
+        [](GLFWwindow* w, double x, double y)
+        {
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            MouseMoveEvent e;
+            e.position = { static_cast<float>(x), static_cast<float>(y) };
+            svc->DispatchEvent(e);
+        });
+
+    glfwSetScrollCallback(glfwWindow,
+        [](GLFWwindow* w, double /*xoff*/, double yoff)
+        {
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            MouseWheelEvent e;
+            e.delta = static_cast<float>(yoff);
+            svc->DispatchEvent(e);
+        });
+
+    glfwSetWindowSizeCallback(glfwWindow,
+        [](GLFWwindow* w, int width, int height)
+        {
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            WindowResizeEvent e;
+            e.size = { width, height };
+            svc->DispatchEvent(e);
+        });
+
+    glfwSetWindowCloseCallback(glfwWindow,
+        [](GLFWwindow* w)
+        {
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            svc->DispatchEvent(WindowCloseEvent{});
+        });
+
+    glfwSetWindowFocusCallback(glfwWindow,
+        [](GLFWwindow* w, int focused)
+        {
+            auto* svc = static_cast<WindowsService*>(glfwGetWindowUserPointer(w));
+            svc->DispatchEvent(WindowFocusEvent{ focused == GLFW_TRUE });
+        });
+
+    TWISTED_INFO("GLFW Window created");
+}
+
+WindowBackend::~WindowBackend()
+{
+    if (glfwWindow)
+    {
+        glfwDestroyWindow(glfwWindow);
+        glfwWindow = nullptr;
+    }
+    glfwTerminate();
+}
+
+// ---------------------------------------------------------------------------
+// Window
+// ---------------------------------------------------------------------------
+
+Window::Window(WindowsService* service, const std::string& title, Vec2i size, Vec2i position)
+    : m_backend(std::make_unique<WindowBackend>(service, title, size, position))
+    , m_windowsService(service)
+{}
+
+Window::~Window() = default;
+Window::Window(Window&& other) = default;
+Window& Window::operator=(Window&& other) = default;
+
+Vec2i Window::GetSize() const
+{
+    if (!m_backend || !m_backend->glfwWindow) return {};
+    Vec2i s{};
+    glfwGetWindowSize(m_backend->glfwWindow, &s.x, &s.y);
+    return s;
+}
+
+Vec2i Window::GetClientSize() const
+{
+    if (!m_backend || !m_backend->glfwWindow) return {};
+    Vec2i s{};
+    glfwGetFramebufferSize(m_backend->glfwWindow, &s.x, &s.y);
+    return s;
+}
+
+Vec2i Window::GetPosition() const
+{
+    if (!m_backend || !m_backend->glfwWindow) return {};
+    Vec2i p{};
+    glfwGetWindowPos(m_backend->glfwWindow, &p.x, &p.y);
+    return p;
+}
+
+std::string Window::GetTitle() const
+{
+    if (!m_backend || !m_backend->glfwWindow) return {};
+    const char* t = glfwGetWindowTitle(m_backend->glfwWindow);
+    return t ? t : "";
+}
+
+bool Window::IsWindowMaximized() const
+{
+    if (!m_backend || !m_backend->glfwWindow) return false;
+    return glfwGetWindowAttrib(m_backend->glfwWindow, GLFW_MAXIMIZED) == GLFW_TRUE;
+}
+
+Window::RestoreBounds Window::GetRestoreBounds() const
+{
+    return { GetPosition(), GetSize() };
+}
+
+void Window::SetTitle(const std::string& newName)
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwSetWindowTitle(m_backend->glfwWindow, newName.c_str());
+}
+
+void Window::SetSize(Vec2i newSize)
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwSetWindowSize(m_backend->glfwWindow, newSize.x, newSize.y);
+}
+
+void Window::SetPosition(Vec2i newPosition)
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwSetWindowPos(m_backend->glfwWindow, newPosition.x, newPosition.y);
+}
+
+void Window::Minimize()
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwIconifyWindow(m_backend->glfwWindow);
+}
+
+void Window::Maximize()
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwMaximizeWindow(m_backend->glfwWindow);
+}
+
+void Window::Restore()
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwRestoreWindow(m_backend->glfwWindow);
+}
+
+void Window::SetFullScreen(bool isFullScreen)
+{
+    if (!m_backend || !m_backend->glfwWindow) return;
+    if (isFullScreen)
+    {
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        glfwSetWindowMonitor(m_backend->glfwWindow, monitor,
+            0, 0, mode->width, mode->height, mode->refreshRate);
+    }
+    else
+    {
+        Vec2i pos  = GetPosition();
+        Vec2i size = GetSize();
+        glfwSetWindowMonitor(m_backend->glfwWindow, nullptr,
+            pos.x, pos.y, size.x, size.y, GLFW_DONT_CARE);
+    }
+}
+
+void Window::SetWindowed(Vec2i size, Vec2i pos)
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwSetWindowMonitor(m_backend->glfwWindow, nullptr,
+            pos.x, pos.y, size.x, size.y, GLFW_DONT_CARE);
+}
+
+bool Window::CloseWindow()
+{
+    if (!m_backend || !m_backend->glfwWindow) return false;
+    glfwSetWindowShouldClose(m_backend->glfwWindow, GLFW_TRUE);
+    TWISTED_INFO("Window closed");
+    return true;
+}
+
+void Window::Clear(const Color& color)
+{
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Window::SetVSync(int deltaFrames)
+{
+    glfwSwapInterval(deltaFrames);
+}
+
+void Window::SwapBuffers()
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwSwapBuffers(m_backend->glfwWindow);
+}
+
+void* Window::GetRawPointer()
+{
+    return m_backend ? m_backend->glfwWindow : nullptr;
+}
+
+} // namespace Twisted

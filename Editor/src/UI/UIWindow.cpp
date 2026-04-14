@@ -1,6 +1,8 @@
 ﻿#include "UIWindow.h"
 #include "UI/ImguiExtensions.h"
-#include "Twisted/Windowing/NativeUtils.h"
+#include "Twisted/Windowing/WIN32/Win32Utils.h"
+
+namespace Native = Twisted::Windows;
 
 //#include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "EditorApp/EditorService.h"

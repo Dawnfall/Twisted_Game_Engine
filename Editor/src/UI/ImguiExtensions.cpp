@@ -1,72 +1,17 @@
-﻿#include "ImguiExtensions.h"
+#include "ImguiExtensions.h"
 
 #include "Debug/Logger.h"
 #include "EditorConstants.h"
 
-#include <Windows.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_win32.h>
-
 #include <imgui.h>
 #include <imgui_internal.h>
 
 #include "Twisted/Rendering/Texture.h"
 #include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
-#include "Twisted/Windowing/Window.h"
-#include "Twisted/Windowing/WindowsService.h"
 
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 namespace Im
 {
-	void Init(Twisted::Window* window)
-	{
-		static bool isInit = false;
-		if (isInit)
-			return;
-		isInit = true;
-
-		HWND hwnd = static_cast<HWND>(window->GetRawPointer());
-
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-
-		ImGui_ImplWin32_Init(hwnd);
-		ImGui_ImplOpenGL3_Init("#version 460"); // You can use another version string depending on your context
-
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch+
-		//Im::SetFlags();
-		//Im::SetStyle();
-
-		window->GetWindowsService()->PollMsgEvent.AddListener([](void* rawMsg) {
-			MSG* msg = static_cast<MSG*>(rawMsg);
-			ImGui_ImplWin32_WndProcHandler(msg->hwnd, msg->message, msg->wParam, msg->lParam);
-			});
-
-		ImGui::GetIO().IniFilename = nullptr;
-
-		ImGui::StyleColorsDark();
-
-	}
-
-	void StartFrame()
-	{
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		//ImGuizmo::BeginFrame();
-	}
-
-	void Terminate()
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplWin32_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	//for opengl
 	ImTextureID GetImGuiTextureID(const Twisted::Texture* tex)
 	{
 		return (ImTextureID)tex->GetBackend()->TexID;
@@ -75,6 +20,18 @@ namespace Im
 	float ICON_SIZE()
 	{
 		return ImGui::GetFontSize() + 3.0f;
+	}
+
+	void Render()
+	{
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	void EndFrame()
+	{
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg) {
@@ -222,18 +179,15 @@ namespace Im
 
 		// fill
 		if (isFavorite || hovered || active) {
-			ImU32 fillColor = 0xff00ffff;// ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]);
+			ImU32 fillColor = 0xff00ffff;
 			if (hovered || active)
 				fillColor = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered]);
 
-			// since there is no PathFillConcave, fill first the inner part, then the triangles
-			// inner
 			window->DrawList->PathClear();
 			for (int i = 1; i < numPoints * 2; i += 2)
 				window->DrawList->PathLineTo(ImVec2(center.x + innerRadius * sin(i * angle), center.y - innerRadius * cos(i * angle)));
 			window->DrawList->PathFillConvex(fillColor);
 
-			// triangles
 			for (int i = 0; i < numPoints; i++) {
 				window->DrawList->PathClear();
 
@@ -288,7 +242,6 @@ namespace Im
 		if (hovered || active)
 			window->DrawList->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered]));
 
-		// Icon, text
 		float icon_posX = pos.x + g.FontSize + g.Style.FramePadding.y;
 		float text_posX = icon_posX + g.Style.FramePadding.y + ICON_SIZE();
 		ImGui::RenderArrow(window->DrawList, ImVec2(pos.x, pos.y + g.Style.FramePadding.y), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[((hovered && is_mouse_x_over_arrow) || opened) ? ImGuiCol_Text : ImGuiCol_TextDisabled]), opened ? ImGuiDir_Down : ImGuiDir_Right);
@@ -324,26 +277,11 @@ namespace Im
 		if (hovered || active || isSelected)
 			window->DrawList->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : (isSelected ? ImGuiCol_Header : ImGuiCol_HeaderHovered)]));
 
-		//if (hasPreview) {
-		//	ImVec2 availSize = ImVec2(size.x, iconSize);
-
-		//	float scale = std::min<float>(availSize.x / previewWidth, availSize.y / previewHeight);
-		//	availSize.x = previewWidth * scale;
-		//	availSize.y = previewHeight * scale;
-
-		//	float previewPosX = pos.x + (size.x - availSize.x) / 2.0f;
-		//	float previewPosY = pos.y + (iconSize - availSize.y) / 2.0f;
-
-		//	window->DrawList->AddImage(icon, ImVec2(previewPosX, previewPosY), ImVec2(previewPosX + availSize.x, previewPosY + availSize.y));
-		//}
-		//else
 		window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y), ImVec2(iconPosX + iconSize, pos.y + iconSize));
-
 		window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, 0, size.x);
 
-
 		float lastButtomPos = ImGui::GetItemRectMax().x;
-		float thisButtonPos = lastButtomPos + style.ItemSpacing.x + size.x; // Expected position if next button was on same line
+		float thisButtonPos = lastButtomPos + style.ItemSpacing.x + size.x;
 		if (thisButtonPos < windowSpace)
 			ImGui::SameLine();
 
@@ -355,24 +293,8 @@ namespace Im
 		ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
 		float padding = ImGui::GetStyle().FramePadding.x * 2.0f;
 		float widgetWidth = textSize.x + padding;
-
-		// total available region in current window/column
 		float regionWidth = ImGui::GetContentRegionAvail().x;
-
-		// center by moving cursor before the button
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (regionWidth - widgetWidth) * 0.5f);
-	}
-
-	void Render()
-	{
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-
-	void EndFrame()
-	{
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	bool InputText(InputTextToken& token)
@@ -388,7 +310,7 @@ namespace Im
 		if (buffer.size() < MAX_INPUT_SIZE)
 			buffer.resize(MAX_INPUT_SIZE, '\0');
 		else
-			buffer[MAX_INPUT_SIZE - 1] = '\0'; // Ensure null-termination
+			buffer[MAX_INPUT_SIZE - 1] = '\0';
 
 		if (token.JustCreated && token.DoAutoFocus)
 		{
@@ -429,8 +351,3 @@ namespace Im
 		return value != previous;
 	}
 }
-
-
-
-
-

@@ -158,7 +158,7 @@ namespace Twisted
 				auto view = world.GetRegistry().view<T>();
 				for (auto entity : view)
 				{
-					allCompNode[entity] = YamlSerialize<T>(view.get<T>(entity));
+					allCompNode[entity] = YamlSerialize<T>(view.template get<T>(entity));
 				}
 				return allCompNode;
 				};

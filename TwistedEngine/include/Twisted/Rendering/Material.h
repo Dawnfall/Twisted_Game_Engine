@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Utils/glmUtils.h"
+#include "Utils/GlmUtils.h"
 #include "Utils/WPtr.h"
 #include "Twisted/Rendering/Texture.h"
 #include "Twisted/Rendering/Shader.h"
@@ -39,8 +39,8 @@ namespace Twisted
 	{
 		MaterialValue(ShaderValueType val,const std::string& name, size_t reflectionIndex):
 			val(val),
-			name(name),
-			reflectionIndex(reflectionIndex)
+			reflectionIndex(reflectionIndex),
+			name(name)
 		{ }
 
 		ShaderValueType val;
@@ -70,7 +70,7 @@ namespace Twisted
 				return nullptr;
 
 			auto& mv = m_values.at(it->second);
-			return std::get_if<T>(mv->val);
+			return std::get_if<T>(&mv.val);
 		}
 		template<MaterialSupportedType T>
 		const T* TryGet(const std::string& name) const
@@ -80,7 +80,7 @@ namespace Twisted
 				return nullptr;
 
 			auto& mv = m_values.at(it->second);
-			return std::get_if<T>(mv->val);
+			return std::get_if<T>(&mv.val);
 		}
 
 		template<MaterialSupportedType T>

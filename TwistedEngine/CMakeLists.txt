@@ -45,13 +45,21 @@ set(TWISTED_ENGINE_SOURCES
     src/Twisted/Rendering/OpenGL/Texture_OpenGL.cpp
     src/Twisted/Rendering/OpenGL/UniformBuffer_OpenGL.cpp
     src/Twisted/Windowing/Input.cpp
-    src/Twisted/Windowing/NativeUtils.cpp
     src/Twisted/Windowing/WindowsService.cpp
-    src/Twisted/Windowing/GLFW/MonitorInfo_glfw.cpp
-    src/Twisted/Windowing/GLFW/Window_glfw.cpp
-    src/Twisted/Windowing/Native/MonitorInfo_win32.cpp
-    src/Twisted/Windowing/Native/Window_win32.cpp
 )
+
+if(WIN32)
+    list(APPEND TWISTED_ENGINE_SOURCES
+        src/Twisted/Windowing/Win32/Win32Utils.cpp
+        src/Twisted/Windowing/Win32/MonitorInfo_win32.cpp
+        src/Twisted/Windowing/Win32/Window_win32.cpp
+    )
+else()
+    list(APPEND TWISTED_ENGINE_SOURCES
+        src/Twisted/Windowing/Linux/NativeUtils_Linux.cpp
+        src/Twisted/Windowing/GLFW/Window_glfw.cpp
+    )
+endif()
 
 # ------------------------------
 # Header files
@@ -146,13 +154,13 @@ set(TWISTED_ENGINE_HEADERS
     include/Twisted/Windowing/Input.h
     include/Twisted/Windowing/KeyCodes.h
     include/Twisted/Windowing/MonitorInfo.h
-    include/Twisted/Windowing/NativeUtils.h
+        include/Twisted/Windowing/WIN32/Win32Utils.h
+    include/Twisted/Windowing/GLFW/Window_GLFW.h
     include/Twisted/Windowing/Window.h
     include/Twisted/Windowing/WindowCoreAPI.h
     include/Twisted/Windowing/WindowEventRegistry.h
     include/Twisted/Windowing/WindowEvents.h
     include/Twisted/Windowing/WindowsService.h
-    include/Twisted/Windowing/GLFW/Window_GLFW.h
     include/Twisted/Windowing/WIN32/Window_Win32.h
     include/Twisted/Windowing/WIN32/WindowsUtils_Win32.h
 )
@@ -199,24 +207,27 @@ find_package(OpenGL REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
-find_package(entt CONFIG REQUIRED)
+find_package(EnTT CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
-find_package(rapidobj CONFIG REQUIRED)
 
 
 target_link_libraries(TwistedEngine PRIVATE
     OpenGL::GL
-    Rpcrt4
 #    Vulkan::Vulkan
     EnTT::EnTT
     glm::glm
     glad::glad
     spdlog::spdlog
     yaml-cpp::yaml-cpp
-    rapidobj::rapidobj
-    dwmapi
     #ShaderParser
 )
+
+if(WIN32)
+    target_link_libraries(TwistedEngine PRIVATE dwmapi)
+else()
+    find_package(glfw3 CONFIG REQUIRED)
+    target_link_libraries(TwistedEngine PRIVATE glfw)
+endif()
 
 # ------------------------------
 # Compile definitions

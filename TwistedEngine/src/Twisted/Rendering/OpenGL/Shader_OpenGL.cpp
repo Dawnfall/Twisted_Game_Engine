@@ -51,6 +51,8 @@ namespace Twisted
 		m_bindings = {};
 	}
 
+	const ShaderReflection& Shader::GetReflection() const { return m_backend->m_reflection; }
+
 	void Shader::Clear()
 	{
 		m_backend = nullptr;

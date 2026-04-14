@@ -1,18 +1,9 @@
-﻿#include "Twisted/Windowing/NativeUtils.h"
-#include "Twisted/Windowing/Window.h"
-#include "Twisted/Windowing/WIN32/Window_Win32.h"
+#ifdef _WIN32
+#include "Win32Utils.h"
 
-#include <cstdlib>
-#include <Windows.h>
-#include <shtypes.h>
-#include <filesystem>
-#include <vector>
-#include <utility>
-#include <string>
-#include <ShObjIdl_core.h>
-#include <corecrt.h>
+#include <shobjidl.h>
 
-namespace Twisted::Native
+namespace Twisted::Windows
 {
     // filter: vector of {display name, pattern}, e.g. { {"Text Files", "*.txt"}, {"All Files", "*.*"} }
     std::filesystem::path OpenFileDialog(Window& window, const std::vector<std::pair<std::wstring, std::wstring>>& filter)
@@ -174,6 +165,7 @@ namespace Twisted::Native
         return result == IDYES;
     }
 }
+#endif // _WIN32
 
 //std::string OpenFileBrowser(Window& window, const std::string& filter)
 //{

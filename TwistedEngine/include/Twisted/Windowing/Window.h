@@ -60,7 +60,7 @@ namespace Twisted
 
 	private:
 
-		std::unique_ptr<WindowBackend> m_backend = nullptr;
+		std::unique_ptr<WindowBackend> m_backend;
 		WindowsService* m_windowsService = nullptr;
 		int m_titleBarHeight = 0;
 	};

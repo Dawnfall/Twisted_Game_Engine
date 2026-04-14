@@ -43,7 +43,7 @@ namespace Twisted
 		return newEntity;
 	}
 
-	YAML::Node YamlSerialize<World>(const World& world)
+	template<> YAML::Node YamlSerialize<World>(const World& world)
 	{
 		YAML::Node node;
 
@@ -65,7 +65,7 @@ namespace Twisted
 		return node;
 	}
 
-	void YamlDeserialize<World>(World& world, const YAML::Node& node)
+	template<> void YamlDeserialize<World>(World& world, const YAML::Node& node)
 	{
 		const auto& allCompNode = node[COMPONENTS_SER_KEY];
 		for (auto& [compName, entry] : WorldRegistry::GetInstance().GetComponentEntries())

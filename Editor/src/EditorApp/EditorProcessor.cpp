@@ -65,8 +65,7 @@ namespace Twisted::Editor
 		m_windowsService->PollEvents();
 		if (m_windowsService->GetWindow())
 		{
-			Color clearColor{}; //TODO... move this
-			//m_windowsService->GetWindow()->Clear(clearColor);
+			//m_windowsService->GetWindow()->Clear(Color{});
 		}
 	}
 

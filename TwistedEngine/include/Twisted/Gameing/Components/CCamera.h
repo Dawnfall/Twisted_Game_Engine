@@ -31,7 +31,7 @@ namespace Twisted
 		case CameraProjectionType::PERSPECTIVE:  return PERSPECTIVE_PROJ_NAME;
 		case CameraProjectionType::ORTHOGRAPHIC: return ORTHOGRAPHIC_PROJ_NAME;
 		default:
-			throw std::exception("unsupported projection type");
+			throw std::runtime_error("unsupported projection type");
 		}
 	}
 
