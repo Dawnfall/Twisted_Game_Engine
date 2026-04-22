@@ -6,6 +6,19 @@
 #include "EditorApp/EditorRegistry.h"
 #include "EditorWorld/EditorCameraSystem.h"
 
+#include "Twisted/BuiltIn/BuiltInRegistry.h"
+#include "Twisted/Gameing/GameService.h"
+#include "Data/Color.h"
+#include "EditorConstants.h"
+#include "Twisted/Windowing/WindowsService.h"
+#include "Twisted/Windowing/WindowCoreAPI.h"
+#include "Twisted/AssetsLayer/AssetsService.h"
+#include "Twisted/AssetsLayer/Project.h"
+#include "Twisted/AssetsLayer/ProjectConfig.h"
+#include "Twisted/Rendering/RenderConvert.h"
+
+#include <imgui.h>
+
 namespace Twisted::Editor
 {
 	EditorService::~EditorService()
@@ -77,6 +90,141 @@ namespace Twisted::Editor
 				}
 			}
 		}
+	}
+
+
+	void EditorService::OnInit()
+	{
+		m_timeService = m_app->GetService<TimeService>();
+		m_gameService = m_app->GetService<GameService>();
+		m_windowsService = m_app->GetService<WindowsService>();
+		m_renderService = m_app->GetService<RenderService>();
+		m_assetsService = m_app->GetService<AssetsService>();
+
+		EditorConfig::GetInstance().LoadConfig();
+
+		ConfirmedQuitEvent.AddListener([this]() {
+			m_app->Stop();
+			});
+
+		m_gameService->WorldChangeEvent.AddListener([this](World* world) {
+			GetSelection().ClearEntities();
+			SaveWorld(world);
+			});
+
+		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& prevProject, const Project& newProject) {
+			m_app->GetService<WindowsService>()->GetWindow()->
+				SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + m_assetsService->GetProject().GetName());
+
+			Collections::BuiltInRegistry::GetInstance().ImportAll();
+			m_assetsService->AutoImportAssets();
+
+			auto& config = m_assetsService->GetProject().GetConfig();
+			InitPanels();
+			if (prevProject.IsValid())
+				config.Save();
+			LoadLastWorld(newProject.GetConfig().lastWorld);
+			});
+	}
+
+	void EditorService::OnBeforeRun()
+	{
+		CreateAppWindow();
+		CreateWorld();
+		SetWindow(m_windowsService->GetWindow());
+	}
+
+	void EditorService::OnFrameBegin()
+	{
+		m_windowsService->PollEvents();
+		if (m_windowsService->GetWindow())
+		{
+			//m_windowsService->GetWindow()->Clear(Color{});
+		}
+	}
+
+	void EditorService::OnFrame()
+	{
+		GetEditorWorld()->UpdateFrame(m_timeService->GetDeltaTime());
+
+		if (m_gameService->GetGameWorld())
+		{
+			RenderContext gamecontext;
+			gamecontext.camDatas = CollectCameraData(*m_gameService->GetGameWorld());
+			gamecontext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
+			gamecontext.lightData = CollectLightData(*m_gameService->GetGameWorld());
+			m_renderService->SubmitContext(gamecontext);
+		}
+		if (GetEditorWorld() && m_gameService->GetGameWorld())
+		{
+			RenderContext editorContext;
+			editorContext.camDatas = CollectCameraData(*GetEditorWorld());
+			editorContext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
+			editorContext.lightData = CollectLightData(*m_gameService->GetGameWorld());
+			m_renderService->SubmitContext(editorContext);
+		}
+		m_renderService->Render();
+		Render(m_windowsService->GetWindow());
+	}
+
+	void EditorService::OnFrameEnd()
+	{
+		m_windowsService->GetWindow()->SwapBuffers();
+	}
+
+	void EditorService::OnTerminate()
+	{
+		if (m_assetsService->GetProject().IsValid())
+			m_assetsService->GetProject().GetConfig().Save();
+
+		SaveEditorLayout();
+		SaveEditor(m_windowsService->GetWindow());
+
+		if (m_windowsService->GetWindow())
+			m_windowsService->DestroyWindow(m_windowsService->GetWindow());
+	}
+
+	void EditorService::SaveEditorLayout()
+	{
+		if (!m_assetsService->GetProject().IsValid())
+			return;
+
+		auto& config = m_assetsService->GetProject().GetConfig();
+
+		size_t iniSize = 0;
+		config.imguiIni = ImGui::SaveIniSettingsToMemory(&iniSize);
+		config.panelStates.clear();
+		for (const auto& panel : EditorRegistry::GetInstance().m_panels)
+			config.panelStates.push_back({ panel->GetName(), panel->IsShowing });
+		config.Save();
+	}
+
+	void EditorService::CreateAppWindow()
+	{
+		auto& config = EditorConfig::GetInstance();
+		Window* window = m_windowsService->CreateNewWindow(Constants::EDITOR_WINDOW_TITLE, config.GetWindowSize(), config.GetWindowPos());
+
+		window->CloseWindowEvent.AddListener([this]() { m_app->Stop(); });
+		window->SetTitle(Constants::EDITOR_WINDOW_TITLE);
+		if (config.GetWindowMaximized())
+			window->Maximize();
+	}
+
+
+	void EditorService::SaveWorld(World* world)
+	{
+		if (m_assetsService->GetProject().IsValid())
+		{
+			auto& config = m_assetsService->GetProject().GetConfig();
+			config.lastWorld = m_assetsService->GetObjectUuid(world);
+			config.Save();
+		}
+	}
+
+	void EditorService::LoadLastWorld(AssetUuid worldUuid)
+	{
+		if (!m_gameService->LoadWorld(worldUuid))
+			m_gameService->NewGameWorld();
 	}
 
 }

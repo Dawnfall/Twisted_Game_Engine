@@ -3,9 +3,9 @@
 
 #include <memory>
 #include <vector>
+#include <algorithm>
 #include <chrono>
 #include "Service.h"
-#include "Processor.h"
 #include "TimeService.h"
 
 namespace Twisted
@@ -32,22 +32,18 @@ namespace Twisted
 		void Stop() { m_isRunning = false; }
 
 		template<typename T>
-		T* AddService()
+		T* AddService(int priority)
 		{
 			static_assert(std::is_base_of<Service, T>::value, "T must inherit from Service class");
 
 			if (T* service = GetService<T>(); service)
 				return service;
 
-			m_services.emplace_back(std::make_unique<T>(this));
-			return static_cast<T*>(m_services.back().get());
-		}
-		template<typename T>
-		T* AddProcessor()
-		{
-			static_assert(std::is_base_of<Processor, T>::value, "T must inherit from Processor class");
-			m_processors.emplace_back(std::make_unique<T>(this));
-			return static_cast<T*>(m_processors.back().get());
+			m_services.emplace_back(std::make_unique<T>(this,priority));
+			std::sort(m_services.begin(), m_services.end(), [](const URef<Service>& a, const URef<Service>& b) {
+				return a->GetPriority() > b->GetPriority();
+			});
+			return GetService<T>();
 		}
 
 		template<typename T>
@@ -61,23 +57,10 @@ namespace Twisted
 			}
 			return nullptr;
 		}
-		template<typename T>
-		T* GetProcessor()
-		{
-			static_assert(std::is_base_of<Processor, T>::value, "T must inherit from Processor class");
-			for (auto& processor : m_processors)
-			{
-				if (auto ptr = dynamic_cast<T*>(processor.get()))
-					return ptr;
-			}
-			return nullptr;
-		}
 	protected:
 		Application() {}
 
 		std::vector<URef<Service>> m_services;
-		std::vector<URef<Processor>> m_processors;
-		TimeService* m_timeService = nullptr;
 
 		bool m_isRunning = false;
 	};

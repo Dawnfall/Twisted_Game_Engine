@@ -204,6 +204,9 @@ WindowBackend::WindowBackend(WindowsService* service,
         gladLoaded = true;
     }
 
+    // Release context so the render thread can acquire it
+    glfwMakeContextCurrent(nullptr);
+
     // --- Callbacks ---
 
     glfwSetKeyCallback(glfwWindow,
@@ -421,6 +424,17 @@ void Window::SwapBuffers()
 {
     if (m_backend && m_backend->glfwWindow)
         glfwSwapBuffers(m_backend->glfwWindow);
+}
+
+void Window::AcquireGLContext()
+{
+    if (m_backend && m_backend->glfwWindow)
+        glfwMakeContextCurrent(m_backend->glfwWindow);
+}
+
+void Window::ReleaseGLContext()
+{
+    glfwMakeContextCurrent(nullptr);
 }
 
 void* Window::GetRawPointer()

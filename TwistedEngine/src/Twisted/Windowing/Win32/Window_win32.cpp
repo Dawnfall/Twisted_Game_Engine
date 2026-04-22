@@ -12,7 +12,6 @@
 #include <dwmapi.h>
 #include <tuple>
 
-
 using PFNWGLCREATECONTEXTATTRIBSARBPROC = HGLRC(WINAPI*)(HDC, HGLRC, const int*);
 namespace Twisted
 {
@@ -93,7 +92,17 @@ namespace Twisted
 		hwnd = nullptr;
 	}
 
-	void Window::SetVSync(int deltaFrames)
+	void Window::AcquireGLContext()
+	{
+		wglMakeCurrent(m_backend->hdc, m_backend->glrc);
+	}
+
+	void Window::ReleaseGLContext()
+	{
+		wglMakeCurrent(nullptr, nullptr);
+	}
+
+	void Window::SetVSync(int deltaFrames) 
 	{
 		// deltaFrames == 1 ? enable vsync
 		// deltaFrames == 0 ? disable vsync
@@ -349,6 +358,9 @@ namespace Twisted
 			}
 			gladLoaded = true;
 		}
+
+		// Release context so the render thread can acquire it
+		wglMakeCurrent(nullptr, nullptr);
 
 		// -------------------------
 		// 6) Optional: log OpenGL version

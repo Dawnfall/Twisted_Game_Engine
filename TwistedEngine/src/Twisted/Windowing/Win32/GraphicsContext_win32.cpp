@@ -1,8 +1,5 @@
 ﻿#include "AppCore.h"
-#ifdef _WIN32
-
-#include "Twisted/Rendering/RenderingAPI.h"
-#include "Twisted/Windowing/GraphicsContext.h"
+#include "Twisted/Rendering/RenderAPI.h"
 #include "Debug/Logger.h"
 
 #include <Windows.h>
@@ -235,6 +232,3 @@ namespace Twisted
             wglSwapIntervalEXT(deltaFrames);
     }
 }
-
-#endif
-

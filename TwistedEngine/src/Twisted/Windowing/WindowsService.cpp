@@ -64,6 +64,7 @@ namespace Twisted
 #ifdef _WIN32
 		SetWindowLongPtr((HWND)m_window->GetRawPointer(), GWLP_USERDATA, (LONG_PTR)m_window.get());
 #endif
+		WindowCreatedEvent.Invoke(m_window.get());
 		return m_window.get();
 	}
 	void WindowsService::DestroyWindow(Window* window)

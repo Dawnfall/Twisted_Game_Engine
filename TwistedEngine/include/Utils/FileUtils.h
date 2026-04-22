@@ -29,8 +29,6 @@ namespace Twisted::Utils
 
 	std::vector<fs::path> TWISTED_API SubFolders(const fs::path& path);
 
-	std::vector<fs::path> TWISTED_API GetAllDrives();
-
 	bool TWISTED_API IsExisting(const fs::path& path);
 	
 	std::vector<fs::directory_entry> TWISTED_API GetFilesInFolder(const std::string& folderPath);

@@ -22,7 +22,7 @@ namespace Twisted
 	class TWISTED_API AssetsService : public Service
 	{
 	public:
-		AssetsService(Application* app) : Service(app) {}
+		AssetsService(Application* app,int priority) : Service(app, priority) {}
 
 		AssetUuid GetUuid(const fs::path& assetPath) const;
 		AssetUuid GetObjectUuid(const TObject* object) const;

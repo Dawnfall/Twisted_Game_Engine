@@ -7,8 +7,8 @@ cmake_minimum_required(VERSION 3.28)
 set(EDITOR_SOURCES
     main.cpp
     src/EditorConstants.h
-    src/EditorApp/EditorProcessor.cpp
-    src/EditorApp/EditorProcessor.h
+    
+    
     src/EditorApp/EditorRegistry.h
     src/EditorApp/EditorService.cpp
     src/EditorApp/EditorService.h

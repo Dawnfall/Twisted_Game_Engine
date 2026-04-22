@@ -16,37 +16,27 @@ namespace Twisted
 
 		LOGGER_INIT();
 
-		m_timeService = AddService<TimeService>();
 
 		for (auto& service : m_services)
 			service->OnInit();
 
-		for (auto& processor : m_processors)
-			processor->OnInit();
-
-		for (auto& processor : m_processors)
-			processor->OnBeforeRun();
+		for (auto& service : m_services)
+			service->OnBeforeRun();
 
 		m_isRunning = true;
 		while (m_isRunning)
 		{
-			m_timeService->Update();
-
-			for (auto& processor : m_processors)
-				processor->OnFrameBegin();
-			for (auto& processor : m_processors)
-				processor->OnFrame();
-			for (auto& processor : m_processors)
-				processor->OnFrameEnd();
+			for (auto& service : m_services)
+				service->OnFrameBegin();
+			for (auto& service : m_services)
+				service->OnFrame();
+			for (auto& service : m_services)
+				service->OnFrameEnd();
 		}
-
-		for (auto& processor : m_processors)
-			processor->OnTerminate();
 
 		for (auto& service : m_services)
 			service->OnTerminate();
 
-		m_processors.clear();
 		m_services.clear();
 
 		TObject::DestroyAll(); //TODO... can be moved to some GC

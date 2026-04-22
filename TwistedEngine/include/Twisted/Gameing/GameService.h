@@ -23,7 +23,7 @@ namespace Twisted
 	class TWISTED_API GameService : public Service
 	{
 	public:
-		GameService(Application* app) : Service(app) {}
+		GameService(Application* app,int priority) : Service(app, priority) {}
 		~GameService() = default;
 
 		// Creates a new transient world with no file backing

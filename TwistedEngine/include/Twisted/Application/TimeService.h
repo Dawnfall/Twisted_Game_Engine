@@ -9,7 +9,7 @@ namespace Twisted
 	class TimeService :public Service
 	{
 	public:
-		TimeService(Application* app) :Service(app)
+		TimeService(Application* app,int priority) :Service(app, priority)
 		{
 			s_instance = this;
 		}

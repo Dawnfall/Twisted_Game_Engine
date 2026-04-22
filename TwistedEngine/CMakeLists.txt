@@ -78,6 +78,7 @@ set(TWISTED_ENGINE_HEADERS
     include/Utils/FileUtils.h
     include/Utils/GlmUtils.h
     include/Utils/MeshGenerator.h
+    include/Utils/ThreadSafeQueue.h
     include/Utils/Utils.h
     include/Utils/WPtr.h
     include/Utils/WPtrBase.h
@@ -86,7 +87,7 @@ set(TWISTED_ENGINE_HEADERS
     include/Twisted/ObjectID.h
     include/Twisted/TObject.h
     include/Twisted/Application/Application.h
-    include/Twisted/Application/Processor.h
+    
     include/Twisted/Application/Service.h
     include/Twisted/Application/TimeService.h
     include/Twisted/AssetsLayer/AssetImporter.h
@@ -154,7 +155,7 @@ set(TWISTED_ENGINE_HEADERS
     include/Twisted/Windowing/Input.h
     include/Twisted/Windowing/KeyCodes.h
     include/Twisted/Windowing/MonitorInfo.h
-        include/Twisted/Windowing/WIN32/Win32Utils.h
+    include/Twisted/Windowing/WIN32/Win32Utils.h
     include/Twisted/Windowing/GLFW/Window_GLFW.h
     include/Twisted/Windowing/Window.h
     include/Twisted/Windowing/WindowCoreAPI.h
@@ -219,6 +220,7 @@ target_link_libraries(TwistedEngine PRIVATE
     glad::glad
     spdlog::spdlog
     yaml-cpp::yaml-cpp
+    assimp::assimp
     #ShaderParser
 )
 

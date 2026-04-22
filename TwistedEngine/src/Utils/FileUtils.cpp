@@ -84,24 +84,6 @@ namespace Twisted::Utils
 		return subEntries;
 	}
 
-	std::vector<fs::path> GetAllDrives()
-	{
-		std::vector<fs::path> drives;
-#ifdef _WIN32
-		char drive = 'A';
-		while (drive <= 'Z')
-		{
-			std::string drivePath = std::string(1, drive) + ":\\";
-			if (fs::exists(drivePath))
-				drives.push_back(drivePath);
-			++drive;
-		}
-#else
-		drives.push_back("/");
-#endif
-		return drives;
-	}
-
 	std::vector<fs::directory_entry> GetFilesInFolder(const std::string& folderPath)
 	{
 		std::vector<std::filesystem::directory_entry> files;

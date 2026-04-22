@@ -51,6 +51,8 @@ namespace Twisted
 		void SetVSync(int deltaFrames);
 
 		void SwapBuffers();
+		void AcquireGLContext();
+		void ReleaseGLContext();
 
 		Event<> CloseWindowEvent;
 		Event<Vec2i> WindowResizeEvent;
