@@ -1,20 +1,20 @@
 ﻿#include "UIWindow.h"
 #include "UI/ImguiExtensions.h"
-#include "Twisted/Windowing/WIN32/Win32Utils.h"
+#include "WIN32/Win32Utils.h"
 
 namespace Native = Twisted::Windows;
 
 //#include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "EditorApp/EditorService.h"
-#include "Twisted/Gameing/GameService.h"
+#include "GameService.h"
 #include "EditorApp/EditorRegistry.h"
-#include "Twisted/Windowing/Window.h"
-#include "Twisted/AssetsLayer/AssetsService.h"
+#include "Window.h"
+#include "AssetsService.h"
 #include "Utils/WPtr.h"
-#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
+#include "AssetImporterRegistry.h"
 #include "Utils/GlmUtils.h"
 #include "EditorConstants.h"
-#include "Twisted/Gameing/World.h"
+#include "World.h"
 #include "Utils/WPtrBase.h"
 #include <filesystem>
 #include <utility>
@@ -239,7 +239,7 @@ namespace Twisted::Editor
 				ImGui::SetCursorPosX(centerX);
 
 				auto* gameService = Application::GetInstance().GetService<GameService>();
-				GameState state   = gameService ? gameService->GetGameState() : GameState::Stopped;
+				GameState state   = gameService->GetGameState().gameState;
 
 				// Play button — disabled while already playing
 				if (state == GameState::Playing)
@@ -247,38 +247,44 @@ namespace Twisted::Editor
 					ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+					ImGui::BeginDisabled();
 				}
-				bool playDisabled = (state == GameState::Playing);
-				if (playDisabled) ImGui::BeginDisabled();
-				if (ImGui::Button("Play", ImVec2(btnW, btnH)) && gameService)
-					gameService->Play();
-				if (playDisabled) ImGui::EndDisabled();
-				if (state == GameState::Playing) ImGui::PopStyleColor(3);
+				if (ImGui::Button("Play", ImVec2(btnW, btnH)))
+					gameService->SetGameState(GameState::Playing);
+
+				if (state == GameState::Playing)
+				{
+					ImGui::EndDisabled();
+					ImGui::PopStyleColor(3);
+				}
 
 				ImGui::SameLine(0.0f, spacing);
 
 				// Pause button — only active while playing
-				bool pauseDisabled = (state != GameState::Playing);
 				if (state == GameState::Paused)
 				{
 					ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
 				}
-				if (pauseDisabled) ImGui::BeginDisabled();
+				if (state != GameState::Playing)
+					ImGui::BeginDisabled();
 				if (ImGui::Button("Pause", ImVec2(btnW, btnH)) && gameService)
-					gameService->Pause();
-				if (pauseDisabled) ImGui::EndDisabled();
-				if (state == GameState::Paused) ImGui::PopStyleColor(3);
+					gameService->SetGameState(GameState::Paused);
+				if(state!=GameState::Playing)
+					ImGui::EndDisabled();
+				if (state == GameState::Paused)
+					ImGui::PopStyleColor(3);
 
 				ImGui::SameLine(0.0f, spacing);
 
 				// Stop button — disabled when already stopped
-				bool stopDisabled = (state == GameState::Stopped);
-				if (stopDisabled) ImGui::BeginDisabled();
+				if (state == GameState::Stopped)
+					ImGui::BeginDisabled();
 				if (ImGui::Button("Stop", ImVec2(btnW, btnH)) && gameService)
-					gameService->Stop();
-				if (stopDisabled) ImGui::EndDisabled();
+					gameService->SetGameState(GameState::Stopped);
+				if (state==GameState::Stopped) 
+					ImGui::EndDisabled();
 			}
 
 			ImGui::EndMenuBar();

@@ -2,7 +2,7 @@
 
 #include "UI/ComponentPainter.h"
 #include "EditorApp/EditorRegistry.h"
-#include "Twisted/Gameing/Components/SpotLightComponent.h"
+#include "Components/SpotLightComponent.h"
 
 namespace Twisted::Editor
 {

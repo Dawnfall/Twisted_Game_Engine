@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "UI/ComponentPainter.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/World.h"
+#include "Components/CTransform.h"
+#include "World.h"
 
 #include "imgui.h"
 

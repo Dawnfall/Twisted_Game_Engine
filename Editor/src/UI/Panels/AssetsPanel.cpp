@@ -1,36 +1,32 @@
 ﻿#include "AssetsPanel.h"
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
-#include "Twisted/AssetsLayer/AssetInfo.h"
-#include "Twisted/AssetsLayer/AssetImporterRegistry.h"
-#include "Twisted/TObject.h"
+#include "ImportedAsset.h"
+#include "AssetImporterRegistry.h"
+#include "Application/TObject.h"
 #include "EditorConstants.h"
 #include "EditorApp/EditorService.h"
-#include "Twisted/Windowing/Input.h"
-#include "Twisted/AssetsLayer/Project.h"
+#include "Input.h"
+#include "Project.h"
 #include <optional>
 #include <filesystem>
 #include <string>
-#include <Twisted/AssetsLayer/AssetsService.h>
+#include "AssetsService.h"
 #include <EditorData/Selection.h>
 #include <imgui.h>
 
 
 namespace Twisted::Editor
 {
-	static ImGuiTreeNodeFlags GetAssetFlags(size_t childCount, const fs::path& assetPath)
+	static ImGuiTreeNodeFlags GetFileFlags(const fs::path& assetPath)
 	{
 		ImGuiTreeNodeFlags flags =
-			ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_Leaf |
+			ImGuiTreeNodeFlags_NoTreePushOnOpen |
 			ImGuiTreeNodeFlags_SpanAvailWidth;
 
-		if (childCount == 0)
-			flags |= ImGuiTreeNodeFlags_Leaf;
-
 		if (Application::GetInstance().GetService<EditorService>()->GetSelection().GetSelectedPaths().contains(assetPath))
-		{
 			flags |= ImGuiTreeNodeFlags_Selected;
-		}
 
 		return flags;
 	}
@@ -99,7 +95,7 @@ namespace Twisted::Editor
 
 	void AssetsPanel::Init()
 	{
-		Twisted::Application::GetInstance().GetService<AssetsService>()->ProjectChangeEvent.AddListener([this](const Project& /*prevProject*/, const Project& newProject) {
+		Twisted::Application::GetInstance().GetService<AssetsService>()->ProjectChangeEvent.AddListener([this]( const Project& newProject) {
 			currentDir = newProject.GetAssetsFolder();
 			});
 		Application::GetInstance().GetService<EditorService>()->MakeNewFileEvent.AddListener([this](fs::path defaultName) {
@@ -127,6 +123,21 @@ namespace Twisted::Editor
 		// RIGHT PANEL: Folder Contents
 		ImGui::BeginChild("RightPanel", ImVec2(0, panelHeight), true); // Width = 0 means fill remaining space
 
+		// Built-in assets
+		if (ImGui::CollapsingHeader("Built-in"))
+		{
+			AssetsService* assets = Application::GetInstance().GetService<AssetsService>();
+			for (TObject* obj : assets->GetBuiltInObjectsOfType())
+			{
+				std::string label = obj->GetName() + "##builtin_" + std::to_string(obj->GetID().GetID());
+				ImGui::TreeNodeEx(label.c_str(), GetObjectFlags(obj));
+				CheckLeftClickOnObject(obj);
+				Im::DragSource<TObject*>(Constants::OBJECT_DRAG_TYPE, obj, obj->GetName().c_str());
+			}
+		}
+
+		ImGui::Separator();
+
 		for (const auto& entry : std::filesystem::directory_iterator(currentDir))
 		{
 			if (!entry.exists())
@@ -140,6 +151,12 @@ namespace Twisted::Editor
 			{
 
 			}
+		}
+
+		if (m_pendingDelete.has_value())
+		{
+			Application::GetInstance().GetService<AssetsService>()->DeleteAsset(*m_pendingDelete);
+			m_pendingDelete = std::nullopt;
 		}
 
 		NewAssetPopup();
@@ -178,40 +195,46 @@ namespace Twisted::Editor
 
 	bool AssetsPanel::AssetEntry(const fs::path& assetPath)
 	{
-		bool justSelected = false;
 		fs::path filename = assetPath.filename();
 
 		AssetsService* assetsLayer = Application::GetInstance().GetService<AssetsService>();
-		AssetInfo* info = assetsLayer->GetInfo(assetPath);
-		auto& objects = assetsLayer->GetObjects(info ? info->GetUuid() : AssetUuid::Invalid());
+		ImportedAsset* info = assetsLayer->GetInfo(assetPath);
 
-		ImGuiTreeNodeFlags flags = GetAssetFlags(objects.size(), (info) ? assetPath : "");
-
-		// tree node
-		bool isOpened = ImGui::TreeNodeEx(filename.string().c_str(), flags);
-
-		CheckLeftClickOnAsset(assetPath);
-
-		// drag source
-		std::string pathAsString = filename.string();
-		Im::DragSource<AssetInfo*>(Constants::ASSET_DRAG_TYPE, info, filename.string().c_str());
-
-		if (isOpened)
+		if (!info)
 		{
-			for (auto& obj : objects)
-			{
-				TObject* objPtr = obj.GetObj();
-				std::string name = assetPath.stem().string();
+			ImGui::TreeNodeEx(filename.string().c_str(), GetFileFlags(assetPath));
+			CheckLeftClickOnAsset(assetPath);
+			return false;
+		}
 
-				name += "##" + std::to_string(objPtr->GetID().GetID());
-				ImGuiTreeNodeFlags objFlags = GetObjectFlags(objPtr);
-				ImGui::TreeNodeEx(name.c_str(), objFlags);
-				CheckLeftClickOnObject(objPtr);
-				Im::DragSource<TObject*>(Constants::OBJECT_DRAG_TYPE, objPtr, "Object");
-			}
+		ImGuiTreeNodeFlags rootFlags =
+			ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_SpanAvailWidth;
+		if (Application::GetInstance().GetService<EditorService>()->GetSelection().GetSelectedPaths().contains(assetPath))
+			rootFlags |= ImGuiTreeNodeFlags_Selected;
+
+		std::string rootLabel = info->GetAssetName() + "##asset_" + assetPath.string();
+		bool isOpen = ImGui::TreeNodeEx(rootLabel.c_str(), rootFlags);
+		CheckLeftClickOnAsset(assetPath);
+		Im::DragSource<ImportedAsset*>(Constants::ASSET_DRAG_TYPE, info, info->GetAssetName().c_str());
+
+		std::string ctxId = "asset_ctx_" + assetPath.string();
+		if (ImGui::BeginPopupContextItem(ctxId.c_str()))
+		{
+			if (ImGui::MenuItem("Delete"))
+				m_pendingDelete = assetPath;
+			ImGui::EndPopup();
+		}
+
+		if (isOpen)
+		{
+			std::string fileLabel = filename.string() + "##file_" + assetPath.string();
+			ImGui::TreeNodeEx(fileLabel.c_str(), GetFileFlags(assetPath));
+			CheckLeftClickOnAsset(assetPath);
+			Im::DragSource<ImportedAsset*>(Constants::ASSET_DRAG_TYPE, info, filename.string().c_str());
 			ImGui::TreePop();
 		}
-		return justSelected;
+		return false;
 	}
 
 	void AssetsPanel::PaintNewAsset()
@@ -233,7 +256,7 @@ namespace Twisted::Editor
 
 	void AssetsPanel::NewAssetPopup()
 	{
-		if (ImGui::BeginPopupContextWindow("AssetPopup", ImGuiPopupFlags_MouseButtonRight))
+		if (ImGui::BeginPopupContextWindow("AssetPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
 			for (auto& importer : AssetImporterRegistry::GetInstance().GetImporters())
 			{

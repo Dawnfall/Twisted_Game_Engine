@@ -1,8 +1,8 @@
 #pragma once
-#include "Twisted/Gameing/SystemBase.h"
-#include "Twisted/Gameing/Components/CCamera.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/World.h"
+#include "SystemBase.h"
+#include "Components/CCamera.h"
+#include "Components/CTransform.h"
+#include "World.h"
 
 
 namespace Twisted::Editor
@@ -19,16 +19,21 @@ namespace Twisted::Editor
 				return;
 			TransformComponent& transform = m_world->GetComponent<TransformComponent>(camera->GetID());
 
-			float moveSpeed{ 1.0f };
-			float rotateSpeed{ 0.005f };
+			constexpr float moveSpeed   = 5.0f;   // units/sec
+			constexpr float shiftMul    = 5.0f;   // held-Shift multiplier
+			constexpr float rotSpeed    = 0.003f; // rad/pixel (no deltaTime — delta is already frame-relative)
+			constexpr float panSpeed    = 0.005f; // units/pixel
+			constexpr float scrollSpeed = 1.0f;   // units/scroll-tick
 
-			FreeFlyCamera(transform, moveSpeed, rotateSpeed, deltaTime);
+			FreeFlyCamera(transform, moveSpeed, shiftMul, rotSpeed, panSpeed, scrollSpeed, deltaTime);
 		}
 
 	private:
 		void HandleLocalWASD(TransformComponent& transform, float moveSpeed, float deltaTime);
-		void HandleLocalMouseRot(TransformComponent& transform, float rotSpeed, float deltaTime);
+		void HandleLocalMouseRot(TransformComponent& transform, float rotSpeed);
+		void HandleMiddleMousePan(TransformComponent& transform, float panSpeed);
 
-		void FreeFlyCamera(TransformComponent& transform, float moveSpeed, float rotSpeed, float deltaTime);
+		void FreeFlyCamera(TransformComponent& transform, float moveSpeed, float shiftMul,
+		                   float rotSpeed, float panSpeed, float scrollSpeed, float deltaTime);
 	};
 }

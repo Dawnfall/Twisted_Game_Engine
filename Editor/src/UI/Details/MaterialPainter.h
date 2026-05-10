@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "EditorApp/EditorRegistry.h"
+#include "Material.h"
 #include <string>
 
 namespace Twisted::Editor
@@ -11,5 +12,6 @@ namespace Twisted::Editor
 	{
 	public:
 		void Paint(void* obj) override;
+		static void PaintUniforms(Material* material);
 	};
 }

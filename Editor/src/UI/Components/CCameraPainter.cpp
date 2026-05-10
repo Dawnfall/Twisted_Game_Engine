@@ -1,8 +1,8 @@
 ﻿#include "CCameraPainter.h"
 #include "EditorApp/EditorRegistry.h"
 
-#include "Twisted/Gameing/Components/CCamera.h"
-#include "Twisted/Gameing/World.h"
+#include "Components/CCamera.h"
+#include "World.h"
 
 #include "UI/ImguiExtensions.h"
 #include <array>

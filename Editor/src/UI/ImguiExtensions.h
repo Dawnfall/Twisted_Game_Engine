@@ -5,24 +5,24 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-//#include "Twisted/Gameing/AComponent.h"
-#include "Twisted/TObject.h"
-#include "Twisted/Gameing/Entity.h"
-#include "Twisted/Gameing/World.h"
-#include "Twisted/Windowing/Window.h"
-#include "Twisted/Rendering/Texture.h"
+//#include "AComponent.h"
+#include "Application/TObject.h"
+#include "Entity.h"
+#include "World.h"
+#include "Window.h"
+#include "Texture.h"
 #include "EditorConstants.h"
 
-#include "Twisted/AssetsLayer/AssetInfo.h"
-#include "Twisted/AssetsLayer/AssetsService.h"
-#include "Twisted/Application/Application.h"
+#include "ImportedAsset.h"
+#include "AssetsService.h"
+#include "Application/Application.h"
 //#include <algorithm>
 //#include <vector>
 #include <filesystem>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include "Twisted/Gameing/AComponent.h"
+#include "AComponent.h"
 #include <algorithm>
 #include <vector>
 
@@ -209,7 +209,7 @@ namespace Im
 			}
 			else if (const ImGuiPayload* assetPayload = ImGui::AcceptDragDropPayload(Twisted::Editor::Constants::ASSET_DRAG_TYPE.c_str()))
 			{
-				Twisted::AssetInfo* assetInfo = *static_cast<Twisted::AssetInfo**>(assetPayload->Data);
+				Twisted::ImportedAsset* assetInfo = *static_cast<Twisted::ImportedAsset**>(assetPayload->Data);
 				if (assetInfo)
 					obj = Twisted::Application::GetInstance().GetService<Twisted::AssetsService>()->GetObject<T>(assetInfo->GetUuid());
 			}

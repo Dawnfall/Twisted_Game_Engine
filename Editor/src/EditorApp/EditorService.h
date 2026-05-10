@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Twisted/Application/Service.h"
-#include "Twisted/Windowing/Window.h"
+#include "Application/Service.h"
+#include "Window.h"
 
-#include "Twisted/Windowing/WindowsService.h"
-#include "Twisted/AssetsLayer/AssetsService.h"
-#include "Twisted/Gameing/GameService.h"
-#include "Twisted/Application/TimeService.h"
-#include "Twisted/Rendering/RenderService.h"
+#include "WindowsService.h"
+#include "AssetsService.h"
+#include "GameService.h"
+#include "Application/TimeService.h"
+#include "RenderService.h"
 
-#include "Twisted/Rendering/Data/RenderContext.h"
-#include "Twisted/Rendering/Data/ClearParams.h"
+#include "Data/RenderContext.h"
+#include "Data/ClearParams.h"
 
 #include "EditorData/EditorConfig.h"
 #include "EditorData/Selection.h"
@@ -71,7 +71,8 @@ namespace Twisted::Editor
 		unsigned int m_clearBits = 0;
 
 	public:
-	
+		Vec4f WorldViewRect = {};  // screen-space xmin, ymin, xmax, ymax; zero when panel not visible
+
 		Event<fs::path> MakeNewFileEvent; //extension
 		Event<> ConfirmedQuitEvent;
 

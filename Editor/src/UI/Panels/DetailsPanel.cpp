@@ -1,6 +1,6 @@
 ﻿#include "DetailsPanel.h"
 
-#include "Twisted/Gameing/World.h"
+#include "World.h"
 
 #include "EditorApp/EditorService.h"
 #include "EditorApp/EditorRegistry.h"

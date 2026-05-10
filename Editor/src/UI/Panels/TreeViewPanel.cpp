@@ -1,19 +1,20 @@
 ﻿#include "TreeViewPanel.h"
 
 #include "EditorApp/EditorService.h"
-#include "Twisted/Windowing/Input.h"
-#include "Twisted/Gameing/World.h"
-#include "Twisted/Gameing/Entity.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/Components/CName.h"
+#include "Input.h"
+#include "World.h"
+#include "Entity.h"
+#include "Components/CTransform.h"
+#include "Components/CName.h"
 
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
+#include "SceneInstantiator.h"
 
-#include "Twisted/Gameing/GameService.h"
+#include "GameService.h"
 #include "EditorData/Selection.h"
 #include "EditorConstants.h"
-#include "Twisted/Gameing/Managers/RootTransformManager.h"
+#include "Managers/RootTransformManager.h"
 
 #include <imgui.h>
 #include <string>
@@ -93,6 +94,11 @@ namespace Twisted::Editor
 					token.doCreateNew = true;
 					token.NewEntityParent = contextEntity;
 				}
+				if (ImGui::MenuItem("Quad"))
+				{
+					token.doCreateNew = true;
+					token.NewEntityParent = contextEntity;
+				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Delete"))
@@ -106,6 +112,15 @@ namespace Twisted::Editor
 	static void CheckRightClickOnEmpty(TreeViewToken& token)
 	{
 		ImGui::InvisibleButton("EmptyTreePanel", token.EntireRegion);
+
+		// asset drop on empty space → instantiate at root
+		auto assetDrop = Im::DragTarget<ImportedAsset*>(Constants::ASSET_DRAG_TYPE, nullptr);
+		if (assetDrop.first && assetDrop.second)
+		{
+			token.DroppedAsset = assetDrop.second;
+			token.AssetDropParent = Entity::Invalid();
+		}
+
 		if (!token.IsClickUsed && ImGui::IsItemClicked(ImGuiMouseButton_Right))
 			ImGui::OpenPopup(emptyContextPopup.c_str());
 
@@ -124,6 +139,11 @@ namespace Twisted::Editor
 					token.NewEntityParent = Entity::Invalid();
 				}
 				if (ImGui::MenuItem("Cube"))
+				{
+					token.doCreateNew = true;
+					token.NewEntityParent = Entity::Invalid();
+				}
+				if (ImGui::MenuItem("Quad"))
 				{
 					token.doCreateNew = true;
 					token.NewEntityParent = Entity::Invalid();
@@ -171,7 +191,7 @@ namespace Twisted::Editor
 		// drag soruce
 		Im::DragSource<Entity>(Constants::ENTITY_DRAG_TYPE, entity, name.Name.c_str());
 
-		//drag target
+		//drag target — entity reorder
 		auto dropResult = Im::DragTarget<Entity>(Constants::ENTITY_DRAG_TYPE, Entity::Invalid());
 		if (dropResult.first)
 		{
@@ -179,6 +199,14 @@ namespace Twisted::Editor
 			token.NewIndex = transform.GetChildCount();
 			token.DraggedEntity = dropResult.second;
 			token.IsDropped = true;
+		}
+
+		// drag target — asset instantiate as child
+		auto assetDrop = Im::DragTarget<ImportedAsset*>(Constants::ASSET_DRAG_TYPE, nullptr);
+		if (assetDrop.first && assetDrop.second)
+		{
+			token.DroppedAsset = assetDrop.second;
+			token.AssetDropParent = entity;
 		}
 
 		CheckRightClickOnNode(entity, token, m_contextMenuEntity);
@@ -273,7 +301,18 @@ namespace Twisted::Editor
 				TransformComponent* newEntityParent = token.NewEntityParent.GetWorld()->TryGetComponent<TransformComponent>(token.NewEntityParent.GetID());
 				TransformComponent::SetParent(transform, newEntityParent);
 			}
+		}
 
+		if (token.DroppedAsset)
+		{
+			World* world = Application::GetInstance().GetService<GameService>()->GetGameWorld();
+			if (world)
+			{
+				TransformComponent* parentTransform = nullptr;
+				if (token.AssetDropParent)
+					parentTransform = token.AssetDropParent.GetWorld()->TryGetComponent<TransformComponent>(token.AssetDropParent.GetID());
+				InstantiateAsset(token.DroppedAsset, world, parentTransform);
+			}
 		}
 	}
 }

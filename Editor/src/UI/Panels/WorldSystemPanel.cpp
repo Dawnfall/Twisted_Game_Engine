@@ -3,8 +3,8 @@
 #include "UI/ImguiExtensions.h"
 #include "EditorApp/EditorRegistry.h"
 #include "EditorApp/EditorService.h"
-#include "Twisted/Gameing/GameService.h"
-#include "Twisted/Gameing/World.h"
+#include "GameService.h"
+#include "World.h"
 
 namespace Twisted::Editor
 {

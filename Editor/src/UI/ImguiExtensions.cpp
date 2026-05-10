@@ -7,8 +7,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include "Twisted/Rendering/Texture.h"
-#include "Twisted/Rendering/OpenGL/Texture_OpenGL.h"
+#include "Texture.h"
+#include "OpenGL/Texture_OpenGL.h"
 
 namespace Im
 {

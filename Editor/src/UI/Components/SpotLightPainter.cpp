@@ -1,6 +1,6 @@
 #include "SpotLightPainter.h"
 #include "UI/ImguiExtensions.h"
-#include "Twisted/Gameing/Components/SpotLightComponent.h"
+#include "Components/SpotLightComponent.h"
 namespace Twisted::Editor
 {
 	void SpotLightPainter::Paint(void* obj)

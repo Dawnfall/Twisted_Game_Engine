@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "UI/EditorPanel.h"
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Gameing/Components/CName.h"
-#include "Twisted/Gameing/Entity.h"
+#include "Components/CTransform.h"
+#include "Components/CName.h"
+#include "Entity.h"
+#include "ImportedAsset.h"
 #include <vector>
 
 namespace Twisted::Editor
@@ -27,6 +28,9 @@ namespace Twisted::Editor
 		Entity DraggedEntity = Entity::Invalid();
 		Entity NewEntityParent= Entity::Invalid();
 		World* gameWorld = nullptr;
+
+		ImportedAsset* DroppedAsset = nullptr;
+		Entity AssetDropParent = Entity::Invalid();
 	};
 
 

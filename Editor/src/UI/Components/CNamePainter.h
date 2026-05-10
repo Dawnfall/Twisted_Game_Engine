@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include "UI/ComponentPainter.h"
-#include "Twisted/Gameing/Components/CName.h"
+#include "Components/CName.h"
 #include "UI/ImguiExtensions.h"
-#include "Twisted/Gameing/World.h"
+#include "World.h"
 
 namespace Twisted::Editor
 {

@@ -1,41 +1,66 @@
 #include "EditorCameraSystem.h"
-#include "Twisted/Windowing/Input.h" // Add this include to resolve 'Input' class/namespace
-#include "Twisted/Gameing/Components/CTransform.h"
-#include "Twisted/Windowing/ButtonCodes.h"
+#include "Input.h"
+#include "Components/CTransform.h"
+#include "ButtonCodes.h"
 #include "Utils/GlmUtils.h"
-#include "Twisted/Windowing/KeyCodes.h"
+#include "KeyCodes.h"
+#include "EditorApp/EditorService.h"
+#include "Application/Application.h"
 
 
 namespace Twisted::Editor
 {
-	void EditorCameraSystem::FreeFlyCamera(TransformComponent& transform, float moveSpeed, float rotSpeed, float deltaTime)
+	void EditorCameraSystem::FreeFlyCamera(TransformComponent& transform, float moveSpeed, float shiftMul,
+	                                       float rotSpeed, float panSpeed, float scrollSpeed, float deltaTime)
 	{
+		auto* editorService = Application::GetInstance().GetService<EditorService>();
+		if (!editorService)
+			return;
+
 		auto& input = Input::GetInstance();
+		const Vec4f& r = editorService->WorldViewRect;
+		const Vec2f  mouse = input.GetMousePosition();
+		if (r.z <= 0.0f || mouse.x < r.x || mouse.y < r.y || mouse.x > r.z || mouse.y > r.w)
+			return;
+
+		float wheel = input.GetMouseWheelDelta();
+		if (wheel != 0.0f)
+			transform.Translate(transform.GetForward() * wheel * scrollSpeed);
+
+		float speedMul = (input.GetKey(Key::LeftShift) || input.GetKey(Key::RightShift)) ? shiftMul : 1.0f;
+		HandleLocalWASD(transform, moveSpeed * speedMul, deltaTime);
 
 		if (input.GetMouseButton(MouseButton::Right))
-		{
-			HandleLocalWASD(transform, moveSpeed, deltaTime);
-			HandleLocalMouseRot(transform, rotSpeed, deltaTime);
-		}
+			HandleLocalMouseRot(transform, rotSpeed);
+
+		if (input.GetMouseButton(MouseButton::Middle))
+			HandleMiddleMousePan(transform, panSpeed);
 	}
 
-	void EditorCameraSystem::HandleLocalMouseRot(TransformComponent& transform, float rotSpeed, float deltaTime)
+	void EditorCameraSystem::HandleLocalMouseRot(TransformComponent& transform, float rotSpeed)
 	{
 		auto& input = Input::GetInstance();
 
 		float xDelta = input.GetMouseDelta().x;
 		float yDelta = input.GetMouseDelta().y;
-		
+
 		if (xDelta != 0 || yDelta != 0)
 		{
-			Quat yaw = glm::angleAxis(-xDelta * rotSpeed * deltaTime, Constants::Up);
-			Quat pitch = glm::angleAxis(-yDelta * rotSpeed * deltaTime, transform.GetRight());
-
-			// yaw first, then pitch
-			Quat deltaRot = yaw * pitch;
-
-			transform.Rotate(deltaRot);
+			Quat yaw   = glm::angleAxis(-xDelta * rotSpeed, ::Constants::Up);
+			Quat pitch = glm::angleAxis(-yDelta * rotSpeed, transform.GetRight());
+			transform.Rotate(yaw * pitch);
 		}
+	}
+
+	void EditorCameraSystem::HandleMiddleMousePan(TransformComponent& transform, float panSpeed)
+	{
+		auto& input = Input::GetInstance();
+
+		float xDelta = input.GetMouseDelta().x;
+		float yDelta = input.GetMouseDelta().y;
+
+		if (xDelta != 0 || yDelta != 0)
+			transform.Translate(-transform.GetRight() * xDelta * panSpeed - transform.GetUp() * yDelta * panSpeed);
 	}
 
 	void EditorCameraSystem::HandleLocalWASD(TransformComponent& transform, float moveSpeed, float deltaTime)
@@ -43,8 +68,8 @@ namespace Twisted::Editor
 		auto& input = Input::GetInstance();
 
 		float forward = ((input.GetKey(Key::W)) ? 1.0f : 0.0f) + ((input.GetKey(Key::S)) ? -1.0f : 0.0f);
-		float up = ((input.GetKey(Key::Q)) ? 1.0f : 0.0f) + ((input.GetKey(Key::E)) ? -1.0f : 0.0f);
-		float right = ((input.GetKey(Key::D)) ? -1.0f : 0.0f) + ((input.GetKey(Key::A)) ? 1.0f : 0.0f);
+		float up      = ((input.GetKey(Key::Q)) ? 1.0f : 0.0f) + ((input.GetKey(Key::E)) ? -1.0f : 0.0f);
+		float right   = ((input.GetKey(Key::D)) ? 1.0f : 0.0f) + ((input.GetKey(Key::A)) ? -1.0f : 0.0f);
 
 		if (forward != 0.0f)
 			transform.Translate(transform.GetForward() * forward * moveSpeed * deltaTime);

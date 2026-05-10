@@ -2,7 +2,7 @@
 
 #include "UI/EditorPanel.h"
 
-#include "Twisted/Rendering/FrameBuffer.h"
+#include "FrameBuffer.h"
 
 namespace Twisted::Editor
 {

@@ -2,7 +2,7 @@
 
 #include "UI/ComponentPainter.h"
 #include "EditorApp/EditorRegistry.h"
-#include "Twisted/Gameing/Components/DirectionalLightComponent.h"
+#include "Components/DirectionalLightComponent.h"
 
 namespace Twisted::Editor
 {

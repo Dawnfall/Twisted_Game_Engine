@@ -9,6 +9,7 @@
     "spdlog",
     "stb",
     "yaml-cpp",
-    "assimp"
+    "assimp",
+    "shaderc"
   ]
 }

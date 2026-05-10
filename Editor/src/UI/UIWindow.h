@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Twisted/Windowing/Window.h"
+#include "Window.h"
 
 namespace Twisted::Editor
 {

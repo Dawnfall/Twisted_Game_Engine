@@ -2,8 +2,8 @@
 
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"
-#include "Twisted/Gameing/Entity.h"
-#include "Twisted/Gameing/WorldRegistry.h"
+#include "Entity.h"
+#include "WorldRegistry.h"
 #include "EditorApp/EditorRegistry.h"
 
 namespace Twisted::Editor

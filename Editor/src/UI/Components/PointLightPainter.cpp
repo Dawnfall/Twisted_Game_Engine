@@ -1,7 +1,7 @@
 #include "PointLightPainter.h"
 
 #include "UI/ImguiExtensions.h"
-#include "Twisted/Gameing/Components/PointLightComponent.h"
+#include "Components/PointLightComponent.h"
 
 namespace Twisted::Editor
 {

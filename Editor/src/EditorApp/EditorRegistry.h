@@ -10,9 +10,9 @@
 #include <functional>
 #include <type_traits>
 
-#include "Twisted/Rendering/FrameBuffer.h"
+#include "FrameBuffer.h"
 #include "Utils/WPtr.h"
-#include "Twisted/Gameing/WorldRegistry.h"
+#include "WorldRegistry.h"
 
 namespace Twisted::Editor
 {

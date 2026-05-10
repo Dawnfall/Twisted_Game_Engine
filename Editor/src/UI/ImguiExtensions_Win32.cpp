@@ -4,9 +4,10 @@
 #include <backends/imgui_impl_win32.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
+#include <ImGuizmo.h>
 
-#include "Twisted/Windowing/Window.h"
-#include "Twisted/Windowing/WindowsService.h"
+#include "Window.h"
+#include "WindowsService.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -43,6 +44,7 @@ namespace Im
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 	}
 
 	void Terminate()

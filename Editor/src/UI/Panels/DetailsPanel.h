@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "UI/EditorPanel.h"
-#include "Twisted/Gameing/World.h"
+#include "World.h"
 
 namespace Twisted::Editor
 {

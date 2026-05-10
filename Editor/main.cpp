@@ -1,10 +1,10 @@
-﻿#include "Twisted/Application/Application.h"
+﻿#include "Application/Application.h"
 
 #include "EditorApp/EditorService.h"
-#include "Twisted/Gameing/GameService.h"
-#include "Twisted/Windowing/WindowsService.h"
-#include "Twisted/AssetsLayer/AssetsService.h"
-#include "Twisted/Application/TimeService.h"
+#include "GameService.h"
+#include "WindowsService.h"
+#include "AssetsService.h"
+#include "Application/TimeService.h"
 
 
 int main()

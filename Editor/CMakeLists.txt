@@ -6,9 +6,7 @@ cmake_minimum_required(VERSION 3.28)
 
 set(EDITOR_SOURCES
     main.cpp
-    src/EditorConstants.h
-    
-    
+    src/EditorConstants.h 
     src/EditorApp/EditorRegistry.h
     src/EditorApp/EditorService.cpp
     src/EditorApp/EditorService.h
@@ -55,6 +53,10 @@ set(EDITOR_SOURCES
     src/UI/Panels/WorldSystemPanel.h
     src/UI/Panels/WorldViewPanel.cpp
     src/UI/Panels/WorldViewPanel.h
+    src/UI/Panels/ProjectSettingsPanel.cpp
+    src/UI/Panels/ProjectSettingsPanel.h
+    src/UI/Panels/EditorSettingsPanel.cpp
+    src/UI/Panels/EditorSettingsPanel.h
 )
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
@@ -84,10 +86,13 @@ set_target_properties(Editor PROPERTIES
 # ------------------------------
 
 target_include_directories(Editor PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"              # Your engine/editor code
-    "${CMAKE_CURRENT_SOURCE_DIR}/../TwistedEngine/include"   # Engine headers
-    #"${CMAKE_CURRENT_SOURCE_DIR}/../3rd/imgui"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/../3rd/imguizmo"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/TwistedEngine/include"
+    "${CMAKE_SOURCE_DIR}/Core/include/"
+    "${CMAKE_SOURCE_DIR}/Renderer/include/"
+    "${CMAKE_SOURCE_DIR}/Window/include/"
+
+    "${CMAKE_SOURCE_DIR}/ShaderParser/include"
 )
 
 # ------------------------------
@@ -99,6 +104,7 @@ find_package(yaml-cpp CONFIG REQUIRED)
 
 target_link_libraries(Editor PRIVATE
     TwistedEngine
+    ShaderParser
     glm::glm
     imgui
     imguizmo
@@ -108,6 +114,24 @@ target_link_libraries(Editor PRIVATE
 if(NOT WIN32)
     find_package(glfw3 CONFIG REQUIRED)
     target_link_libraries(Editor PRIVATE glfw)
+endif()
+
+# assimp Debug is mapped to its Release DLL (see root CMakeLists.txt) to avoid
+# extreme MSVC iterator-debug slowness. Copy all Release DLLs from vcpkg so
+# assimp and its transitive dependencies (zlib, etc.) are present at runtime.
+if(MSVC)
+    get_target_property(_assimp_release_dll assimp::assimp IMPORTED_LOCATION_RELEASE)
+    if(_assimp_release_dll)
+        get_filename_component(_vcpkg_release_bin "${_assimp_release_dll}" DIRECTORY)
+        file(GLOB _release_dlls "${_vcpkg_release_bin}/*.dll")
+        foreach(_dll ${_release_dlls})
+            add_custom_command(TARGET Editor POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${_dll}"
+                    "$<TARGET_FILE_DIR:Editor>"
+            )
+        endforeach()
+    endif()
 endif()
 
 # ------------------------------
@@ -134,6 +158,7 @@ target_compile_definitions(Editor PRIVATE
     $<$<CONFIG:Debug>:TWISTED_DEBUG>
     $<$<CONFIG:RelWithDebInfo>:TWISTED_RELEASE>
     $<$<CONFIG:Release>:TWISTED_DEPLOY>
+    TWISTED_BACKEND_OPENGL
 )
 
 if(MSVC)

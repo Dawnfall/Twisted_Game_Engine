@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(TwistedEngine LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -42,16 +42,22 @@ find_package(EnTT CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 
-
-set(_outdir "${CMAKE_BINARY_DIR}/bin/$<CONFIG>-${_platform}-${_arch}")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${_outdir}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${_outdir}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${_outdir}")
-
+# Assimp's MSVC Debug DLL is ~100x slower than Release due to iterator debug
+# checks on STL strings. Map Debug to the Release DLL — safe because assimp
+# owns all its allocations internally (no cross-boundary free).
+if(MSVC)
+    set_target_properties(assimp::assimp PROPERTIES MAP_IMPORTED_CONFIG_DEBUG "Release")
+endif()
 
 # Add ImGui as a static library (subproject)
 include(cmake/ImGui.cmake)
 include(cmake/ImGuizmo.cmake)
+add_subdirectory(Core)
+add_subdirectory(Window)
+add_subdirectory(Renderer)
+add_subdirectory(ShaderParser)
+add_subdirectory(World)
+add_subdirectory(Assets)
 add_subdirectory(TwistedEngine)
 add_subdirectory(Editor)
 
@@ -62,9 +68,6 @@ if(MSVC)
     set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT Editor)
 endif()
 
-# ------------------------------
-# Define allowed configurations (optional, helps IDEs)
-set(CMAKE_CONFIGURATION_TYPES Debug Release Deploy CACHE STRING "" FORCE)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
 
 

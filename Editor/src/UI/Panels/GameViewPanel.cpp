@@ -2,16 +2,16 @@
 
 #include "EditorApp/EditorRegistry.h"
 
-#include "Twisted/Rendering/OpenGL/FrameBuffer_OpenGL.h"
-#include "Twisted/Gameing/GameService.h"
-#include "Twisted/Rendering/FrameBuffer.h"
-#include "Twisted/TObject.h"
+#include "OpenGL/FrameBuffer_OpenGL.h"
+#include "GameService.h"
+#include "FrameBuffer.h"
+#include "Application/TObject.h"
 #include "UI/EditorPanel.h"
 #include <imgui.h>
 
-#include "Twisted/Gameing/Managers/CameraManager.h"
-#include "Twisted/Gameing/Components/CCamera.h"
-#include "Twisted/Application/Application.h"
+#include "Managers/CameraManager.h"
+#include "Components/CCamera.h"
+#include "Application/Application.h"
 #include "UI/ImguiExtensions.h"
 
 namespace Twisted::Editor

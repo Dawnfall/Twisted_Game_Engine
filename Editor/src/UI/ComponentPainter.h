@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "AppCore.h"
-#include "Twisted/Gameing/Entity.h"
+#include "Entity.h"
 
 namespace Twisted
 {

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "UI/EditorPanel.h"
 #include <filesystem>
-#include "Twisted/AssetsLayer/Project.h"
+#include "Project.h"
 #include "UI/ImguiExtensions.h"
 #include <imgui.h>
 #include <optional>
@@ -34,6 +34,7 @@ namespace Twisted::Editor
 
 		std::optional<std::filesystem::path> m_selectedPath = std::nullopt;
 		std::optional<Im::InputTextToken> m_newFileName = std::nullopt;
+		std::optional<fs::path> m_pendingDelete = std::nullopt;
 	};
 }
 

@@ -1,21 +1,21 @@
 #include "EditorService.h"
-#include "Twisted/TObject.h"
-#include "Twisted/Gameing/World.h"
-#include "Twisted/Windowing/Window.h"
+#include "Application/TObject.h"
+#include "World.h"
+#include "Window.h"
 #include "UI/ImguiExtensions.h"
 #include "EditorApp/EditorRegistry.h"
 #include "EditorWorld/EditorCameraSystem.h"
 
-#include "Twisted/BuiltIn/BuiltInRegistry.h"
-#include "Twisted/Gameing/GameService.h"
+#include "BuiltIn/BuiltInRegistry.h"
+#include "GameService.h"
 #include "Data/Color.h"
 #include "EditorConstants.h"
-#include "Twisted/Windowing/WindowsService.h"
-#include "Twisted/Windowing/WindowCoreAPI.h"
-#include "Twisted/AssetsLayer/AssetsService.h"
-#include "Twisted/AssetsLayer/Project.h"
-#include "Twisted/AssetsLayer/ProjectConfig.h"
-#include "Twisted/Rendering/RenderConvert.h"
+#include "WindowsService.h"
+#include "WindowCoreAPI.h"
+#include "AssetsService.h"
+#include "Project.h"
+#include "ProjectConfig.h"
+#include "RenderConvert.h"
 
 #include <imgui.h>
 
@@ -112,17 +112,11 @@ namespace Twisted::Editor
 			SaveWorld(world);
 			});
 
-		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& prevProject, const Project& newProject) {
+		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& newProject) {
+			
 			m_app->GetService<WindowsService>()->GetWindow()->
 				SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + m_assetsService->GetProject().GetName());
-
-			Collections::BuiltInRegistry::GetInstance().ImportAll();
-			m_assetsService->AutoImportAssets();
-
-			auto& config = m_assetsService->GetProject().GetConfig();
 			InitPanels();
-			if (prevProject.IsValid())
-				config.Save();
 			LoadLastWorld(newProject.GetConfig().lastWorld);
 			});
 	}
@@ -145,14 +139,17 @@ namespace Twisted::Editor
 
 	void EditorService::OnFrame()
 	{
+		m_assetsService->ProcessWatchedChanges();
 		GetEditorWorld()->UpdateFrame(m_timeService->GetDeltaTime());
 
+		const Vec4f ambient = m_assetsService->GetProject().GetConfig().ambientLight;
 		if (m_gameService->GetGameWorld())
 		{
 			RenderContext gamecontext;
 			gamecontext.camDatas = CollectCameraData(*m_gameService->GetGameWorld());
 			gamecontext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
 			gamecontext.lightData = CollectLightData(*m_gameService->GetGameWorld());
+			gamecontext.lightData.ambient = ambient;
 			m_renderService->SubmitContext(gamecontext);
 		}
 		if (GetEditorWorld() && m_gameService->GetGameWorld())
@@ -161,9 +158,11 @@ namespace Twisted::Editor
 			editorContext.camDatas = CollectCameraData(*GetEditorWorld());
 			editorContext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
 			editorContext.lightData = CollectLightData(*m_gameService->GetGameWorld());
+			editorContext.lightData.ambient = ambient;
 			m_renderService->SubmitContext(editorContext);
 		}
 		m_renderService->Render();
+		WorldViewRect = {};
 		Render(m_windowsService->GetWindow());
 	}
 
@@ -205,6 +204,28 @@ namespace Twisted::Editor
 		Window* window = m_windowsService->CreateNewWindow(Constants::EDITOR_WINDOW_TITLE, config.GetWindowSize(), config.GetWindowPos());
 
 		window->CloseWindowEvent.AddListener([this]() { m_app->Stop(); });
+		window->FilesDroppedEvent.AddListener([this](const std::vector<fs::path>& paths) {
+			if (!m_assetsService->GetProject().IsValid())
+				return;
+			const fs::path assetsRoot = m_assetsService->GetProject().GetAssetsFolder();
+			for (const fs::path& src : paths)
+			{
+				fs::path dest = src;
+				auto rel = fs::relative(src, assetsRoot);
+				bool insideAssets = !rel.empty() && !rel.native().starts_with(L"..");
+				if (!insideAssets)
+				{
+					dest = assetsRoot / src.filename();
+					if (!fs::exists(dest))
+						fs::copy_file(src, dest);
+				}
+				if (fs::exists(dest))
+				{
+					m_assetsService->RegisterAsset(dest);
+					m_assetsService->Load(m_assetsService->GetUuid(dest));
+				}
+			}
+			});
 		window->SetTitle(Constants::EDITOR_WINDOW_TITLE);
 		if (config.GetWindowMaximized())
 			window->Maximize();

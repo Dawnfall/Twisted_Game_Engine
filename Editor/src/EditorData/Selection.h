@@ -5,8 +5,8 @@
 #include <unordered_set>
 #include <filesystem>
 #include <variant>
-#include "Twisted/Gameing/Entity.h"
-#include "Twisted/TObject.h"
+#include "Entity.h"
+#include "Application/TObject.h"
 
 //// Helper trait to detect std::unordered_set
 ////template<typename>

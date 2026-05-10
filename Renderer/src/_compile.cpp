@@ -1,0 +1,5 @@
+﻿#ifdef TWISTED_BACKEND_OPENGL
+#define GLAD_GL_IMPLEMENTATION
+#include <glad/glad.h>
+#endif
+
