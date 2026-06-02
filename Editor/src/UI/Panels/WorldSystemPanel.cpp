@@ -1,4 +1,4 @@
-﻿#include "WorldSystemPanel.h"
+﻿#include "UI/Panels/WorldSystemPanel.h"
 #include "Utils/Utils.h"
 #include "UI/ImguiExtensions.h"
 #include "EditorApp/EditorRegistry.h"
@@ -13,7 +13,9 @@ namespace Twisted::Editor
 	void WorldSystemPanel::PaintContent()
 	{
 		auto gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
-		
+		if (!gameWorld)
+			return;
+
 		auto& systems = gameWorld->GetAllSystems();
 		for (auto& sys : systems)
 		{

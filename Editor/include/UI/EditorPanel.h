@@ -1,0 +1,37 @@
+﻿#pragma once
+#include "Utils/Event.h"
+#include "Utils/GlmUtils.h"
+#include "imgui.h"
+#include <string>
+
+namespace Twisted
+{
+	class World;
+}
+
+namespace Twisted::Editor
+{
+	class EditorPanel
+	{
+	public:
+		EditorPanel(const std::string& name) : m_panelName(name) {}
+		virtual ~EditorPanel() = default;
+
+		virtual void Init() {}
+		// Called each frame before BeginFrame — safe to resize GPU resources here.
+		virtual void PreRender() {}
+		virtual void PaintContent() = 0;
+
+		const std::string& GetName()const { return m_panelName; }
+
+		Event<> PanelResizeEvent;
+
+		bool IsShowing = true;
+		ImGuiID DockParentID{ 0 };
+		Vec2i Size = { 10,10 };
+
+		bool IsInit{ false };
+	private:
+		std::string m_panelName;
+	};
+}

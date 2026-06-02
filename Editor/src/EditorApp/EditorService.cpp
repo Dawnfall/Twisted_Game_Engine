@@ -1,4 +1,4 @@
-#include "EditorService.h"
+#include "EditorApp/EditorService.h"
 #include "Application/TObject.h"
 #include "World.h"
 #include "Window.h"
@@ -10,12 +10,12 @@
 #include "GameService.h"
 #include "Data/Color.h"
 #include "EditorConstants.h"
-#include "WindowsService.h"
 #include "WindowCoreAPI.h"
 #include "AssetsService.h"
 #include "Project.h"
 #include "ProjectConfig.h"
 #include "RenderConvert.h"
+#include "RenderAPI.h"
 
 #include <imgui.h>
 
@@ -97,7 +97,6 @@ namespace Twisted::Editor
 	{
 		m_timeService = m_app->GetService<TimeService>();
 		m_gameService = m_app->GetService<GameService>();
-		m_windowsService = m_app->GetService<WindowsService>();
 		m_renderService = m_app->GetService<RenderService>();
 		m_assetsService = m_app->GetService<AssetsService>();
 
@@ -112,9 +111,13 @@ namespace Twisted::Editor
 			SaveWorld(world);
 			});
 
+		m_gameService->BeforeWorldRestoreEvent.AddListener([this]() {
+			m_renderService->WaitIdle();
+			});
+
 		m_assetsService->ProjectChangeEvent.AddListener([this](const Project& newProject) {
-			
-			m_app->GetService<WindowsService>()->GetWindow()->
+
+			m_renderService->GetWindow()->
 				SetTitle(Constants::EDITOR_WINDOW_TITLE + " " + m_assetsService->GetProject().GetName());
 			InitPanels();
 			LoadLastWorld(newProject.GetConfig().lastWorld);
@@ -125,22 +128,30 @@ namespace Twisted::Editor
 	{
 		CreateAppWindow();
 		CreateWorld();
-		SetWindow(m_windowsService->GetWindow());
+		SetWindow(m_renderService->GetWindow());
 	}
 
 	void EditorService::OnFrameBegin()
 	{
-		m_windowsService->PollEvents();
-		if (m_windowsService->GetWindow())
+		m_renderService->PollEvents();
+		if (m_renderService->GetWindow())
 		{
-			//m_windowsService->GetWindow()->Clear(Color{});
+			//m_renderService->GetWindow()->Clear(Color{});
 		}
 	}
 
 	void EditorService::OnFrame()
 	{
+		// Execute deferred world restore before any command buffer recording this frame.
+		if (m_gameService->HasPendingRestore())
+			m_gameService->ExecuteRestore();
+
 		m_assetsService->ProcessWatchedChanges();
 		GetEditorWorld()->UpdateFrame(m_timeService->GetDeltaTime());
+
+		// Apply deferred framebuffer resizes before BeginFrame — safe to destroy GPU resources here.
+		for (auto& panel : EditorRegistry::GetInstance().m_panels)
+			panel->PreRender();
 
 		const Vec4f ambient = m_assetsService->GetProject().GetConfig().ambientLight;
 		if (m_gameService->GetGameWorld())
@@ -152,23 +163,25 @@ namespace Twisted::Editor
 			gamecontext.lightData.ambient = ambient;
 			m_renderService->SubmitContext(gamecontext);
 		}
-		if (GetEditorWorld() && m_gameService->GetGameWorld())
+		if (GetEditorWorld())
 		{
 			RenderContext editorContext;
 			editorContext.camDatas = CollectCameraData(*GetEditorWorld());
-			editorContext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
-			editorContext.lightData = CollectLightData(*m_gameService->GetGameWorld());
-			editorContext.lightData.ambient = ambient;
+			if (m_gameService->GetGameWorld())
+			{
+				editorContext.modelDatas = CollectModelData(*m_gameService->GetGameWorld());
+				editorContext.lightData = CollectLightData(*m_gameService->GetGameWorld());
+				editorContext.lightData.ambient = ambient;
+			}
 			m_renderService->SubmitContext(editorContext);
 		}
 		m_renderService->Render();
 		WorldViewRect = {};
-		Render(m_windowsService->GetWindow());
+		Render(m_renderService->GetWindow());
 	}
 
 	void EditorService::OnFrameEnd()
 	{
-		m_windowsService->GetWindow()->SwapBuffers();
 	}
 
 	void EditorService::OnTerminate()
@@ -177,10 +190,15 @@ namespace Twisted::Editor
 			m_assetsService->GetProject().GetConfig().Save();
 
 		SaveEditorLayout();
-		SaveEditor(m_windowsService->GetWindow());
+		SaveEditor(m_renderService->GetWindow());
 
-		if (m_windowsService->GetWindow())
-			m_windowsService->DestroyWindow(m_windowsService->GetWindow());
+		Im::Terminate();          // ImGui before Vulkan
+		TObject::DestroyAll();    // GPU resources before vkDestroyDevice
+		m_editorWorld = nullptr;  // DestroyAll freed it; prevent destructor double-destroy
+		Render::Shutdown();       // Vulkan before window
+
+		if (m_renderService->GetWindow())
+			m_renderService->DestroyWindow(m_renderService->GetWindow());
 	}
 
 	void EditorService::SaveEditorLayout()
@@ -201,7 +219,7 @@ namespace Twisted::Editor
 	void EditorService::CreateAppWindow()
 	{
 		auto& config = EditorConfig::GetInstance();
-		Window* window = m_windowsService->CreateNewWindow(Constants::EDITOR_WINDOW_TITLE, config.GetWindowSize(), config.GetWindowPos());
+		Window* window = m_renderService->CreateNewWindow(Constants::EDITOR_WINDOW_TITLE, config.GetWindowSize(), config.GetWindowPos());
 
 		window->CloseWindowEvent.AddListener([this]() { m_app->Stop(); });
 		window->FilesDroppedEvent.AddListener([this](const std::vector<fs::path>& paths) {
@@ -236,8 +254,11 @@ namespace Twisted::Editor
 	{
 		if (m_assetsService->GetProject().IsValid())
 		{
+			AssetUuid uuid = m_assetsService->GetObjectUuid(world);
+			if (!uuid.IsValid())
+				return;
 			auto& config = m_assetsService->GetProject().GetConfig();
-			config.lastWorld = m_assetsService->GetObjectUuid(world);
+			config.lastWorld = uuid;
 			config.Save();
 		}
 	}

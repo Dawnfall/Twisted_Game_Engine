@@ -1,13 +1,14 @@
-#include "ImguiExtensions.h"
+#include "UI/ImguiExtensions.h"
 
 #include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
 #include <ImGuizmo.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include "Window.h"
+#include "VulkanContext.h"
 
 namespace Im
 {
@@ -21,9 +22,21 @@ namespace Im
 		ImGui::CreateContext();
 
 		GLFWwindow* glfwWindow = static_cast<GLFWwindow*>(window->GetRawPointer());
-		// install_callbacks=true chains our engine callbacks already set on the window
-		ImGui_ImplGlfw_InitForOpenGL(glfwWindow, true);
-		ImGui_ImplOpenGL3_Init("#version 460");
+		ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
+
+		auto& ctx = Twisted::VK::VulkanContext::Get();
+		ImGui_ImplVulkan_InitInfo info{};
+		info.ApiVersion     = VK_API_VERSION_1_3;
+		info.Instance       = ctx.Instance;
+		info.PhysicalDevice = ctx.PhysicalDevice;
+		info.Device         = ctx.Device;
+		info.QueueFamily    = ctx.Queues.Graphics;
+		info.Queue          = ctx.GraphicsQueue;
+		info.DescriptorPool = ctx.GlobalDescPool;
+		info.MinImageCount  = 2;
+		info.ImageCount     = static_cast<uint32_t>(ctx.SwapchainImages.size());
+		info.PipelineInfoMain.RenderPass = ctx.RenderPass;
+		ImGui_ImplVulkan_Init(&info);
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -34,7 +47,7 @@ namespace Im
 
 	void StartFrame()
 	{
-		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
@@ -42,7 +55,11 @@ namespace Im
 
 	void Terminate()
 	{
-		ImGui_ImplOpenGL3_Shutdown();
+		auto& ctx = Twisted::VK::VulkanContext::Get();
+		if (ctx.Device != VK_NULL_HANDLE)
+			vkDeviceWaitIdle(ctx.Device);
+
+		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}

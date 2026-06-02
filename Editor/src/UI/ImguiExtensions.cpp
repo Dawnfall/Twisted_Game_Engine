@@ -1,37 +1,16 @@
-#include "ImguiExtensions.h"
+#include "UI/ImguiExtensions.h"
 
 #include "Debug/Logger.h"
 #include "EditorConstants.h"
 
-#include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include "Texture.h"
-#include "OpenGL/Texture_OpenGL.h"
-
 namespace Im
 {
-	ImTextureID GetImGuiTextureID(const Twisted::Texture* tex)
-	{
-		return (ImTextureID)tex->GetBackend()->TexID;
-	}
-
 	float ICON_SIZE()
 	{
 		return ImGui::GetFontSize() + 3.0f;
-	}
-
-	void Render()
-	{
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	}
-
-	void EndFrame()
-	{
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg) {
@@ -90,7 +69,7 @@ namespace Im
 				ImGui::PushID(static_cast<int>(i));
 				if (!isFirstElement) {
 					ImGui::ArrowButtonEx("##dir_dropdown", ImGuiDir_Right, ImVec2(GUI_ELEMENT_SIZE(), GUI_ELEMENT_SIZE()));
-					anyOtherHC |= ImGui::IsItemHovered() | ImGui::IsItemClicked();
+					anyOtherHC = anyOtherHC || ImGui::IsItemHovered() || ImGui::IsItemClicked();
 					ImGui::SameLine();
 				}
 				if (ImGui::Button(btnList[i].c_str(), ImVec2(0, GUI_ELEMENT_SIZE()))) {
@@ -107,7 +86,7 @@ namespace Im
 					path = std::u8string(newPath.begin(), newPath.end());
 					ret = true;
 				}
-				anyOtherHC |= ImGui::IsItemHovered() | ImGui::IsItemClicked();
+				anyOtherHC = anyOtherHC || ImGui::IsItemHovered() || ImGui::IsItemClicked();
 				ImGui::SameLine();
 				ImGui::PopID();
 
@@ -272,13 +251,13 @@ namespace Im
 
 		float iconSize = size.y - g.FontSize * 2;
 		float iconPosX = pos.x + (size.x - iconSize) / 2.0f;
-		ImVec2 textSize = ImGui::CalcTextSize(label, 0, true, size.x);
+		ImVec2 textSize = ImGui::CalcTextSize(label, nullptr, true, size.x);
 
 		if (hovered || active || isSelected)
 			window->DrawList->AddRectFilled(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : (isSelected ? ImGuiCol_Header : ImGuiCol_HeaderHovered)]));
 
 		window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y), ImVec2(iconPosX + iconSize, pos.y + iconSize));
-		window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, 0, size.x);
+		window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, nullptr, size.x);
 
 		float lastButtomPos = ImGui::GetItemRectMax().x;
 		float thisButtonPos = lastButtomPos + style.ItemSpacing.x + size.x;
@@ -349,5 +328,50 @@ namespace Im
 		bool previous = value;
 		ImGui::Checkbox(label, &value);
 		return value != previous;
+	}
+
+	bool Vec3DragField(const char* id, float* v, float speed, const char* fmt)
+	{
+		static const ImVec4 axisColors[3] = {
+			ImVec4(0.80f, 0.18f, 0.18f, 1.0f),
+			ImVec4(0.18f, 0.68f, 0.18f, 1.0f),
+			ImVec4(0.18f, 0.38f, 0.82f, 1.0f),
+		};
+		static const ImVec4 axisColorsHover[3] = {
+			ImVec4(0.90f, 0.30f, 0.30f, 1.0f),
+			ImVec4(0.30f, 0.80f, 0.30f, 1.0f),
+			ImVec4(0.30f, 0.50f, 0.92f, 1.0f),
+		};
+		static const char* axisLabels[3] = { "X", "Y", "Z" };
+		static const char* dragIds[3]    = { "##x", "##y", "##z" };
+
+		bool changed = false;
+		ImGui::PushID(id);
+
+		float totalWidth  = ImGui::GetContentRegionAvail().x;
+		float labelWidth  = ImGui::GetFrameHeight();
+		float itemSpacing = ImGui::GetStyle().ItemSpacing.x;
+		float innerSpacing = ImGui::GetStyle().ItemInnerSpacing.x;
+		float dragWidth   = (totalWidth - 3.0f * labelWidth - 2.0f * itemSpacing - 2.0f * innerSpacing) / 3.0f;
+		if (dragWidth < 1.0f) dragWidth = 1.0f;
+
+		for (int i = 0; i < 3; i++)
+		{
+			if (i > 0) ImGui::SameLine(0.0f, itemSpacing);
+
+			ImGui::PushStyleColor(ImGuiCol_Button,        axisColors[i]);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, axisColorsHover[i]);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive,  axisColors[i]);
+			ImGui::PushStyleColor(ImGuiCol_Text,          ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+			ImGui::Button(axisLabels[i], ImVec2(labelWidth, 0.0f));
+			ImGui::PopStyleColor(4);
+
+			ImGui::SameLine(0.0f, innerSpacing);
+			ImGui::SetNextItemWidth(dragWidth);
+			changed |= ImGui::DragFloat(dragIds[i], &v[i], speed, 0.0f, 0.0f, fmt);
+		}
+
+		ImGui::PopID();
+		return changed;
 	}
 }

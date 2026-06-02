@@ -1,4 +1,4 @@
-#include "EntityPainter.h"
+#include "UI/Details/EntityPainter.h"
 
 #include "UI/ImguiExtensions.h"
 #include "UI/ComponentPainter.h"

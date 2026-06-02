@@ -1,22 +1,16 @@
-cmake_minimum_required(VERSION 3.28)
-
-# ------------------------------
-# Source files
-# ------------------------------
-
 set(SHADER_PARSER_SOURCES
     src/ShaderParser.cpp
     src/ShaderFile.cpp
-    src/ShaderReflection.cpp
+    src/SPReflection.cpp
     src/ShaderData.cpp
-    src/Utils.h
 )
 
 set(SHADER_PARSER_HEADERS
+    src/Utils.h
     include/ShaderParser/API.h
     include/ShaderParser/ShaderParser.h
     include/ShaderParser/ShaderFile.h
-    include/ShaderParser/ShaderReflection.h
+    include/ShaderParser/SPReflection.h
     include/ShaderParser/ShaderData.h
     include/ShaderParser/Imports/BuiltInImports.h
     include/ShaderParser/Imports/Lights_Core.h
@@ -28,36 +22,21 @@ set(SHADER_PARSER_HEADERS
 
 source_group(
     TREE ${CMAKE_CURRENT_SOURCE_DIR}
-    FILES ${SHADER_PARSER_SOURCES} ${SHADER_PARSER_HEADERS})
+    FILES ${SHADER_PARSER_SOURCES} ${SHADER_PARSER_HEADERS}
+)
 
-# ------------------------------
-# Create shared library
-# ------------------------------
-
-add_library(ShaderParser SHARED
+add_library(ShaderParser STATIC
     ${SHADER_PARSER_SOURCES}
     ${SHADER_PARSER_HEADERS}
 )
 
 set_target_properties(ShaderParser PROPERTIES
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-    POSITION_INDEPENDENT_CODE ON
     FOLDER "Engine"
 )
-
-# ------------------------------
-# Include directories
-# ------------------------------
 
 target_include_directories(ShaderParser PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
-
-# ------------------------------
-# Compile definitions
-# ------------------------------
 
 target_compile_definitions(ShaderParser PRIVATE
     SHADER_PARSER_BUILD
@@ -66,26 +45,26 @@ target_compile_definitions(ShaderParser PRIVATE
     $<$<CONFIG:Release>:TWISTED_DEPLOY>
 )
 
-if(MSVC)
-    target_compile_definitions(ShaderParser PRIVATE _CRT_SECURE_NO_WARNINGS)
-endif()
-
-# ------------------------------
-# Compiler options
-# ------------------------------
-
-if(MSVC)
-    target_compile_options(ShaderParser PRIVATE
-        /W4
-        /wd4251
-        /external:W0
-        /experimental:external
-        /analyze-
-    )
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(ShaderParser PRIVATE
-        -Wall
-        -Wextra
-        -Wpedantic
-    )
-endif()
+target_compile_options(ShaderParser PRIVATE
+    -Wall
+    -Wextra
+    -Wno-c++98-compat
+    -Wno-c++98-compat-pedantic
+    -Wno-pre-c++14-compat
+    -Wno-pre-c++17-compat
+    -Wno-global-constructors
+    -Wno-exit-time-destructors
+    -Wno-sign-conversion
+    -Wno-old-style-cast
+    -Wno-unsafe-buffer-usage
+    -Wno-float-equal
+    -Wno-implicit-int-float-conversion
+    -Wno-shadow-field-in-constructor
+    -Wno-missing-field-initializers
+    -Wno-cast-function-type-strict
+    -Wno-nonportable-system-include-path
+    -Wno-switch-default
+    -Wno-double-promotion
+    -Wno-deprecated-declarations
+    -Wno-missing-braces
+)

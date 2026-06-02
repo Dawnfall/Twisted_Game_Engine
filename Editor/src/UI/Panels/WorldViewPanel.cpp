@@ -1,4 +1,4 @@
-#include "WorldViewPanel.h"
+#include "UI/Panels/WorldViewPanel.h"
 
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
@@ -22,18 +22,57 @@ namespace Twisted::Editor
 		this->PanelResizeEvent.AddListener([this]() {
 			if (!m_editorService) return;
 			auto* camera = m_editorService->GetEditorWorld()->ForceGetManager<CameraManager>().GetMainCamera();
-			if (!camera)
-				return;
-			if (auto* fb = camera->Fb.get())
-				fb->SetSize(Size);
+			if (!camera) return;
+			// Don't resize the FB here — the command buffer may already reference its image views.
+			// Store the desired size and apply it in PreRender() before BeginFrame().
+			m_pendingFbSize = Size;
 			if (Size.y > 0)
 				camera->AspectRatio = (float)Size.x / (float)Size.y;
-			}
-		);
+		});
+	}
+
+	void WorldViewPanel::PreRender()
+	{
+		if (m_pendingFbSize.x <= 0 || m_pendingFbSize.y <= 0) return;
+		if (!m_editorService) return;
+		auto* camera = m_editorService->GetEditorWorld()->ForceGetManager<CameraManager>().GetMainCamera();
+		if (!camera) return;
+		if (auto* fb = camera->Fb.get())
+			fb->SetSize(m_pendingFbSize);
+		m_pendingFbSize = { 0, 0 };
 	}
 	  
+	void WorldViewPanel::SetTool(GizmoTool tool)
+	{
+		m_activeTool = tool;
+		switch (tool)
+		{
+		case GizmoTool::Move:      m_gizmoOperation = ImGuizmo::TRANSLATE; break;
+		case GizmoTool::Rotate:    m_gizmoOperation = ImGuizmo::ROTATE;    break;
+		case GizmoTool::Scale:     m_gizmoOperation = ImGuizmo::SCALE;     break;
+		case GizmoTool::Universal: m_gizmoOperation = ImGuizmo::UNIVERSAL; break;
+		default: break; // View — gizmo is simply not drawn
+		}
+	}
+
+	void WorldViewPanel::HandleShortcuts()
+	{
+		if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+			return;
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
+			return;
+		if (ImGui::IsKeyPressed(ImGuiKey_Q, false)) SetTool(GizmoTool::View);
+		if (ImGui::IsKeyPressed(ImGuiKey_W, false)) SetTool(GizmoTool::Move);
+		if (ImGui::IsKeyPressed(ImGuiKey_E, false)) SetTool(GizmoTool::Rotate);
+		if (ImGui::IsKeyPressed(ImGuiKey_R, false)) SetTool(GizmoTool::Scale);
+		if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) SetTool(GizmoTool::Universal);
+		if (ImGui::IsKeyPressed(ImGuiKey_X, false)) m_localSpace = !m_localSpace;
+	}
+
 	void WorldViewPanel::PaintContent()
 	{
+		HandleShortcuts();
+
 		if (!m_editorService)
 			return;
 
@@ -42,7 +81,7 @@ namespace Twisted::Editor
 			return;
 
 		Framebuffer* fb = camera->Fb.get();
-		if (!fb || !fb->GetColor())
+		if (!fb || !fb->IsValid() || !fb->GetColor())
 			return;
 
 		ImVec2 panelPos = ImGui::GetCursorScreenPos();
@@ -121,7 +160,7 @@ namespace Twisted::Editor
 
 		World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
 		const auto& selectedEntities = m_editorService->GetSelection().GetSelectedEntities();
-		if (gameWorld && !selectedEntities.empty())
+		if (gameWorld && !selectedEntities.empty() && m_activeTool != GizmoTool::View)
 		{
 			Mat4x4f proj = camera->GetProjectionMatrix();
 			float projArray[16];
@@ -186,20 +225,24 @@ namespace Twisted::Editor
 			float btnY = panelPos.y + (toolbarH - ImGui::GetFrameHeight()) * 0.5f;
 			ImGui::SetCursorScreenPos({ panelPos.x + padding, btnY });
 
-			auto ToolBtn = [&](const char* label, ImGuizmo::OPERATION op)
+			auto ToolBtn = [&](const char* label, const char* tooltip, GizmoTool tool)
 			{
-				bool active = (m_gizmoOperation == op);
+				bool active = (m_activeTool == tool);
 				if (active)
 					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
 				if (ImGui::Button(label, { btnW, 0 }))
-					m_gizmoOperation = op;
+					SetTool(tool);
 				if (active)
 					ImGui::PopStyleColor();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("%s", tooltip);
 			};
 
-			ToolBtn("T##gz", ImGuizmo::TRANSLATE); ImGui::SameLine(0, 2);
-			ToolBtn("R##gz", ImGuizmo::ROTATE);    ImGui::SameLine(0, 2);
-			ToolBtn("S##gz", ImGuizmo::SCALE);     ImGui::SameLine(0, 8);
+			ToolBtn("H##gz",  "View (Q)",          GizmoTool::View);      ImGui::SameLine(0, 2);
+			ToolBtn("T##gz",  "Move (W)",           GizmoTool::Move);      ImGui::SameLine(0, 2);
+			ToolBtn("R##gz",  "Rotate (E)",         GizmoTool::Rotate);    ImGui::SameLine(0, 2);
+			ToolBtn("S##gz",  "Scale (R)",          GizmoTool::Scale);     ImGui::SameLine(0, 2);
+			ToolBtn("U##gz",  "Universal (Y)",      GizmoTool::Universal); ImGui::SameLine(0, 8);
 
 			{
 				bool local = m_localSpace;
@@ -210,7 +253,7 @@ namespace Twisted::Editor
 				if (local)
 					ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip(local ? "Local space" : "Global space");
+					ImGui::SetTooltip(local ? "Local space (X)" : "Global space (X)");
 			}
 
 			ImGui::SetCursorScreenPos({ panelPos.x + Size.x - btnW - padding, btnY });

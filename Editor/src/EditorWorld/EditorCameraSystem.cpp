@@ -1,4 +1,4 @@
-#include "EditorCameraSystem.h"
+#include "EditorWorld/EditorCameraSystem.h"
 #include "Input.h"
 #include "Components/CTransform.h"
 #include "ButtonCodes.h"
@@ -27,11 +27,12 @@ namespace Twisted::Editor
 		if (wheel != 0.0f)
 			transform.Translate(transform.GetForward() * wheel * scrollSpeed);
 
-		float speedMul = (input.GetKey(Key::LeftShift) || input.GetKey(Key::RightShift)) ? shiftMul : 1.0f;
-		HandleLocalWASD(transform, moveSpeed * speedMul, deltaTime);
-
 		if (input.GetMouseButton(MouseButton::Right))
+		{
+			float speedMul = (input.GetKey(Key::LeftShift) || input.GetKey(Key::RightShift)) ? shiftMul : 1.0f;
+			HandleLocalWASD(transform, moveSpeed * speedMul, deltaTime);
 			HandleLocalMouseRot(transform, rotSpeed);
+		}
 
 		if (input.GetMouseButton(MouseButton::Middle))
 			HandleMiddleMousePan(transform, panSpeed);
@@ -47,7 +48,7 @@ namespace Twisted::Editor
 		if (xDelta != 0 || yDelta != 0)
 		{
 			Quat yaw   = glm::angleAxis(-xDelta * rotSpeed, ::Constants::Up);
-			Quat pitch = glm::angleAxis(-yDelta * rotSpeed, transform.GetRight());
+			Quat pitch = glm::angleAxis(yDelta * rotSpeed, transform.GetRight());
 			transform.Rotate(yaw * pitch);
 		}
 	}
@@ -69,7 +70,7 @@ namespace Twisted::Editor
 
 		float forward = ((input.GetKey(Key::W)) ? 1.0f : 0.0f) + ((input.GetKey(Key::S)) ? -1.0f : 0.0f);
 		float up      = ((input.GetKey(Key::Q)) ? 1.0f : 0.0f) + ((input.GetKey(Key::E)) ? -1.0f : 0.0f);
-		float right   = ((input.GetKey(Key::D)) ? 1.0f : 0.0f) + ((input.GetKey(Key::A)) ? -1.0f : 0.0f);
+		float right   = ((input.GetKey(Key::A)) ? 1.0f : 0.0f) + ((input.GetKey(Key::D)) ? -1.0f : 0.0f);
 
 		if (forward != 0.0f)
 			transform.Translate(transform.GetForward() * forward * moveSpeed * deltaTime);

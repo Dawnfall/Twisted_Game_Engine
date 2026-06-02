@@ -1,4 +1,4 @@
-﻿#include "CCameraPainter.h"
+﻿#include "UI/Components/CCameraPainter.h"
 #include "EditorApp/EditorRegistry.h"
 
 #include "Components/CCamera.h"
@@ -9,11 +9,14 @@
 
 namespace Twisted::Editor
 {
-	static std::array<const char*, 2> options
-	{
-		PERSPECTIVE_PROJ_NAME,
-		ORTHOGRAPHIC_PROJ_NAME
-	};
+	static constexpr auto kProjNames = magic_enum::enum_names<CameraProjectionType>();
+	static constexpr int kProjCount = static_cast<int>(CameraProjectionType::COUNT);
+	static const std::array<const char*, kProjCount> options = []() {
+		std::array<const char*, kProjCount> arr{};
+		for (std::size_t i = 0; i < kProjCount; ++i)
+			arr[i] = kProjNames[i].data();
+		return arr;
+	}();
 
 	void CCameraPainter::Paint(void* obj)
 	{
@@ -26,10 +29,9 @@ namespace Twisted::Editor
 		}
 
 		int currIndex = static_cast<int>(camera->ProjectionType);
-		if (ImGui::Combo("Projection Type", &currIndex, options.data(), static_cast<int>(options.size())))
+		if (ImGui::Combo("Projection Type", &currIndex, options.data(), kProjCount))
 		{
-			// Convert selected string back to enum
-			camera->ProjectionType = ProjTypeFromString(options[currIndex]);
+			camera->ProjectionType = static_cast<CameraProjectionType>(currIndex);
 		}
 
 		switch (camera->ProjectionType)

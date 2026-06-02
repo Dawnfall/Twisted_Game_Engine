@@ -27,10 +27,9 @@ void main()
 #import "MVP_Core_Frag"
 #import "Lights_Core_Frag"
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
-uniform sampler2D uTexture;
-uniform vec4      uColor;
+layout(set = 1, binding = 0) uniform sampler2D uTexture;
 
 void main()
 {

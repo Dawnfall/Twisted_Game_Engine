@@ -8,17 +8,22 @@ R"(layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
 
-layout(std140, binding = 0) uniform ShaderMVPBuffer
+layout(push_constant) uniform PushConstants
 {
     mat4 uModel;
-    mat4 uView;
-    mat4 uProj;
-    vec4 uCameraPos; // xyz = world position, w unused
+    vec4 uColor;
 };
 
-out vec2 vUV;
-out vec3 vNormal;
-out vec3 vFragPos;
+layout(std140, binding = 0) uniform ShaderMVPBuffer
+{
+    mat4 uView;
+    mat4 uProj;
+    vec4 uCameraPos;
+};
+
+layout(location = 0) out vec2 vUV;
+layout(location = 1) out vec3 vNormal;
+layout(location = 2) out vec3 vFragPos;
 
 vec4 TransformMVP(vec3 point)
 {
@@ -37,16 +42,20 @@ mat3 GetNormalMatrix()
 )";
 
 	inline const std::string MVP_Core_Frag =
-R"(layout(std140, binding = 0) uniform ShaderMVPBuffer
+R"(layout(push_constant) uniform PushConstants
 {
-    mat4 uModel;
-    mat4 uView;
-    mat4 uProj;
-    vec4 uCameraPos; // xyz = world position, w unused
+    layout(offset = 64) vec4 uColor;
 };
 
-in vec2 vUV;
-in vec3 vNormal;
-in vec3 vFragPos;
+layout(std140, binding = 0) uniform ShaderMVPBuffer
+{
+    mat4 uView;
+    mat4 uProj;
+    vec4 uCameraPos;
+};
+
+layout(location = 0) in vec2 vUV;
+layout(location = 1) in vec3 vNormal;
+layout(location = 2) in vec3 vFragPos;
 )";
 }

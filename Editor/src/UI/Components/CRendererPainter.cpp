@@ -1,4 +1,4 @@
-﻿#include "CRendererPainter.h"
+﻿#include "UI/Components/CRendererPainter.h"
 #include "EditorApp/EditorRegistry.h"
 #include "UI/Details/MaterialPainter.h"
 #include <imgui.h>

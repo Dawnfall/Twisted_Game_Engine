@@ -1,4 +1,4 @@
-#include "ProjectSettingsPanel.h"
+#include "UI/Panels/ProjectSettingsPanel.h"
 
 #include "EditorApp/EditorRegistry.h"
 #include "Application/Application.h"

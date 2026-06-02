@@ -1,4 +1,4 @@
-#include "EditorSettingsPanel.h"
+#include "UI/Panels/EditorSettingsPanel.h"
 #include "EditorApp/EditorRegistry.h"
 
 namespace Twisted::Editor

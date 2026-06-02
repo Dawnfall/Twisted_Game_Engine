@@ -1,11 +1,9 @@
-﻿#include "UIWindow.h"
+﻿#include "UI/UIWindow.h"
 #include "UI/ImguiExtensions.h"
-#include "WIN32/Win32Utils.h"
-
-namespace Native = Twisted::Windows;
 
 //#include "Twisted/AssetsLayer/AssetsLayer.h"
 #include "EditorApp/EditorService.h"
+#include "WIN32/NativeUtils_Win.h"
 #include "GameService.h"
 #include "EditorApp/EditorRegistry.h"
 #include "Window.h"
@@ -21,6 +19,10 @@ namespace Native = Twisted::Windows;
 #include <vector>
 #include <imgui.h>
 #include <string>
+
+#ifdef GetObject
+#undef GetObject  // wingdi.h defines GetObject as GetObjectA; conflicts with AssetsService::GetObject
+#endif
 
 namespace Twisted::Editor
 {
@@ -136,17 +138,15 @@ namespace Twisted::Editor
 			{
 				if (ImGui::MenuItem("New Project"))
 				{
-					std::filesystem::path selectedPath = Native::OpenFolderDialog(*window);
-					if (selectedPath != "")
+					auto selectedPath = Windows::OpenFolderDialog(*window);
+					if (!selectedPath.empty())
 						SelectProject(selectedPath);
 				}
 				if (ImGui::MenuItem("Load Project"))
 				{
-					std::vector<std::pair<std::wstring, std::wstring>> filter = {
-						{L"project file (twisted.editor)", L"twisted.editor"}
-					};
-					std::filesystem::path selectedPath = Native::OpenFileDialog(*window, filter);
-					if (selectedPath != "")
+					auto selectedPath = Windows::OpenFileDialog(*window,
+						{ { L"Twisted Editor Project", L"*.editor" } });
+					if (!selectedPath.empty())
 						SelectProject(selectedPath);
 				}
 				if (ImGui::BeginMenu("Recent Projects"))
@@ -170,8 +170,7 @@ namespace Twisted::Editor
 				}
 				if (ImGui::MenuItem("Exit"))
 				{
-					if (Native::ShowConfirmDialog(*window, L"Are you sure?", L"Exit editor?"))
-						Application::GetInstance().GetService<EditorService>()->ConfirmedQuitEvent.Invoke();
+					Application::GetInstance().GetService<EditorService>()->ConfirmedQuitEvent.Invoke();
 				}
 				ImGui::EndMenu();
 			}
@@ -183,18 +182,36 @@ namespace Twisted::Editor
 				}
 				if (ImGui::MenuItem("Open World"))
 				{
-					if (fs::path path = Native::OpenFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
-						Application::GetInstance().GetService<GameService>()->LoadWorld(path);
+					auto* assetsService = Application::GetInstance().GetService<AssetsService>();
+					if (assetsService->GetProject().IsValid())
+					{
+						fs::path openPath = Windows::OpenFileDialog(*window, { { L"Twisted World", L"*.world" } });
+						if (!openPath.empty())
+						{
+							assetsService->RegisterAsset(openPath);
+							AssetUuid uuid = assetsService->GetUuid(openPath);
+							if (uuid.IsValid())
+							{
+								assetsService->Load(uuid);
+								World* world = assetsService->GetObject<World>(uuid);
+								if (world)
+									Application::GetInstance().GetService<GameService>()->SetActiveWorld(world);
+							}
+						}
+					}
 				}
 				if (ImGui::MenuItem("Save World As"))
 				{
-					World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld();
-					if (gameWorld)
+					auto* assetsService = Application::GetInstance().GetService<AssetsService>();
+					World* world = Application::GetInstance().GetService<GameService>()->GetGameWorld();
+					if (world && assetsService->GetProject().IsValid())
 					{
-						if (fs::path path = Native::SaveFileDialog(*window, { {L"world file (*.world)",L"*.world"} }); !path.empty())
+						fs::path savePath = Windows::SaveFileDialog(*window, { { L"Twisted World", L"*.world" } });
+						if (!savePath.empty())
 						{
-							path = path.replace_extension(".world");
-							Application::GetInstance().GetService<AssetsService>()->SaveAssetDirect(path, { WPtr<World>(gameWorld) });
+							if (savePath.extension() != ".world")
+								savePath += ".world";
+							assetsService->SaveAssetDirect(savePath, { WPtrBase(world) });
 						}
 					}
 				}
@@ -202,7 +219,24 @@ namespace Twisted::Editor
 				{
 					auto* assetsService = Application::GetInstance().GetService<AssetsService>();
 					World* world = Application::GetInstance().GetService<GameService>()->GetGameWorld();
-					assetsService->Save(assetsService->GetObjectUuid(world));
+					if (world)
+					{
+						AssetUuid uuid = assetsService->GetObjectUuid(world);
+						if (uuid.IsValid())
+						{
+							assetsService->Save(uuid);
+						}
+						else if (assetsService->GetProject().IsValid())
+						{
+							fs::path savePath = Windows::SaveFileDialog(*window, { { L"Twisted World", L"*.world" } });
+							if (!savePath.empty())
+							{
+								if (savePath.extension() != ".world")
+									savePath += ".world";
+								assetsService->SaveAssetDirect(savePath, { WPtrBase(world) });
+							}
+						}
+					}
 				}
 				ImGui::EndMenu();
 			}
@@ -239,10 +273,11 @@ namespace Twisted::Editor
 				ImGui::SetCursorPosX(centerX);
 
 				auto* gameService = Application::GetInstance().GetService<GameService>();
-				GameState state   = gameService->GetGameState().gameState;
+				bool isPlaying = gameService->IsPlaying();
+				bool isPaused  = gameService->IsPaused();
 
-				// Play button — disabled while already playing
-				if (state == GameState::Playing)
+				// Play button — highlighted and disabled while already playing
+				if (isPlaying)
 				{
 					ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
@@ -250,9 +285,8 @@ namespace Twisted::Editor
 					ImGui::BeginDisabled();
 				}
 				if (ImGui::Button("Play", ImVec2(btnW, btnH)))
-					gameService->SetGameState(GameState::Playing);
-
-				if (state == GameState::Playing)
+					gameService->SetPlaying(true);
+				if (isPlaying)
 				{
 					ImGui::EndDisabled();
 					ImGui::PopStyleColor(3);
@@ -260,30 +294,26 @@ namespace Twisted::Editor
 
 				ImGui::SameLine(0.0f, spacing);
 
-				// Pause button — only active while playing
-				if (state == GameState::Paused)
+				// Pause button — toggles independently, available before and during play
+				if (isPaused)
 				{
 					ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.7f, 0.6f, 0.1f, 1.0f));
 				}
-				if (state != GameState::Playing)
-					ImGui::BeginDisabled();
 				if (ImGui::Button("Pause", ImVec2(btnW, btnH)) && gameService)
-					gameService->SetGameState(GameState::Paused);
-				if(state!=GameState::Playing)
-					ImGui::EndDisabled();
-				if (state == GameState::Paused)
+					gameService->SetPaused(!isPaused);
+				if (isPaused)
 					ImGui::PopStyleColor(3);
 
 				ImGui::SameLine(0.0f, spacing);
 
-				// Stop button — disabled when already stopped
-				if (state == GameState::Stopped)
+				// Stop button — disabled when not playing
+				if (!isPlaying)
 					ImGui::BeginDisabled();
 				if (ImGui::Button("Stop", ImVec2(btnW, btnH)) && gameService)
-					gameService->SetGameState(GameState::Stopped);
-				if (state==GameState::Stopped) 
+					gameService->SetPlaying(false);
+				if (!isPlaying)
 					ImGui::EndDisabled();
 			}
 

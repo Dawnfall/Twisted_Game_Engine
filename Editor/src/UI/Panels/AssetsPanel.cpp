@@ -1,4 +1,4 @@
-﻿#include "AssetsPanel.h"
+﻿#include "UI/Panels/AssetsPanel.h"
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
 #include "ImportedAsset.h"
@@ -113,15 +113,26 @@ namespace Twisted::Editor
 
 		ImGui::Text("Current directory: %s", currentDir.string().c_str());
 
-		// LEFT PANEL: Folder Tree
+		// LEFT PANEL: Folder list + folder creation
 		ImGui::BeginChild("LeftPanel", ImVec2(leftPanelWidth, panelHeight), true);
-		PaintTreePart(Application::GetInstance().GetService<AssetsService>()->GetProject().GetRootPath());
+		PaintTreePart(currentDir);
+		PaintNewFolder();
+		if (ImGui::BeginPopupContextWindow("FolderPopup", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("New Folder"))
+			{
+				m_newFolderName = Im::InputTextToken{};
+				m_newFolderName->Text = "NewFolder";
+				m_newFolderName->DoAutoFocus = true;
+			}
+			ImGui::EndPopup();
+		}
 		ImGui::EndChild();
 
 		ImGui::SameLine();
 
-		// RIGHT PANEL: Folder Contents
-		ImGui::BeginChild("RightPanel", ImVec2(0, panelHeight), true); // Width = 0 means fill remaining space
+		// RIGHT PANEL: Asset files only
+		ImGui::BeginChild("RightPanel", ImVec2(0, panelHeight), true);
 
 		// Built-in assets
 		if (ImGui::CollapsingHeader("Built-in"))
@@ -167,29 +178,35 @@ namespace Twisted::Editor
 
 	void AssetsPanel::PaintTreePart(const fs::path& dirPath)
 	{
-		for (const auto& entry : fs::directory_iterator(dirPath)) {
+		const fs::path assetsRoot = Application::GetInstance().GetService<AssetsService>()->GetProject().GetAssetsFolder();
+
+		if (currentDir != assetsRoot)
+		{
+			ImGuiTreeNodeFlags backFlags =
+				ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen |
+				ImGuiTreeNodeFlags_SpanAvailWidth;
+			ImGui::TreeNodeEx("..##back", backFlags);
+			if (Input::GetInstance().IsClicked() && ImGui::IsItemHovered())
+				currentDir = currentDir.parent_path();
+		}
+
+		for (const auto& entry : fs::directory_iterator(dirPath))
+		{
 			if (!entry.is_directory()) continue;
 
 			const fs::path& folderPath = entry.path();
-			const std::string folderName = folderPath.filename().string();
-			const std::string fullPath = folderPath.string();
+			std::string label = folderPath.filename().string() + "##" + folderPath.string();
 
-			// Tree node flags
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			if (currentDir == fullPath)
-				flags |= ImGuiTreeNodeFlags_Selected;
+			ImGuiTreeNodeFlags flags =
+				ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen |
+				ImGuiTreeNodeFlags_SpanAvailWidth;
 
-			// Tree node UI
-			bool open = ImGui::TreeNodeEx(folderName.c_str(), flags);
+			ImGui::TreeNodeEx(label.c_str(), flags);
 
-			if (ImGui::IsItemClicked()) {
-				currentDir = fullPath; // Update selected folder
-			}
-
-			if (open) {
-				PaintTreePart(folderPath); // Recursively render subfolders
-				ImGui::TreePop();
-			}
+			if (Input::GetInstance().IsClicked() && ImGui::IsItemHovered())
+				currentDir = folderPath;
 		}
 	}
 
@@ -270,6 +287,24 @@ namespace Twisted::Editor
 				}
 			}
 			ImGui::EndPopup();
+		}
+	}
+
+	void AssetsPanel::PaintNewFolder()
+	{
+		if (m_newFolderName.has_value())
+		{
+			Im::InputText(m_newFolderName.value());
+			if (m_newFolderName->IsLostFocus)
+			{
+				if (!m_newFolderName->Text.empty())
+				{
+					fs::path newPath = currentDir / m_newFolderName->Text;
+					if (!fs::exists(newPath))
+						fs::create_directory(newPath);
+				}
+				m_newFolderName = std::nullopt;
+			}
 		}
 	}
 }

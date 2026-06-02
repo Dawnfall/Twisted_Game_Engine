@@ -5,11 +5,13 @@
     "entt",
     "glad",
     "glm",
-    { "name": "glfw3", "platform": "!windows" },
+    "glfw3",
     "spdlog",
     "stb",
     "yaml-cpp",
     "assimp",
-    "shaderc"
+    "shaderc",
+    "magic-enum",
+    "joltphysics"
   ]
 }

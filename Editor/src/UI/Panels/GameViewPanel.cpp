@@ -1,8 +1,7 @@
-﻿#include "GameViewPanel.h"
+﻿#include "UI/Panels/GameViewPanel.h"
 
 #include "EditorApp/EditorRegistry.h"
 
-#include "OpenGL/FrameBuffer_OpenGL.h"
 #include "GameService.h"
 #include "FrameBuffer.h"
 #include "Application/TObject.h"
@@ -26,13 +25,27 @@ namespace Twisted::Editor
 
 	}
 
-	void GameViewPanel::PaintContent()
+	void GameViewPanel::PreRender()
 	{
+		if (m_pendingFbSize.x <= 0 || m_pendingFbSize.y <= 0) return;
 		if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld(); gameWorld)
 			if (CameraComponent* mainCamera = gameWorld->ForceGetManager<CameraManager>().GetMainCamera(); mainCamera)
 				if (Framebuffer* fb = mainCamera->Fb.get(); fb)
+					fb->SetSize(m_pendingFbSize);
+		m_pendingFbSize = { 0, 0 };
+	}
+
+	void GameViewPanel::PaintContent()
+	{
+		// Request FB resize for next frame's PreRender (safe — no command buffer active then).
+		if (Size.x > 0 && Size.y > 0)
+			m_pendingFbSize = Size;
+
+		if (World* gameWorld = Application::GetInstance().GetService<GameService>()->GetGameWorld(); gameWorld)
+			if (CameraComponent* mainCamera = gameWorld->ForceGetManager<CameraManager>().GetMainCamera(); mainCamera)
+				if (Framebuffer* fb = mainCamera->Fb.get(); fb && fb->IsValid())
 				{
-					fb->SetSize(Size);
+					// fb->SetSize(Size);  // moved to PreRender() — unsafe here while command buffer is active
 					ImGui::Image(
 						Im::GetImGuiTextureID(fb->GetColor().get()),
 						ImVec2((float)Size.x, (float)Size.y),

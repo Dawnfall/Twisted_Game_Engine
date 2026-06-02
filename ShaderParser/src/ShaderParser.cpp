@@ -1,7 +1,7 @@
 #include "ShaderParser/ShaderParser.h"
 #include "ShaderParser/ShaderData.h"
 #include "ShaderParser/ShaderFile.h"
-#include "ShaderParser/ShaderReflection.h"
+#include "ShaderParser/SPReflection.h"
 #include "Utils.h"
 
 #include "ShaderParser/Imports/MVP_Core.h"

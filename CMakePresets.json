@@ -1,132 +1,71 @@
 {
-  "version": 4,
+  "version": 6,
   "configurePresets": [
     {
       "name": "base",
       "hidden": true,
+      "generator": "Ninja",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_R}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
-      }
-    },
-    {
-      "name": "vs2026",
-      "hidden": false,
-      "generator": "Visual Studio 18 2026",
-      "binaryDir": "${sourceDir}/build/vs2026",
-      "cacheVariables": {
-        "CMAKE_GENERATOR_PLATFORM": "x64",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Release"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
-      "name": "vs",
-      "displayName": "Windows (Visual Studio)",
+      "name": "Debug",
+      "displayName": "Debug",
       "inherits": "base",
-      "generator": "Visual Studio 18 2026",
-      "binaryDir": "${sourceDir}/build/windows-vs",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
       },
-      "cacheVariables": {
-        "CMAKE_GENERATOR_PLATFORM": "x64"
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "LLVM Clang"
+        }
       }
     },
     {
-      "name": "ninja-vs",
-      "displayName": "Ninja (compile_commands.json for tooling)",
+      "name": "Release",
+      "displayName": "Release",
       "inherits": "base",
-      "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build/ninja",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "LLVM Clang"
+        }
       }
     },
     {
-      "name": "linux",
-      "displayName": "Linux (Ninja Multi-Config)",
+      "name": "RelWithDebInfo",
+      "displayName": "Release With Debug Info",
       "inherits": "base",
-      "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build/linux",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      }
-    },
-    {
-      "name": "linux-debug",
-      "hidden": false,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/linux-debug",
+      "binaryDir": "${sourceDir}/build/relwithdebinfo",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    {
-      "name": "linux-release",
-      "hidden": false,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/linux-release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "LLVM Clang"
+        }
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "Debug-vs",
-      "configurePreset": "vs",
-      "configuration": "Debug"
+      "name": "Debug",
+      "configurePreset": "Debug"
     },
     {
-      "name": "RelWithDebInfo-vs",
-      "configurePreset": "vs",
-      "configuration": "RelWithDebInfo"
+      "name": "Release",
+      "configurePreset": "Release"
     },
     {
-      "name": "Release-vs",
-      "configurePreset": "vs",
-      "configuration": "Release"
-    },
-    {
-      "name": "vs2026-Deploy",
-      "configurePreset": "vs2026",
-      "configuration": "Deploy"
-    },
-    {
-      "name": "Debug-linux",
-      "configurePreset": "linux",
-      "configuration": "Debug"
-    },
-    {
-      "name": "RelWithDebInfo-linux",
-      "configurePreset": "linux",
-      "configuration": "RelWithDebInfo"
-    },
-    {
-      "name": "Release-linux",
-      "configurePreset": "linux",
-      "configuration": "Release"
-    },
-    {
-      "name": "linux-debug",
-      "configurePreset": "linux-debug"
-    },
-    {
-      "name": "linux-release",
-      "configurePreset": "linux-release"
+      "name": "RelWithDebInfo",
+      "configurePreset": "RelWithDebInfo"
     }
   ]
 }

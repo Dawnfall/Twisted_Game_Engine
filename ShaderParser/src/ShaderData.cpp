@@ -1,6 +1,6 @@
 #include "ShaderParser/ShaderData.h"
 #include "ShaderParser/ShaderFile.h"
-#include "ShaderParser/ShaderReflection.h"
+#include "ShaderParser/SPReflection.h"
 
 ShaderData ProcessShaderFile(std::string_view source, const std::string& baseDirectory)
 {

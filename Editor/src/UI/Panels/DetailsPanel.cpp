@@ -1,4 +1,4 @@
-﻿#include "DetailsPanel.h"
+﻿#include "UI/Panels/DetailsPanel.h"
 
 #include "World.h"
 

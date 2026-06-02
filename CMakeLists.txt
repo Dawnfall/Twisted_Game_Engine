@@ -1,5 +1,62 @@
 cmake_minimum_required(VERSION 3.28)
+
+# Setup vcpkg triplet BEFORE toolchain include
+if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+    if(WIN32)
+        set(VCPKG_TARGET_TRIPLET "x64-windows" CACHE STRING "vcpkg triplet")
+    elseif(UNIX AND NOT APPLE)
+        set(VCPKG_TARGET_TRIPLET "x64-linux" CACHE STRING "vcpkg triplet")
+    endif()
+endif()
+
+# Setup vcpkg toolchain BEFORE project() so find_package works
+if(NOT CMAKE_TOOLCHAIN_FILE)
+    set(VCPKG_ROOT "")
+
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(VCPKG_ROOT "$ENV{VCPKG_ROOT}")
+    else()
+        foreach(VCPKG_GUESS_PATH
+            "D:/Programiranje/Tools/vcpkg"
+            "$ENV{USERPROFILE}/vcpkg"
+            "$ENV{USERPROFILE}/scoop/apps/vcpkg/current"
+            "C:/vcpkg"
+            "/home/$ENV{USER}/vcpkg"
+            "$HOME/vcpkg"
+        )
+            if(EXISTS "${VCPKG_GUESS_PATH}/scripts/buildsystems/vcpkg.cmake")
+                set(VCPKG_ROOT "${VCPKG_GUESS_PATH}")
+                message(STATUS "[TwistedEngine] Auto-detected vcpkg at: ${VCPKG_ROOT}")
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    if(NOT VCPKG_ROOT OR NOT EXISTS "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+        message(FATAL_ERROR
+            "vcpkg not found!\n"
+            "Either:\n"
+            "  1. Set environment variable: set VCPKG_ROOT=C:\\path\\to\\vcpkg\n"
+            "  2. Clone vcpkg: git clone https://github.com/microsoft/vcpkg.git\n"
+            "  3. Bootstrap: .\\vcpkg\\bootstrap-vcpkg.bat"
+        )
+    endif()
+
+    set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "vcpkg toolchain")
+endif()
+
+# Include vcpkg toolchain file directly to set up find_package() system
+include(${CMAKE_TOOLCHAIN_FILE})
+
 project(TwistedEngine LANGUAGES CXX)
+
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(FATAL_ERROR
+        "This project requires Clang.\n"
+        "Configure with a preset or pass -DCMAKE_CXX_COMPILER=clang++"
+    )
+endif()
+message(STATUS "[TwistedEngine] Using Clang compiler ✓")
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,15 +72,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
 endif()
 
-if(NOT DEFINED ENV{VCPKG_ROOT})
-    message(FATAL_ERROR "Please set VCPKG_ROOT to your vcpkg installation")
-endif()
+option(TWISTED_WERROR "Treat warnings as errors" OFF)
 
-#if(MSVC)
-#    add_compile_options("/utf-8")
-#endif()
-
-# Output directories (organized by build type and platform)
+# Output directories
 if(WIN32)
     set(PLATFORM_SUFFIX "Windows-x64")
 elseif(UNIX AND NOT APPLE)
@@ -31,71 +82,22 @@ elseif(UNIX AND NOT APPLE)
 else()
     set(PLATFORM_SUFFIX "Unknown")
 endif()
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-${PLATFORM_SUFFIX})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-${PLATFORM_SUFFIX})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>-${PLATFORM_SUFFIX})
-
-find_package(glm CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
-find_package(EnTT CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
-find_package(assimp CONFIG REQUIRED)
-
-# Assimp's MSVC Debug DLL is ~100x slower than Release due to iterator debug
-# checks on STL strings. Map Debug to the Release DLL — safe because assimp
-# owns all its allocations internally (no cross-boundary free).
-if(MSVC)
-    set_target_properties(assimp::assimp PROPERTIES MAP_IMPORTED_CONFIG_DEBUG "Release")
-endif()
-
-# Add ImGui as a static library (subproject)
-include(cmake/ImGui.cmake)
-include(cmake/ImGuizmo.cmake)
-add_subdirectory(Core)
-add_subdirectory(Window)
-add_subdirectory(Renderer)
-add_subdirectory(ShaderParser)
-add_subdirectory(World)
-add_subdirectory(Assets)
-add_subdirectory(TwistedEngine)
-add_subdirectory(Editor)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${PLATFORM_SUFFIX})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${PLATFORM_SUFFIX})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${PLATFORM_SUFFIX})
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Visual Studio-only startup project setting
-if(MSVC)
-    set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT Editor)
-endif()
+# 3rd party
+include(3rd/cmake/ImGui.cmake)
+include(3rd/cmake/ImGuizmo.cmake)
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Editor)
+# Code generation
+include(cmake/TwistedGen.cmake)
 
+# Engine
+add_subdirectory(ShaderParser)
+add_subdirectory(TwistedEngine)
 
-
-
-
-
-
-
-
-
-
-## default is debug
-#if(NOT CMAKE_BUILD_TYPE)
-#    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
-#endif()
-
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FS")
-
-## include dirs
-## set(IncludeDirs_Standalone "${CMAKE_SOURCE_DIR}/Standalone/src")
-
-## 
-#
-
-## add_subdirectory(Standalone)
-#  
-
-if(_isMultiConfig)
-    set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE STRING "" FORCE)
-endif()
+# Editor
+add_subdirectory(Editor)

@@ -1,6 +1,6 @@
 #pragma once
 #include "API.h"
-#include "ShaderReflection.h"
+#include "SPReflection.h"
 
 #include <optional>
 #include <string>
@@ -11,7 +11,7 @@ struct SP_API ShaderData
     std::optional<std::string> vert;
     std::optional<std::string> frag;
     std::optional<std::string> geom;
-    ShaderReflection           reflection;
+    SPReflection               reflection;
     bool                       ok = true;
     std::string                errorMessage;
 };
