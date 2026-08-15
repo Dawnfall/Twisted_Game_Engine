@@ -4,6 +4,7 @@
 #include "GameService.h"
 #include "RenderService.h"
 #include "AssetsService.h"
+#include "PhysicsService.h"
 #include "Application/TimeService.h"
 
 #ifdef _WIN32
@@ -20,6 +21,7 @@ int main()
 	app.AddService<Twisted::TimeService>(0);
 	app.AddService<Twisted::GameService>(100);
 	app.AddService<Twisted::RenderService>(200);
+	app.AddService<Twisted::PhysicsService>(300);
 	app.AddService<Twisted::AssetsService>(400);
 	app.AddService<Twisted::Editor::EditorService>(1000);
 

@@ -23,17 +23,17 @@ namespace Twisted
     void Mesh::Clear()
     {
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
         if (VertexBuffer != VK_NULL_HANDLE)
         {
-            vkDestroyBuffer(ctx.Device, VertexBuffer, nullptr);
-            vkFreeMemory(ctx.Device, VertexMemory, nullptr);
+            vkDestroyBuffer(ctx.Device.Handle, VertexBuffer, nullptr);
+            vkFreeMemory(ctx.Device.Handle, VertexMemory, nullptr);
         }
         if (IndexBuffer != VK_NULL_HANDLE)
         {
-            vkDestroyBuffer(ctx.Device, IndexBuffer, nullptr);
-            vkFreeMemory(ctx.Device, IndexMemory, nullptr);
+            vkDestroyBuffer(ctx.Device.Handle, IndexBuffer, nullptr);
+            vkFreeMemory(ctx.Device.Handle, IndexMemory, nullptr);
         }
 
         VertexBuffer = VK_NULL_HANDLE;
@@ -71,9 +71,9 @@ namespace Twisted
                          stagingBuf, stagingMem);
 
         void* data = nullptr;
-        vkMapMemory(ctx.Device, stagingMem, 0, vertSize, 0, &data);
+        vkMapMemory(ctx.Device.Handle, stagingMem, 0, vertSize, 0, &data);
         memcpy(data, packedData.VertexBuffer.data(), vertSize);
-        vkUnmapMemory(ctx.Device, stagingMem);
+        vkUnmapMemory(ctx.Device.Handle, stagingMem);
 
         ctx.CreateBuffer(vertSize,
                          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -87,8 +87,8 @@ namespace Twisted
             ctx.EndSingleTimeCommands(cmd);
         }
 
-        vkDestroyBuffer(ctx.Device, stagingBuf, nullptr);
-        vkFreeMemory(ctx.Device, stagingMem, nullptr);
+        vkDestroyBuffer(ctx.Device.Handle, stagingBuf, nullptr);
+        vkFreeMemory(ctx.Device.Handle, stagingMem, nullptr);
 
         // --- Index buffer ---
         const VkDeviceSize idxSize = packedData.Indices.size() * sizeof(uint32_t);
@@ -98,9 +98,9 @@ namespace Twisted
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                          stagingBuf, stagingMem);
 
-        vkMapMemory(ctx.Device, stagingMem, 0, idxSize, 0, &data);
+        vkMapMemory(ctx.Device.Handle, stagingMem, 0, idxSize, 0, &data);
         memcpy(data, packedData.Indices.data(), idxSize);
-        vkUnmapMemory(ctx.Device, stagingMem);
+        vkUnmapMemory(ctx.Device.Handle, stagingMem);
 
         ctx.CreateBuffer(idxSize,
                          VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -114,7 +114,7 @@ namespace Twisted
             ctx.EndSingleTimeCommands(cmd);
         }
 
-        vkDestroyBuffer(ctx.Device, stagingBuf, nullptr);
-        vkFreeMemory(ctx.Device, stagingMem, nullptr);
+        vkDestroyBuffer(ctx.Device.Handle, stagingBuf, nullptr);
+        vkFreeMemory(ctx.Device.Handle, stagingMem, nullptr);
     }
 }

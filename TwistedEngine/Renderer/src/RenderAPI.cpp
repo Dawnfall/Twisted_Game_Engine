@@ -1,4 +1,5 @@
 #include "RenderAPI.h"
+#include "RenderConstants.h"
 #include "VulkanContext.h"
 #include "FrameBuffer.h"
 #define GLFW_INCLUDE_NONE
@@ -10,6 +11,8 @@
 #include "Material.h"
 #include "Shader.h"
 #include "Mesh.h"
+#include "DebugDraw.h"
+#include "Vulkan/LineRenderer.h"
 #include "Debug/Logger.h"
 
 #include <cstring>
@@ -22,6 +25,7 @@ namespace Twisted::Render
     static bool     s_cameraPassActive  = false;  // true between BeginCameraPass and EndCameraPass
     static bool     s_rebuildPending    = false;
     static int      s_cameraSlot        = 0;      // per-frame camera index (reset each BeginFrame)
+    static VK::LineRenderer s_lineRenderer;
 
     void Init() {}
 
@@ -30,6 +34,7 @@ namespace Twisted::Render
     void CreateContext(Window* window)
     {
         VK::VulkanContext::Init(static_cast<GLFWwindow*>(window->GetRawPointer()));
+        s_lineRenderer.Init();
     }
 
     void EnableDepthTest([[maybe_unused]] bool doTest)  {}
@@ -63,23 +68,23 @@ namespace Twisted::Render
 
         const uint32_t frame = ctx.CurrentFrame;
 
-        vkWaitForFences(ctx.Device, 1, &ctx.InFlightFences[frame], VK_TRUE, UINT64_MAX);
+        vkWaitForFences(ctx.Device.Handle, 1, &ctx.Commands.InFlightFences[frame], VK_TRUE, UINT64_MAX);
 
         // Rebuild if a previous present returned SUBOPTIMAL (e.g. after maximize).
         if (s_rebuildPending)
         {
             s_rebuildPending = false;
-            ctx.RebuildSwapchain(ctx.SwapchainExtent.width, ctx.SwapchainExtent.height);
+            ctx.RebuildSwapchain(ctx.Swapchain.Extent.width, ctx.Swapchain.Extent.height);
             return;
         }
 
-        VkResult result = vkAcquireNextImageKHR(ctx.Device, ctx.Swapchain, UINT64_MAX,
-                                                ctx.ImageAvailableSemaphores[frame],
+        VkResult result = vkAcquireNextImageKHR(ctx.Device.Handle, ctx.Swapchain.Handle, UINT64_MAX,
+                                                ctx.Commands.ImageAvailableSemaphores[frame],
                                                 VK_NULL_HANDLE, &s_imageIndex);
         if (result == VK_ERROR_OUT_OF_DATE_KHR)
         {
             // Leave fence signaled so next BeginFrame doesn't deadlock on vkWaitForFences
-            ctx.RebuildSwapchain(ctx.SwapchainExtent.width, ctx.SwapchainExtent.height);
+            ctx.RebuildSwapchain(ctx.Swapchain.Extent.width, ctx.Swapchain.Extent.height);
             return;
         }
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -88,9 +93,9 @@ namespace Twisted::Render
             return;
         }
 
-        vkResetFences(ctx.Device, 1, &ctx.InFlightFences[frame]);
+        vkResetFences(ctx.Device.Handle, 1, &ctx.Commands.InFlightFences[frame]);
 
-        VkCommandBuffer cmd = ctx.CommandBuffers[frame];
+        VkCommandBuffer cmd = ctx.Commands.Buffers[frame];
         vkResetCommandBuffer(cmd, 0);
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -106,22 +111,22 @@ namespace Twisted::Render
         //
         // VkRenderPassBeginInfo rpBegin{};
         // rpBegin.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        // rpBegin.renderPass        = ctx.RenderPass;
-        // rpBegin.framebuffer       = ctx.SwapchainFramebuffers[s_imageIndex];
+        // rpBegin.renderPass        = ctx.Swapchain.RenderPass;
+        // rpBegin.framebuffer       = ctx.Swapchain.Framebuffers[s_imageIndex];
         // rpBegin.renderArea.offset = { 0, 0 };
-        // rpBegin.renderArea.extent = ctx.SwapchainExtent;
+        // rpBegin.renderArea.extent = ctx.Swapchain.Extent;
         // rpBegin.clearValueCount   = static_cast<uint32_t>(clearValues.size());
         // rpBegin.pClearValues      = clearValues.data();
         //
         // vkCmdBeginRenderPass(cmd, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
         //
         // VkViewport viewport{};
-        // viewport.width    = static_cast<float>(ctx.SwapchainExtent.width);
-        // viewport.height   = static_cast<float>(ctx.SwapchainExtent.height);
+        // viewport.width    = static_cast<float>(ctx.Swapchain.Extent.width);
+        // viewport.height   = static_cast<float>(ctx.Swapchain.Extent.height);
         // viewport.maxDepth = 1.0f;
         // vkCmdSetViewport(cmd, 0, 1, &viewport);
         //
-        // VkRect2D scissor{ { 0, 0 }, ctx.SwapchainExtent };
+        // VkRect2D scissor{ { 0, 0 }, ctx.Swapchain.Extent };
         // vkCmdSetScissor(cmd, 0, 1, &scissor);
         //
         // s_frameActive = true;
@@ -138,7 +143,7 @@ namespace Twisted::Render
         auto& ctx = VK::VulkanContext::Get();
         if (!ctx.IsReady()) return;
 
-        VkCommandBuffer cmd = ctx.CommandBuffers[ctx.CurrentFrame];
+        VkCommandBuffer cmd = ctx.Commands.Buffers[ctx.CurrentFrame];
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color        = {{ 0.0f, 0.0f, 0.0f, 1.0f }};
@@ -146,22 +151,22 @@ namespace Twisted::Render
 
         VkRenderPassBeginInfo rpBegin{};
         rpBegin.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        rpBegin.renderPass        = ctx.RenderPass;
-        rpBegin.framebuffer       = ctx.SwapchainFramebuffers[s_imageIndex];
+        rpBegin.renderPass        = ctx.Swapchain.RenderPass;
+        rpBegin.framebuffer       = ctx.Swapchain.Framebuffers[s_imageIndex];
         rpBegin.renderArea.offset = { 0, 0 };
-        rpBegin.renderArea.extent = ctx.SwapchainExtent;
+        rpBegin.renderArea.extent = ctx.Swapchain.Extent;
         rpBegin.clearValueCount   = static_cast<uint32_t>(clearValues.size());
         rpBegin.pClearValues      = clearValues.data();
 
         vkCmdBeginRenderPass(cmd, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport{};
-        viewport.width    = static_cast<float>(ctx.SwapchainExtent.width);
-        viewport.height   = static_cast<float>(ctx.SwapchainExtent.height);
+        viewport.width    = static_cast<float>(ctx.Swapchain.Extent.width);
+        viewport.height   = static_cast<float>(ctx.Swapchain.Extent.height);
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-        VkRect2D scissor{ { 0, 0 }, ctx.SwapchainExtent };
+        VkRect2D scissor{ { 0, 0 }, ctx.Swapchain.Extent };
         vkCmdSetScissor(cmd, 0, 1, &scissor);
 
         s_frameActive = true;
@@ -179,7 +184,7 @@ namespace Twisted::Render
         auto& ctx = VK::VulkanContext::Get();
         if (!ctx.IsReady()) return;
 
-        VkCommandBuffer cmd = ctx.CommandBuffers[ctx.CurrentFrame];
+        VkCommandBuffer cmd = ctx.Commands.Buffers[ctx.CurrentFrame];
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color        = {{ clearColor.r, clearColor.g, clearColor.b, clearColor.a }};
@@ -222,7 +227,7 @@ namespace Twisted::Render
         auto& ctx = VK::VulkanContext::Get();
         if (!ctx.IsReady()) return;
 
-        VkCommandBuffer cmd = ctx.CommandBuffers[ctx.CurrentFrame];
+        VkCommandBuffer cmd = ctx.Commands.Buffers[ctx.CurrentFrame];
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color        = {{ clearColor.r, clearColor.g, clearColor.b, clearColor.a }};
@@ -260,7 +265,7 @@ namespace Twisted::Render
     {
         if (!s_cameraPassActive) return;
         auto& ctx = VK::VulkanContext::Get();
-        vkCmdEndRenderPass(ctx.CommandBuffers[ctx.CurrentFrame]);
+        vkCmdEndRenderPass(ctx.Commands.Buffers[ctx.CurrentFrame]);
         s_cameraPassActive = false;
     }
 
@@ -274,24 +279,24 @@ namespace Twisted::Render
         if (!ctx.IsReady() || !s_cameraPassActive) return;
 
         const uint32_t frame = ctx.CurrentFrame;
-        VkCommandBuffer cmd  = ctx.CommandBuffers[frame];
+        VkCommandBuffer cmd  = ctx.Commands.Buffers[frame];
 
         // Claim a per-camera slot so each camera writes to its own MVP UBO region.
         // s_cameraSlot is reset to 0 in BeginFrame and wraps at MaxCamerasPerFrame.
-        const int      slot    = s_cameraSlot < VK::MaxCamerasPerFrame ? s_cameraSlot++ : VK::MaxCamerasPerFrame - 1;
-        const int      descIdx = static_cast<int>(frame) * VK::MaxCamerasPerFrame + slot;
+        const int      slot    = s_cameraSlot < MaxCamerasPerFrame ? s_cameraSlot++ : MaxCamerasPerFrame - 1;
+        const int      descIdx = static_cast<int>(frame) * MaxCamerasPerFrame + slot;
 
-        if (descIdx >= static_cast<int>(ctx.GlobalDescSets.size()) ||
-            ctx.GlobalDescSets[descIdx] == VK_NULL_HANDLE)
+        if (descIdx >= static_cast<int>(ctx.Descriptors.GlobalSets.size()) ||
+            ctx.Descriptors.GlobalSets[descIdx] == VK_NULL_HANDLE)
             return;
 
         // Update lights UBO (shared across all cameras this frame — last write wins, that's fine)
-        if (ctx.LightsUBOMapped[frame])
+        if (ctx.Descriptors.LightsUBOMapped[frame])
         {
             ShaderLightsBuffer lights{};
-            lights.dirLightCount   = static_cast<int>(context.lightData.dirLights.size());
-            lights.pointLightCount = static_cast<int>(context.lightData.pointLights.size());
-            lights.spotLightCount  = static_cast<int>(context.lightData.spotLights.size());
+            lights.dirLightCount   = std::min(static_cast<int>(context.lightData.dirLights.size()),   static_cast<int>(kMaxDirLights));
+            lights.pointLightCount = std::min(static_cast<int>(context.lightData.pointLights.size()), static_cast<int>(kMaxPointLights));
+            lights.spotLightCount  = std::min(static_cast<int>(context.lightData.spotLights.size()),  static_cast<int>(kMaxSpotLights));
             lights.ambientLight    = context.lightData.ambient;
 
             for (int i = 0; i < lights.dirLightCount; ++i)
@@ -301,17 +306,17 @@ namespace Twisted::Render
             for (int i = 0; i < lights.spotLightCount; ++i)
                 lights.spotLights[i] = context.lightData.spotLights[i];
 
-            memcpy(ctx.LightsUBOMapped[frame], &lights, sizeof(lights));
+            memcpy(ctx.Descriptors.LightsUBOMapped[frame], &lights, sizeof(lights));
         }
 
         // Write VP into this camera's dedicated slot — never overwrites another camera's data.
-        if (ctx.MvpUBOMapped[frame])
+        if (ctx.Descriptors.MvpUBOMapped[frame])
         {
             ShaderMVPBuffer vp{};
             vp.ViewMatrix       = camData.viewMatrix;
             vp.ProjectionMatrix = camData.projectionMatrix;
             vp.CameraPosition   = Vec4f(camData.cameraPosition, 0.0f);
-            char* dst = static_cast<char*>(ctx.MvpUBOMapped[frame]) + slot * ctx.MvpSlotStride;
+            char* dst = static_cast<char*>(ctx.Descriptors.MvpUBOMapped[frame]) + slot * ctx.Descriptors.MvpSlotStride;
             memcpy(dst, &vp, sizeof(vp));
         }
 
@@ -328,7 +333,7 @@ namespace Twisted::Render
 
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     shader->PipelineLayout, 0, 1,
-                                    &ctx.GlobalDescSets[descIdx], 0, nullptr);
+                                    &ctx.Descriptors.GlobalSets[descIdx], 0, nullptr);
 
             if (!modelData.material->TextureDescSets.empty())
                 vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -350,13 +355,16 @@ namespace Twisted::Render
                              static_cast<uint32_t>(modelData.mesh->GetIndexCount()),
                              1, 0, 0, 0);
         }
+
+        s_lineRenderer.Render(cmd, ctx.Descriptors.GlobalSets[descIdx]);
     }
 
     // -----------------------------------------------------------------------
-    // PrepareRender — flush material uniforms before the command buffer opens
+    // PrepareRender — flush material uniforms (safe only after fence is waited)
     // -----------------------------------------------------------------------
     void PrepareRender(const RenderContext& context)
     {
+        if (!s_cmdBufferActive) return;
         for (const auto& modelData : context.modelDatas)
             if (modelData.material)
                 modelData.material->ApplyUniforms();
@@ -371,15 +379,15 @@ namespace Twisted::Render
         if (!ctx.IsReady() || !s_frameActive) return;
 
         const uint32_t frame = ctx.CurrentFrame;
-        VkCommandBuffer cmd  = ctx.CommandBuffers[frame];
+        VkCommandBuffer cmd  = ctx.Commands.Buffers[frame];
 
         // Update lights UBO
-        if (!context.camDatas.empty() && ctx.LightsUBOMapped[frame])
+        if (!context.camDatas.empty() && ctx.Descriptors.LightsUBOMapped[frame])
         {
             ShaderLightsBuffer lights{};
-            lights.dirLightCount   = static_cast<int>(context.lightData.dirLights.size());
-            lights.pointLightCount = static_cast<int>(context.lightData.pointLights.size());
-            lights.spotLightCount  = static_cast<int>(context.lightData.spotLights.size());
+            lights.dirLightCount   = std::min(static_cast<int>(context.lightData.dirLights.size()),   static_cast<int>(kMaxDirLights));
+            lights.pointLightCount = std::min(static_cast<int>(context.lightData.pointLights.size()), static_cast<int>(kMaxPointLights));
+            lights.spotLightCount  = std::min(static_cast<int>(context.lightData.spotLights.size()),  static_cast<int>(kMaxSpotLights));
             lights.ambientLight    = context.lightData.ambient;
 
             for (int i = 0; i < lights.dirLightCount; ++i)
@@ -389,20 +397,20 @@ namespace Twisted::Render
             for (int i = 0; i < lights.spotLightCount; ++i)
                 lights.spotLights[i] = context.lightData.spotLights[i];
 
-            memcpy(ctx.LightsUBOMapped[frame], &lights, sizeof(lights));
+            memcpy(ctx.Descriptors.LightsUBOMapped[frame], &lights, sizeof(lights));
         }
 
         // Recording — descriptor sets must already be up-to-date (call PrepareRender first).
         for (const auto& camData : context.camDatas)
         {
             // Write VP data once per camera — model matrix is a per-draw push constant.
-            if (ctx.MvpUBOMapped[frame])
+            if (ctx.Descriptors.MvpUBOMapped[frame])
             {
                 ShaderMVPBuffer vp{};
                 vp.ViewMatrix       = camData.viewMatrix;
                 vp.ProjectionMatrix = camData.projectionMatrix;
                 vp.CameraPosition   = Vec4f(camData.cameraPosition, 0.0f);
-                memcpy(ctx.MvpUBOMapped[frame], &vp, sizeof(vp));
+                memcpy(ctx.Descriptors.MvpUBOMapped[frame], &vp, sizeof(vp));
             }
 
             for (const auto& modelData : context.modelDatas)
@@ -418,7 +426,7 @@ namespace Twisted::Render
 
                 vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
                                         shader->PipelineLayout, 0, 1,
-                                        &ctx.GlobalDescSets[frame], 0, nullptr);
+                                        &ctx.Descriptors.GlobalSets[frame], 0, nullptr);
 
                 if (!modelData.material->TextureDescSets.empty())
                     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -454,14 +462,14 @@ namespace Twisted::Render
         s_cmdBufferActive = false;
 
         const uint32_t frame  = ctx.CurrentFrame;
-        VkCommandBuffer cmd   = ctx.CommandBuffers[frame];
+        VkCommandBuffer cmd   = ctx.Commands.Buffers[frame];
 
         vkCmdEndRenderPass(cmd);
         vkEndCommandBuffer(cmd);
 
-        VkSemaphore          waitSems[]   = { ctx.ImageAvailableSemaphores[frame] };
+        VkSemaphore          waitSems[]   = { ctx.Commands.ImageAvailableSemaphores[frame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        VkSemaphore          signalSems[] = { ctx.RenderFinishedSemaphores[s_imageIndex] };
+        VkSemaphore          signalSems[] = { ctx.Commands.RenderFinishedSemaphores[s_imageIndex] };
 
         VkSubmitInfo submit{};
         submit.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -473,7 +481,7 @@ namespace Twisted::Render
         submit.signalSemaphoreCount = 1;
         submit.pSignalSemaphores    = signalSems;
 
-        if (vkQueueSubmit(ctx.GraphicsQueue, 1, &submit, ctx.InFlightFences[frame]) != VK_SUCCESS)
+        if (vkQueueSubmit(ctx.Device.GraphicsQueue, 1, &submit, ctx.Commands.InFlightFences[frame]) != VK_SUCCESS)
             TWISTED_ERROR("[Vulkan] Failed to submit draw command buffer");
 
         VkPresentInfoKHR presentInfo{};
@@ -481,21 +489,22 @@ namespace Twisted::Render
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores    = signalSems;
         presentInfo.swapchainCount     = 1;
-        presentInfo.pSwapchains        = &ctx.Swapchain;
+        presentInfo.pSwapchains        = &ctx.Swapchain.Handle;
         presentInfo.pImageIndices      = &s_imageIndex;
 
-        VkResult result = vkQueuePresentKHR(ctx.PresentQueue, &presentInfo);
+        VkResult result = vkQueuePresentKHR(ctx.Device.PresentQueue, &presentInfo);
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
         {
             TWISTED_WARN("[Vulkan] Swapchain suboptimal — rebuild on next frame");
             s_rebuildPending = true;
         }
 
-        ctx.CurrentFrame = (ctx.CurrentFrame + 1) % VK::FramesInFlight;
+        ctx.CurrentFrame = (ctx.CurrentFrame + 1) % FramesInFlight;
     }
 
     void Shutdown()
     {
+        s_lineRenderer.Shutdown();
         VK::VulkanContext::Get().Shutdown();
     }
 }

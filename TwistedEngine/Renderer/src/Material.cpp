@@ -1,6 +1,7 @@
 #include "Material.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "RenderConstants.h"
 #include "VulkanContext.h"
 
 #include <variant>
@@ -15,42 +16,42 @@ namespace Twisted
 		if (!m_shader || m_shader->TextureCount == 0) return;
 
 		auto& ctx = VK::VulkanContext::Get();
-		if (ctx.Device == VK_NULL_HANDLE) return;
+		if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
 		VkDescriptorPoolSize poolSize{};
 		poolSize.type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSize.descriptorCount = m_shader->TextureCount * VK::FramesInFlight;
+		poolSize.descriptorCount = m_shader->TextureCount * Render::FramesInFlight;
 
 		VkDescriptorPoolCreateInfo poolCI{};
 		poolCI.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolCI.poolSizeCount = 1;
 		poolCI.pPoolSizes    = &poolSize;
-		poolCI.maxSets       = VK::FramesInFlight;
+		poolCI.maxSets       = Render::FramesInFlight;
 
-		if (vkCreateDescriptorPool(ctx.Device, &poolCI, nullptr, &m_textureDescPool) != VK_SUCCESS)
+		if (vkCreateDescriptorPool(ctx.Device.Handle, &poolCI, nullptr, &m_textureDescPool) != VK_SUCCESS)
 			throw std::runtime_error("[Vulkan] Failed to create material texture descriptor pool");
 
-		std::vector<VkDescriptorSetLayout> layouts(VK::FramesInFlight, m_shader->TextureDescLayout);
-		TextureDescSets.resize(VK::FramesInFlight);
+		std::vector<VkDescriptorSetLayout> layouts(Render::FramesInFlight, m_shader->TextureDescLayout);
+		TextureDescSets.resize(Render::FramesInFlight);
 
 		VkDescriptorSetAllocateInfo ai{};
 		ai.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		ai.descriptorPool     = m_textureDescPool;
-		ai.descriptorSetCount = VK::FramesInFlight;
+		ai.descriptorSetCount = Render::FramesInFlight;
 		ai.pSetLayouts        = layouts.data();
 
-		if (vkAllocateDescriptorSets(ctx.Device, &ai, TextureDescSets.data()) != VK_SUCCESS)
+		if (vkAllocateDescriptorSets(ctx.Device.Handle, &ai, TextureDescSets.data()) != VK_SUCCESS)
 			throw std::runtime_error("[Vulkan] Failed to allocate material texture descriptor sets");
 	}
 
 	void Material::FreeTextureDescSets()
 	{
 		auto& ctx = VK::VulkanContext::Get();
-		if (ctx.Device == VK_NULL_HANDLE) return;
+		if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
 		if (m_textureDescPool != VK_NULL_HANDLE)
 		{
-			vkDestroyDescriptorPool(ctx.Device, m_textureDescPool, nullptr);
+			vkDestroyDescriptorPool(ctx.Device.Handle, m_textureDescPool, nullptr);
 			m_textureDescPool = VK_NULL_HANDLE;
 		}
 		TextureDescSets.clear();

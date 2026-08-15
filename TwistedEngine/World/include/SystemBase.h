@@ -16,10 +16,15 @@ namespace Twisted
 		SystemBase& operator=(const SystemBase&) = default;
 		virtual void Update(float deltaTime) = 0;
 
+		void Pause() { m_paused = true; }
+		void Resume() { m_paused = false; }
+		bool IsPaused() const { return m_paused; }
+
 		World* GetWorld() { return m_world; }
 		const World* GetWorld() const { return m_world; }
 	protected:
 		World* m_world;
+		bool m_paused = false;
 	};
 }
 

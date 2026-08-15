@@ -14,6 +14,7 @@ namespace Twisted { class NameComponent; }
 #include "Utils/YamlUtils.h"
 
 #include <entt/entt.hpp>
+#include <algorithm>
 #include <memory>
 #include <vector>
 #include <string>
@@ -103,6 +104,16 @@ namespace Twisted
 			T* sysPtr = newSys.get();
 			m_systems.emplace_back(std::move(newSys));
 			return *sysPtr;
+		}
+
+		template<SystemType T>
+		void RemoveSystem()
+		{
+			auto it = std::find_if(m_systems.begin(), m_systems.end(), [](const URef<SystemBase>& sys) {
+				return dynamic_cast<T*>(sys.get()) != nullptr;
+			});
+			if (it != m_systems.end())
+				m_systems.erase(it);
 		}
 
 		//********

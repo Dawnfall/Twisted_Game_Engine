@@ -7,17 +7,25 @@ set(RENDERER_SOURCES
     src/RenderAPI.cpp
     src/Shader.cpp
     src/Texture.cpp
+    src/DebugDraw.cpp
     src/VulkanContext.cpp
+    src/Vulkan/VulkanDevice.cpp
+    src/Vulkan/VulkanSwapchain.cpp
+    src/Vulkan/VulkanCommands.cpp
+    src/Vulkan/VulkanDescriptors.cpp
+    src/Vulkan/LineRenderer.cpp
 )
 
 set(RENDERER_HEADERS
     include/BufferGPU.h
+    include/DebugDraw.h
     include/FrameBuffer.h
     include/LightsFunctionality.h
     include/Material.h
     include/Mesh.h
     include/Model.h
     include/RenderAPI.h
+    include/RenderConstants.h
     include/RenderService.h
     include/RenderTarget.h
     include/Shader.h
@@ -35,6 +43,11 @@ set(RENDERER_HEADERS
     include/Data/ShaderLayouts.h
     include/Data/TextureData.h
         include/VulkanContext.h
+    include/Vulkan/VulkanDevice.h
+    include/Vulkan/VulkanSwapchain.h
+    include/Vulkan/VulkanCommands.h
+    include/Vulkan/VulkanDescriptors.h
+    include/Vulkan/LineRenderer.h
 )
 
 source_group(

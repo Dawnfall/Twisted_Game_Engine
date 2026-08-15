@@ -1,5 +1,6 @@
 #include "RenderService.h"
 #include "RenderAPI.h"
+#include "DebugDraw.h"
 #include "FrameBuffer.h"
 #include "Input.h"
 #include "Application/Application.h"
@@ -80,7 +81,7 @@ namespace Twisted
 
 	void RenderService::WaitIdle() const
 	{
-		vkDeviceWaitIdle(VK::VulkanContext::Get().Device);
+		vkDeviceWaitIdle(VK::VulkanContext::Get().Device.Handle);
 	}
 
 	void RenderService::Render()
@@ -112,6 +113,9 @@ namespace Twisted
 					Twisted::Render::ForwardRenderCamera(ctx, camData);
 					Twisted::Render::EndCameraPass();
 				}
+
+		// Lines have been rendered to all cameras — reset for next frame's accumulation.
+		DebugDraw::Clear();
 
 		Twisted::Render::BeginSwapchainPass();
 

@@ -1,4 +1,4 @@
-#include "Utils/FolderWatcher.h"
+#include "FolderWatcher.h"
 
 #ifdef _WIN32
 #include <Windows.h>

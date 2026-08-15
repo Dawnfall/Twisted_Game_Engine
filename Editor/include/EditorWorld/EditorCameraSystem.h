@@ -1,16 +1,15 @@
 #pragma once
-#include "SystemBase.h"
+#include "WorldRegistry.h"
 #include "Components/CCamera.h"
 #include "Components/CTransform.h"
-#include "World.h"
-
 
 namespace Twisted::Editor
 {
-	class EditorCameraSystem :public SystemBase
+	class EditorCameraSystem : public SystemBase
 	{
+		TCLASS_BODY()
 	public:
-		EditorCameraSystem(World* world) :SystemBase(world) {}
+		EditorCameraSystem(World* world) : SystemBase(world) {}
 
 		void Update(float deltaTime)override
 		{

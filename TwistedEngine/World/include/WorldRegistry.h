@@ -222,10 +222,28 @@ namespace Twisted
 	};
 }
 
+// CRTP base for systems. Inherit as: class MySystem : public Twisted::TSystem<MySystem>
+// Provides a static AddToWorld(World&) factory without any macro arguments.
+// twistedgen.py recognises TSystem<T> as the system base class.
+namespace Twisted
+{
+    template<typename Derived>
+    class TSystem : public SystemBase
+    {
+    public:
+        using SystemBase::SystemBase;
+
+        static Derived& AddToWorld(World& world)
+        {
+            return world.AddSystem<Derived>();
+        }
+    };
+}
+
 // Place inside a class/struct body to mark it for code generation by twistedgen.py.
 // The generator finds the enclosing class declaration automatically — no arguments needed.
 // Dissolves to nothing at compile time; all output goes to the .gen.cpp file.
-#define TCLASS_BODY()
+#define TCLASS_BODY(...)
 
 // Marks a field for code generation by twistedgen.py.
 // Dissolves to nothing at compile time; the .gen.cpp file provides all registrations.

@@ -225,7 +225,8 @@ namespace Twisted
 	template<>
 	inline void OnDestroyComponent(TransformComponent& transform)
 	{
-		for (EntityID child : transform.GetChildrenIDs())
+		std::vector<EntityID> childrenCopy = transform.GetChildrenIDs();
+		for (EntityID child : childrenCopy)
 			transform.GetWorld()->DestroyEntity(child);
 
 		transform.Unparent(transform);

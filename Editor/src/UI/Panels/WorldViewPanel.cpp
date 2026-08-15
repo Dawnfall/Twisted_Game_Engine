@@ -1,4 +1,4 @@
-#include "UI/Panels/WorldViewPanel.h"
+﻿#include "UI/Panels/WorldViewPanel.h"
 
 #include "EditorApp/EditorRegistry.h"
 #include "UI/ImguiExtensions.h"
@@ -184,22 +184,40 @@ namespace Twisted::Editor
 
 					Vec3f newPos = Vec3f(m[3]);
 
-					// Extract scale from column lengths, then normalise to get pure rotation matrix
+					// Extract scale from column lengths; a zero-scale column is degenerate —
+					// rotation cannot be recovered from it, so fall back to the existing rotation.
 					Vec3f newScale = {
 						glm::length(Vec3f(m[0])),
 						glm::length(Vec3f(m[1])),
 						glm::length(Vec3f(m[2]))
 					};
-					Mat3x3f rotMat;
-					rotMat[0] = Vec3f(m[0]) / newScale.x;
-					rotMat[1] = Vec3f(m[1]) / newScale.y;
-					rotMat[2] = Vec3f(m[2]) / newScale.z;
-					Quat newWorldRot = glm::quat_cast(rotMat);
+
+					constexpr float kMinScale = 1e-6f;
+					const bool canExtractRot =
+						newScale.x > kMinScale &&
+						newScale.y > kMinScale &&
+						newScale.z > kMinScale;
+
+					Quat newWorldRot = transform->GetWorldRotation();
+					if (canExtractRot)
+					{
+						Mat3x3f rotMat;
+						rotMat[0] = Vec3f(m[0]) / newScale.x;
+						rotMat[1] = Vec3f(m[1]) / newScale.y;
+						rotMat[2] = Vec3f(m[2]) / newScale.z;
+						newWorldRot = glm::quat_cast(rotMat);
+					}
 
 					const TransformComponent* parent = transform->GetParent();
+					Vec3f parentWorldScale = parent ? parent->GetWorldScale() : Vec3f(1.0f);
+
 					transform->LocalPos   = parent ? parent->WorldToLocalPoint(newPos) : newPos;
 					transform->LocalRot   = parent ? glm::inverse(parent->GetWorldRotation()) * newWorldRot : newWorldRot;
-					transform->LocalScale = parent ? newScale / parent->GetWorldScale() : newScale;
+					transform->LocalScale = {
+						parentWorldScale.x > kMinScale ? newScale.x / parentWorldScale.x : transform->LocalScale.x,
+						parentWorldScale.y > kMinScale ? newScale.y / parentWorldScale.y : transform->LocalScale.y,
+						parentWorldScale.z > kMinScale ? newScale.z / parentWorldScale.z : transform->LocalScale.z,
+					};
 				}
 			}
 		}
@@ -254,6 +272,19 @@ namespace Twisted::Editor
 					ImGui::PopStyleColor();
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip(local ? "Local space (X)" : "Global space (X)");
+			}
+
+			ImGui::SameLine(0, 16);
+			{
+				bool dc = m_editorService->DrawColliders;
+				if (dc)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+				if (ImGui::Button("C##coll", { btnW, 0 }))
+					m_editorService->DrawColliders = !m_editorService->DrawColliders;
+				if (dc)
+					ImGui::PopStyleColor();
+				if (ImGui::IsItemHovered())
+					ImGui::SetTooltip("Draw Colliders");
 			}
 
 			ImGui::SetCursorScreenPos({ panelPos.x + Size.x - btnW - padding, btnY });

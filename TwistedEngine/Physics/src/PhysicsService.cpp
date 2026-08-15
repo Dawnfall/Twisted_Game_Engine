@@ -1,22 +1,26 @@
 #include "PhysicsService.h"
+#include "PhysicsInit.h"
 
 #include <Jolt/Jolt.h>
+#include <Jolt/Core/JobSystem.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/PhysicsSettings.h>
 
 #include <thread>
-#include <Jolt/Physics/PhysicsSettings.h>
 
 JPH_SUPPRESS_WARNINGS
 
-namespace TE::Physics
+namespace Twisted
 {
-    PhysicsService::PhysicsService(Twisted::Application* app, int priority)
+    PhysicsService::PhysicsService(Application* app, int priority)
         : Service(app, priority) {}
 
     PhysicsService::~PhysicsService() = default;
 
     void PhysicsService::OnInit()
     {
+        TE::Physics::Initialize();
+
         m_jobSystem = std::make_unique<JPH::JobSystemThreadPool>(
             JPH::cMaxPhysicsJobs,
             JPH::cMaxPhysicsBarriers,
@@ -24,10 +28,14 @@ namespace TE::Physics
         );
     }
 
-    void PhysicsService::OnFrame() {}
-
     void PhysicsService::OnTerminate()
     {
         m_jobSystem.reset();
+        TE::Physics::Shutdown();
+    }
+
+    JPH::JobSystem& PhysicsService::GetJobSystem()
+    {
+        return *m_jobSystem;
     }
 }

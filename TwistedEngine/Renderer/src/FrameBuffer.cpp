@@ -46,11 +46,11 @@ namespace Twisted
         Depth.Owned->Info = Depth.OwnedDesc;
 
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
         // Borrow the shared offscreen render pass — must NOT be destroyed in OnDestroy.
         // It is compatible with shader pipelines (same R8G8B8A8_UNORM + D24S8 formats).
-        VkRP = ctx.OffscreenRenderPass;
+        VkRP = ctx.Swapchain.OffscreenRenderPass;
 
         // Per-FB render pass creation is commented out. The shared OffscreenRenderPass is used
         // instead so that shader pipelines (created against it) remain render-pass-compatible.
@@ -63,12 +63,12 @@ namespace Twisted
     void Framebuffer::OnDestroy()
     {
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device != VK_NULL_HANDLE)
-            vkDeviceWaitIdle(ctx.Device);
+        if (ctx.Device.Handle != VK_NULL_HANDLE)
+            vkDeviceWaitIdle(ctx.Device.Handle);
 
         // Destroy framebuffer before textures — it references their image views.
-        if (VkFB != VK_NULL_HANDLE && ctx.Device != VK_NULL_HANDLE)
-            vkDestroyFramebuffer(ctx.Device, VkFB, nullptr);
+        if (VkFB != VK_NULL_HANDLE && ctx.Device.Handle != VK_NULL_HANDLE)
+            vkDestroyFramebuffer(ctx.Device.Handle, VkFB, nullptr);
         VkFB = VK_NULL_HANDLE;
 
         TObject::Destroy(Color.Owned.get());
@@ -77,8 +77,8 @@ namespace Twisted
         Depth.Owned = nullptr;
 
         // VkRP is borrowed from VulkanContext::OffscreenRenderPass — owned and destroyed there.
-        // if (VkRP != VK_NULL_HANDLE && ctx.Device != VK_NULL_HANDLE)
-        //     vkDestroyRenderPass(ctx.Device, VkRP, nullptr);
+        // if (VkRP != VK_NULL_HANDLE && ctx.Device.Handle != VK_NULL_HANDLE)
+        //     vkDestroyRenderPass(ctx.Device.Handle, VkRP, nullptr);
         VkRP = VK_NULL_HANDLE;
     }
 
@@ -97,17 +97,17 @@ namespace Twisted
             depthTex->Resize(newSize);
 
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE || VkRP == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE || VkRP == VK_NULL_HANDLE) return;
 
         Texture* colorTex = Color.Owned.get();
         Texture* depthTex = Depth.Owned.get();
         if (!colorTex || !depthTex || !colorTex->IsValid() || !depthTex->IsValid()) return;
 
-        vkDeviceWaitIdle(ctx.Device);
+        vkDeviceWaitIdle(ctx.Device.Handle);
 
         if (VkFB != VK_NULL_HANDLE)
         {
-            vkDestroyFramebuffer(ctx.Device, VkFB, nullptr);
+            vkDestroyFramebuffer(ctx.Device.Handle, VkFB, nullptr);
             VkFB = VK_NULL_HANDLE;
         }
 
@@ -122,7 +122,7 @@ namespace Twisted
         fbCI.height          = static_cast<uint32_t>(newSize.y);
         fbCI.layers          = 1;
 
-        if (vkCreateFramebuffer(ctx.Device, &fbCI, nullptr, &VkFB) != VK_SUCCESS)
+        if (vkCreateFramebuffer(ctx.Device.Handle, &fbCI, nullptr, &VkFB) != VK_SUCCESS)
             throw std::runtime_error("[Vulkan] Failed to create framebuffer");
 
         Version++;

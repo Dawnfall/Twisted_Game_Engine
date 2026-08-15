@@ -20,6 +20,7 @@ set(EDITOR_SOURCES
     include/UI/Components/CNamePainter.h
     include/UI/Components/CRendererPainter.h
     include/UI/Components/CTransformPainter.h
+    include/UI/Components/ColliderPainter.h
     include/UI/Details/EntityPainter.h
     include/UI/Details/MaterialPainter.h
     include/UI/Details/ShaderPainter.h
@@ -42,6 +43,7 @@ set(EDITOR_SOURCES
     src/UI/Components/CNamePainter.cpp
     src/UI/Components/CRendererPainter.cpp
     src/UI/Components/CTransformPainter.cpp
+    src/UI/Components/ColliderPainter.cpp
     src/UI/GenericComponentPainter.cpp
     src/UI/Details/EntityPainter.cpp
     src/UI/Details/MaterialPainter.cpp

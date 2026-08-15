@@ -27,15 +27,15 @@ namespace Im
 		auto& ctx = Twisted::VK::VulkanContext::Get();
 		ImGui_ImplVulkan_InitInfo info{};
 		info.ApiVersion     = VK_API_VERSION_1_3;
-		info.Instance       = ctx.Instance;
-		info.PhysicalDevice = ctx.PhysicalDevice;
-		info.Device         = ctx.Device;
-		info.QueueFamily    = ctx.Queues.Graphics;
-		info.Queue          = ctx.GraphicsQueue;
-		info.DescriptorPool = ctx.GlobalDescPool;
+		info.Instance       = ctx.Device.Instance;
+		info.PhysicalDevice = ctx.Device.Physical;
+		info.Device         = ctx.Device.Handle;
+		info.QueueFamily    = ctx.Device.Queues.Graphics;
+		info.Queue          = ctx.Device.GraphicsQueue;
+		info.DescriptorPool = ctx.Descriptors.GlobalPool;
 		info.MinImageCount  = 2;
-		info.ImageCount     = static_cast<uint32_t>(ctx.SwapchainImages.size());
-		info.PipelineInfoMain.RenderPass = ctx.RenderPass;
+		info.ImageCount     = static_cast<uint32_t>(ctx.Swapchain.Images.size());
+		info.PipelineInfoMain.RenderPass = ctx.Swapchain.RenderPass;
 		ImGui_ImplVulkan_Init(&info);
 
 		ImGuiIO& io = ImGui::GetIO();
@@ -56,8 +56,8 @@ namespace Im
 	void Terminate()
 	{
 		auto& ctx = Twisted::VK::VulkanContext::Get();
-		if (ctx.Device != VK_NULL_HANDLE)
-			vkDeviceWaitIdle(ctx.Device);
+		if (ctx.Device.Handle != VK_NULL_HANDLE)
+			vkDeviceWaitIdle(ctx.Device.Handle);
 
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();

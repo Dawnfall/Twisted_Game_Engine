@@ -1,24 +1,36 @@
 #pragma once
 
+#include "AppCore.h"
 #include "Application/Service.h"
+
+#include <Jolt/Jolt.h>
 
 #include <memory>
 
-namespace JPH { class JobSystemThreadPool; }
+namespace JPH { class JobSystem; }
 
-namespace TE::Physics
+namespace Twisted
 {
-    class PhysicsService : public Twisted::Service
+    struct TWISTED_API PhysicsConfig
+    {
+        float fixedStep = 1.0f / 60.0f;
+    };
+
+    class TWISTED_API PhysicsService : public Service
     {
     public:
-        PhysicsService(Twisted::Application* app, int priority);
+        PhysicsService(Application* app, int priority);
         ~PhysicsService() override;
 
         void OnInit()      override;
-        void OnFrame()     override;
         void OnTerminate() override;
 
+        JPH::JobSystem&      GetJobSystem();
+        PhysicsConfig&       GetConfig()       { return m_config; }
+        const PhysicsConfig& GetConfig() const { return m_config; }
+
     private:
-        std::unique_ptr<JPH::JobSystemThreadPool> m_jobSystem;
+        PhysicsConfig                   m_config;
+        std::unique_ptr<JPH::JobSystem> m_jobSystem;
     };
 }

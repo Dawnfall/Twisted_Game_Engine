@@ -68,14 +68,13 @@ namespace Twisted::Collections
                 int c = row2 + j;
                 int d = row2 + j + 1;
 
-                // Two triangles per quad, CCW
                 sphereData.Indices.push_back(a);
-                sphereData.Indices.push_back(c);
                 sphereData.Indices.push_back(b);
+                sphereData.Indices.push_back(c);
 
                 sphereData.Indices.push_back(b);
-                sphereData.Indices.push_back(c);
                 sphereData.Indices.push_back(d);
+                sphereData.Indices.push_back(c);
             }
         }
 

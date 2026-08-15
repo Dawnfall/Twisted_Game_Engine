@@ -69,7 +69,8 @@ namespace Twisted::Editor
 		unsigned int m_clearBits = 0;
 
 	public:
-		Vec4f WorldViewRect = {};  // screen-space xmin, ymin, xmax, ymax; zero when panel not visible
+		Vec4f WorldViewRect  = {};  // screen-space xmin, ymin, xmax, ymax; zero when panel not visible
+		bool  DrawColliders  = false;
 
 		Event<fs::path> MakeNewFileEvent; //extension
 		Event<> ConfirmedQuitEvent;

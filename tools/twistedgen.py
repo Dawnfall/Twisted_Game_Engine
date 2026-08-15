@@ -25,6 +25,7 @@ from typing import List, Optional, Tuple
 BASE_KIND_MAP = {
     "AComponent":  "Component",
     "SystemBase":  "System",
+    "TSystem":     "System",   # CRTP variant — TSystem<Derived> strips to TSystem
     "ManagerBase": "Manager",
 }
 
@@ -195,10 +196,11 @@ def find_tproperties(body: str) -> List[PropertyDef]:
 
 
 def find_annotated_classes(src: str) -> List[ClassInfo]:
-    """Return every class/struct that contains TCLASS_BODY() in its body."""
+    """Return every class/struct that contains TCLASS_BODY() or TCLASS_BODY(ClassName) in its body."""
     classes = []
 
-    for body_m in re.finditer(r"\bTCLASS_BODY\s*\(\s*\)", src):
+    # group(1): optional ClassName argument (None for zero-arg form)
+    for body_m in re.finditer(r"\bTCLASS_BODY\s*\([^)]*\)", src):
         body_pos = body_m.start()
         ns = get_namespace_at(src, body_pos)
 
@@ -232,6 +234,7 @@ def find_annotated_classes(src: str) -> List[ClassInfo]:
         for part in inh_part.split(","):
             part = re.sub(r"\b(?:public|protected|private|virtual)\b", "", part).strip()
             base = part.split("::")[-1].strip()
+            base = re.sub(r"<[^>]*>", "", base).strip()  # strip template args: TSystem<X> → TSystem
             if base:
                 bases.append(base)
 

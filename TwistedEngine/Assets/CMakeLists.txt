@@ -4,6 +4,7 @@ set(ASSETS_SOURCES
     src/ImportedAsset.cpp
     src/AssetUuid.cpp
     src/AssetsService.cpp
+    src/FolderWatcher.cpp
     src/Project.cpp
     src/ProjectConfig.cpp
     src/Importers/MaterialImporter.cpp
@@ -22,6 +23,7 @@ set(ASSETS_HEADERS
     include/AssetUuid.h
     include/AssetUuidYaml.h
     include/AssetsService.h
+    include/FolderWatcher.h
     include/Project.h
     include/ProjectConfig.h
     include/Importers/MaterialImporter.h

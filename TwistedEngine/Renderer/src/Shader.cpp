@@ -1,6 +1,7 @@
 #include "Shader.h"
 #include "VulkanContext.h"
 #include "RenderAPI.h"
+#include "RenderConstants.h"
 #include "Data/ShaderData.h"
 #include "Data/ShaderLayouts.h"
 #include "Texture.h"
@@ -116,11 +117,11 @@ namespace Twisted
     void Shader::Clear()
     {
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
-        if (TextureDescLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(ctx.Device, TextureDescLayout, nullptr);
-        if (Pipeline          != VK_NULL_HANDLE) vkDestroyPipeline(ctx.Device, Pipeline, nullptr);
-        if (PipelineLayout    != VK_NULL_HANDLE) vkDestroyPipelineLayout(ctx.Device, PipelineLayout, nullptr);
+        if (TextureDescLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(ctx.Device.Handle, TextureDescLayout, nullptr);
+        if (Pipeline          != VK_NULL_HANDLE) vkDestroyPipeline(ctx.Device.Handle, Pipeline, nullptr);
+        if (PipelineLayout    != VK_NULL_HANDLE) vkDestroyPipelineLayout(ctx.Device.Handle, PipelineLayout, nullptr);
 
         Pipeline          = VK_NULL_HANDLE;
         PipelineLayout    = VK_NULL_HANDLE;
@@ -143,7 +144,7 @@ namespace Twisted
         TextureCount     = static_cast<uint32_t>(m_reflection.texIndices.size());
 
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE)
+        if (ctx.Device.Handle == VK_NULL_HANDLE)
         {
             TWISTED_WARN("[Vulkan] Shader created before device — pipeline deferred");
             return;
@@ -161,8 +162,8 @@ namespace Twisted
 
         if (vertSpv.empty() || fragSpv.empty()) return;
 
-        VkShaderModule vertMod = CreateShaderModule(ctx.Device, vertSpv);
-        VkShaderModule fragMod = CreateShaderModule(ctx.Device, fragSpv);
+        VkShaderModule vertMod = CreateShaderModule(ctx.Device.Handle, vertSpv);
+        VkShaderModule fragMod = CreateShaderModule(ctx.Device.Handle, fragSpv);
 
         // --- Descriptor set layout for textures (set 1) ---
         {
@@ -179,14 +180,14 @@ namespace Twisted
             ci.bindingCount = TextureCount;
             ci.pBindings    = texBindings.empty() ? nullptr : texBindings.data();
 
-            if (vkCreateDescriptorSetLayout(ctx.Device, &ci, nullptr, &TextureDescLayout) != VK_SUCCESS)
+            if (vkCreateDescriptorSetLayout(ctx.Device.Handle, &ci, nullptr, &TextureDescLayout) != VK_SUCCESS)
                 throw std::runtime_error("[Vulkan] Failed to create texture descriptor set layout");
         }
 
         // --- Pipeline layout (set 0 = global MVP+Lights, set 1 = textures, push = material params) ---
         {
             std::array<VkDescriptorSetLayout, 2> setLayouts = {
-                ctx.GlobalDescLayout, TextureDescLayout
+                ctx.Descriptors.GlobalLayout, TextureDescLayout
             };
 
             VkPushConstantRange pushRange{};
@@ -201,7 +202,7 @@ namespace Twisted
             ci.pushConstantRangeCount = 1;
             ci.pPushConstantRanges    = &pushRange;
 
-            if (vkCreatePipelineLayout(ctx.Device, &ci, nullptr, &PipelineLayout) != VK_SUCCESS)
+            if (vkCreatePipelineLayout(ctx.Device.Handle, &ci, nullptr, &PipelineLayout) != VK_SUCCESS)
                 throw std::runtime_error("[Vulkan] Failed to create pipeline layout");
         }
 
@@ -285,15 +286,15 @@ namespace Twisted
         pipelineCI.pColorBlendState    = &colorBlend;
         pipelineCI.pDynamicState       = &dynamicState;
         pipelineCI.layout              = PipelineLayout;
-        pipelineCI.renderPass          = ctx.OffscreenRenderPass;
+        pipelineCI.renderPass          = ctx.Swapchain.OffscreenRenderPass;
         pipelineCI.subpass             = 0;
 
-        if (vkCreateGraphicsPipelines(ctx.Device, VK_NULL_HANDLE, 1, &pipelineCI,
+        if (vkCreateGraphicsPipelines(ctx.Device.Handle, VK_NULL_HANDLE, 1, &pipelineCI,
                                       nullptr, &Pipeline) != VK_SUCCESS)
             throw std::runtime_error("[Vulkan] Failed to create graphics pipeline");
 
-        vkDestroyShaderModule(ctx.Device, vertMod, nullptr);
-        vkDestroyShaderModule(ctx.Device, fragMod, nullptr);
+        vkDestroyShaderModule(ctx.Device.Handle, vertMod, nullptr);
+        vkDestroyShaderModule(ctx.Device.Handle, fragMod, nullptr);
 
         TWISTED_INFO("[Vulkan] Pipeline created ({}tex)", TextureCount);
     }
@@ -320,7 +321,7 @@ namespace Twisted
         if (!sets) return;
 
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
         if (!tex || !tex->IsValid()) return;
 
@@ -332,11 +333,11 @@ namespace Twisted
         // While a command buffer is recording, only update the current frame's set.
         // Outside a frame (asset loading, hot-reload), initialize all frames at once.
         const uint32_t first = Render::IsCmdBufferOpen() ? ctx.CurrentFrame : 0;
-        const uint32_t count = Render::IsCmdBufferOpen() ? 1 : VK::FramesInFlight;
+        const uint32_t count = Render::IsCmdBufferOpen() ? 1 : Render::FramesInFlight;
 
         for (uint32_t i = 0; i < count; ++i)
         {
-            uint32_t frame = (first + i) % VK::FramesInFlight;
+            uint32_t frame = (first + i) % Render::FramesInFlight;
             VkWriteDescriptorSet write{};
             write.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             write.dstSet          = sets[frame];
@@ -344,7 +345,7 @@ namespace Twisted
             write.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             write.descriptorCount = 1;
             write.pImageInfo      = &imageInfo;
-            vkUpdateDescriptorSets(ctx.Device, 1, &write, 0, nullptr);
+            vkUpdateDescriptorSets(ctx.Device.Handle, 1, &write, 0, nullptr);
         }
     }
 }

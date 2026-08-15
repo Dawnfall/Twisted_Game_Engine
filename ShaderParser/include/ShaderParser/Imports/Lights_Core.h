@@ -58,8 +58,11 @@ float calcDiffuse(vec3 normal, vec3 lightDir)
 
 float calcSpecular(vec3 normal, vec3 lightDir, vec3 viewDir, float shininess)
 {
-    vec3 H = normalize(normalize(lightDir) + normalize(viewDir));
-    return pow(max(dot(normalize(normal), H), 0.0), shininess);
+    vec3  n     = normalize(normal);
+    vec3  l     = normalize(lightDir);
+    float NdotL = dot(n, l);
+    vec3  H     = normalize(l + normalize(viewDir));
+    return step(0.0, NdotL) * pow(max(dot(n, H), 0.0), shininess);
 }
 
 // Smooth quadratic window: full brightness at center, drops cleanly to 0 at radius.

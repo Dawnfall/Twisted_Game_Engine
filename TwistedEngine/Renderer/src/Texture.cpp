@@ -111,14 +111,14 @@ namespace Twisted
         if (!IsValid()) return;
 
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
-        vkDeviceWaitIdle(ctx.Device);
+        vkDeviceWaitIdle(ctx.Device.Handle);
 
-        if (Sampler   != VK_NULL_HANDLE) vkDestroySampler(ctx.Device, Sampler, nullptr);
-        if (ImageView != VK_NULL_HANDLE) vkDestroyImageView(ctx.Device, ImageView, nullptr);
-        if (Image     != VK_NULL_HANDLE) vkDestroyImage(ctx.Device, Image, nullptr);
-        if (Memory    != VK_NULL_HANDLE) vkFreeMemory(ctx.Device, Memory, nullptr);
+        if (Sampler   != VK_NULL_HANDLE) vkDestroySampler(ctx.Device.Handle, Sampler, nullptr);
+        if (ImageView != VK_NULL_HANDLE) vkDestroyImageView(ctx.Device.Handle, ImageView, nullptr);
+        if (Image     != VK_NULL_HANDLE) vkDestroyImage(ctx.Device.Handle, Image, nullptr);
+        if (Memory    != VK_NULL_HANDLE) vkFreeMemory(ctx.Device.Handle, Memory, nullptr);
 
         Image     = VK_NULL_HANDLE;
         ImageView = VK_NULL_HANDLE;
@@ -157,9 +157,9 @@ namespace Twisted
                          stagingBuf, stagingMem);
 
         void* mapped = nullptr;
-        vkMapMemory(ctx.Device, stagingMem, 0, sz, 0, &mapped);
+        vkMapMemory(ctx.Device.Handle, stagingMem, 0, sz, 0, &mapped);
         memcpy(mapped, data.Data, static_cast<size_t>(sz));
-        vkUnmapMemory(ctx.Device, stagingMem);
+        vkUnmapMemory(ctx.Device.Handle, stagingMem);
 
         ctx.CreateImage(static_cast<uint32_t>(data.Width),
                         static_cast<uint32_t>(data.Height),
@@ -178,11 +178,11 @@ namespace Twisted
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        vkDestroyBuffer(ctx.Device, stagingBuf, nullptr);
-        vkFreeMemory(ctx.Device, stagingMem, nullptr);
+        vkDestroyBuffer(ctx.Device.Handle, stagingBuf, nullptr);
+        vkFreeMemory(ctx.Device.Handle, stagingMem, nullptr);
 
-        CreateImageView(ctx.Device, Image, fmt, VK_IMAGE_ASPECT_COLOR_BIT, ImageView);
-        CreateSampler(ctx.Device, params, Sampler);
+        CreateImageView(ctx.Device.Handle, Image, fmt, VK_IMAGE_ASPECT_COLOR_BIT, ImageView);
+        CreateSampler(ctx.Device.Handle, params, Sampler);
 
         Version++;
     }
@@ -193,9 +193,9 @@ namespace Twisted
         if (Info.Width == newSize.x && Info.Height == newSize.y && IsValid()) return;
 
         auto& ctx = VK::VulkanContext::Get();
-        if (ctx.Device == VK_NULL_HANDLE) return;
+        if (ctx.Device.Handle == VK_NULL_HANDLE) return;
 
-        vkDeviceWaitIdle(ctx.Device);
+        vkDeviceWaitIdle(ctx.Device.Handle);
 
         const bool isDepth = (Info.UsageFlags & TextureUsage_DepthAttachment) != 0;
 
@@ -207,9 +207,9 @@ namespace Twisted
         if (Info.UsageFlags & TextureUsage_TransferSrc)     usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
         if (Info.UsageFlags & TextureUsage_TransferDst)     usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-        if (ImageView != VK_NULL_HANDLE) vkDestroyImageView(ctx.Device, ImageView, nullptr);
-        if (Image     != VK_NULL_HANDLE) vkDestroyImage(ctx.Device, Image, nullptr);
-        if (Memory    != VK_NULL_HANDLE) vkFreeMemory(ctx.Device, Memory, nullptr);
+        if (ImageView != VK_NULL_HANDLE) vkDestroyImageView(ctx.Device.Handle, ImageView, nullptr);
+        if (Image     != VK_NULL_HANDLE) vkDestroyImage(ctx.Device.Handle, Image, nullptr);
+        if (Memory    != VK_NULL_HANDLE) vkFreeMemory(ctx.Device.Handle, Memory, nullptr);
 
         Info.Width  = newSize.x;
         Info.Height = newSize.y;
@@ -220,10 +220,10 @@ namespace Twisted
                         Image, Memory);
 
         VkImageAspectFlags aspect = isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-        CreateImageView(ctx.Device, Image, fmt, aspect, ImageView);
+        CreateImageView(ctx.Device.Handle, Image, fmt, aspect, ImageView);
 
         if (Sampler == VK_NULL_HANDLE)
-            CreateSampler(ctx.Device, Params, Sampler);
+            CreateSampler(ctx.Device.Handle, Params, Sampler);
 
         if (Info.UsageFlags & TextureUsage_Sampled)
             ctx.TransitionImageLayout(Image, fmt,

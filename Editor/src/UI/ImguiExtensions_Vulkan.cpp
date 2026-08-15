@@ -45,7 +45,7 @@ namespace Im
         ImGui::Render();
         auto& ctx = Twisted::VK::VulkanContext::Get();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
-                                        ctx.CommandBuffers[ctx.CurrentFrame]);
+                                        ctx.Commands.Buffers[ctx.CurrentFrame]);
     }
 
     void EndFrame()
@@ -55,7 +55,7 @@ namespace Im
         {
             auto& ctx = Twisted::VK::VulkanContext::Get();
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
-                                            ctx.CommandBuffers[ctx.CurrentFrame]);
+                                            ctx.Commands.Buffers[ctx.CurrentFrame]);
             Twisted::Render::PresentFrame();
         }
     }

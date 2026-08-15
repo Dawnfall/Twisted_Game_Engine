@@ -4,7 +4,6 @@ set(CORE_SOURCES
     src/Debug/Logger.cpp
     src/Serialization/BinSerializer.cpp
     src/Utils/FileUtils.cpp
-    src/Utils/FolderWatcher.cpp
     src/Utils/GlmUtils.cpp
     src/Utils/Utils.cpp
     src/Utils/YamlUtils.cpp
@@ -20,11 +19,9 @@ set(CORE_HEADERS
     include/AppCore.h
     include/Constants.h
     include/Debug/Logger.h
-    include/Utils/AlgebraUtils.h
-    include/Utils/BoundedQueue.h
+        include/Utils/BoundedQueue.h
     include/Utils/Event.h
     include/Utils/FileUtils.h
-    include/Utils/FolderWatcher.h
     include/Utils/GlmUtils.h
     include/Utils/ThreadSafeQueue.h
     include/Utils/Utils.h

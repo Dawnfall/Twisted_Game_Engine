@@ -1,17 +1,15 @@
 set(PHYSICS_SOURCES
     src/PhysicsInit.cpp
     src/PhysicsService.cpp
-    src/PhysicsManager.cpp
+    src/PhysicsSystem.cpp
+    src/Colliders/ColliderComponent.cpp
 )
 
 set(PHYSICS_HEADERS
     include/PhysicsInit.h
     include/PhysicsService.h
-    include/PhysicsManager.h
+    include/PhysicsSystem.h
     include/Colliders/ColliderComponent.h
-    include/Colliders/CSphereCollider.h
-    include/Colliders/CBoxCollider.h
-    include/Colliders/CCapsuleCollider.h
 )
 
 source_group(
@@ -30,6 +28,13 @@ set_target_properties(Physics PROPERTIES
 
 target_include_directories(Physics PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+twisted_gen_target(
+    TARGET       Physics
+    INCLUDE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    GEN_DIR      "${CMAKE_BINARY_DIR}/Generated/Physics"
+    INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 find_package(Jolt CONFIG REQUIRED)
@@ -62,6 +67,8 @@ target_compile_options(Physics PRIVATE
     -Wno-double-promotion
     -Wno-float-equal
     -Wno-switch-default
+    -Wno-global-constructors
+    -Wno-exit-time-destructors
 )
 
 if(TWISTED_WERROR)

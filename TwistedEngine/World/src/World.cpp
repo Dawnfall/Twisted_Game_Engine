@@ -19,9 +19,10 @@ namespace Twisted
 	World::World(const std::string& name) :TObject(name)
 	{
 		for (const auto& entry : WorldRegistry::GetInstance().GetComponentEntries())
-		{
 			entry.second.InitAndDestroyRegisterMethod(*this);
-		}
+
+		for (const auto& entry : WorldRegistry::GetInstance().GetSystemEntries())
+			entry.second.AddSystemMethod(*this);
 	}
 
 	void World::Clear()
@@ -31,7 +32,10 @@ namespace Twisted
 	void World::UpdateFrame(float deltaTime)
 	{
 		for (auto& system : m_systems)
-			system->Update(deltaTime);
+		{
+			if (!system->IsPaused())
+				system->Update(deltaTime);
+		}
 	}
 
 	Entity World::CreateNewEntity()

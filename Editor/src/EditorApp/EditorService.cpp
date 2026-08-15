@@ -16,8 +16,13 @@
 #include "ProjectConfig.h"
 #include "RenderConvert.h"
 #include "RenderAPI.h"
+#include "DebugDraw.h"
+
+#include "Components/CTransform.h"
+#include "Colliders/ColliderComponent.h"
 
 #include <imgui.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Twisted::Editor
 {
@@ -39,7 +44,6 @@ namespace Twisted::Editor
 	{
 		m_editorWorld = NewEditorWorld("Editor World");
 		m_editorCameraEnt = m_editorWorld->CreateNewEntityWithComponents<CameraComponent>();
-		m_editorWorld->AddSystem<EditorCameraSystem>();
 	}
 
 	void EditorService::SaveEditor(Window* window)
@@ -175,6 +179,36 @@ namespace Twisted::Editor
 			}
 			m_renderService->SubmitContext(editorContext);
 		}
+
+		if (DrawColliders && m_gameService->GetGameWorld())
+		{
+			constexpr Vec4f kColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+			auto view = m_gameService->GetGameWorld()->GetView<ColliderComponent, TransformComponent>();
+			for (auto&& [entity, collider, transform] : view.each())
+			{
+				const Vec3f pos = transform.GetWorldPosition();
+				const Quat  rot = transform.GetWorldRotation();
+
+				switch (collider.shape)
+				{
+				case ColliderShape::Box:
+				{
+					Mat4x4f m = glm::translate(Mat4x4f(1), pos)
+					           * glm::mat4_cast(rot)
+					           * glm::scale(Mat4x4f(1), collider.halfExtents);
+					DebugDraw::DrawBox(m, kColor);
+					break;
+				}
+				case ColliderShape::Sphere:
+					DebugDraw::DrawWireSphere(pos, collider.radius, kColor);
+					break;
+				case ColliderShape::Capsule:
+					DebugDraw::DrawWireCapsule(pos, collider.capsuleHalfHeight, collider.radius, kColor, rot);
+					break;
+				}
+			}
+		}
+
 		m_renderService->Render();
 		WorldViewRect = {};
 		Render(m_renderService->GetWindow());

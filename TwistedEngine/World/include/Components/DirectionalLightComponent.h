@@ -12,7 +12,7 @@ namespace Twisted
 	struct TWISTED_API DirectionalLightComponent : public AComponent
 	{
 		TCLASS_BODY()
-		DirectionalLightComponent(Entity e) : AComponent(e), color(0.0f, 0.0f, 0.0f, 0.0f), intensity(1.0f) {}
+		DirectionalLightComponent(Entity e) : AComponent(e), color(1.0f, 1.0f, 1.0f, 1.0f), intensity(1.0f) {}
 
 		TPROPERTY()
 		Vec4f color;

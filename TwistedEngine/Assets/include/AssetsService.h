@@ -8,7 +8,7 @@
 #include "ImportedAsset.h"
 
 #include "Utils/WPtr.h"
-#include "Utils/FolderWatcher.h"
+#include "FolderWatcher.h"
 
 #include <unordered_map>
 #include <filesystem>
